@@ -1,67 +1,54 @@
 package com.beipuo.mekenergistics.client.screen;
 
+import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
-import com.beipuo.mekenergistics.menu.MeMekanismMachineMenu;
+import mekanism.client.gui.GuiConfigurableTile;
+import mekanism.client.gui.element.GuiDumpButton;
+import mekanism.client.gui.element.bar.GuiChemicalBar;
+import mekanism.client.gui.element.bar.GuiVerticalPowerBar;
+import mekanism.client.gui.element.progress.GuiProgress;
+import mekanism.client.gui.element.progress.ProgressType;
+import mekanism.client.gui.element.tab.GuiEnergyTab;
+import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MeMekanismMachineScreen extends AbstractContainerScreen<MeMekanismMachineMenu> {
-    private static final ResourceLocation BASE = ResourceLocation.fromNamespaceAndPath("mekanism", "gui/base.png");
-    private static final ResourceLocation SLOTS = ResourceLocation.fromNamespaceAndPath("mekanism", "gui/slot/slots.png");
-    private static final ResourceLocation POWER = ResourceLocation.fromNamespaceAndPath("mekanism", "gui/slot/power.png");
-    private static final ResourceLocation PROGRESS = ResourceLocation.fromNamespaceAndPath("mekanism", "gui/progress/right.png");
+public class MeMekanismMachineScreen extends GuiConfigurableTile<MeMekanismMachineBlockEntity, MekanismTileContainer<MeMekanismMachineBlockEntity>> {
+    @Nullable
+    private GuiDumpButton<?> dumpButton;
 
-    public MeMekanismMachineScreen(MeMekanismMachineMenu menu, Inventory playerInventory, Component title) {
+    public MeMekanismMachineScreen(MekanismTileContainer<MeMekanismMachineBlockEntity> menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
         this.imageHeight = 166;
         this.titleLabelX = 46;
         this.inventoryLabelY = 72;
+        this.dynamicSlots = true;
     }
 
     @Override
-    protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int left = this.leftPos;
-        int top = this.topPos;
-        guiGraphics.blit(BASE, left, top, 0, 0, this.imageWidth, this.imageHeight);
-
-        drawSlot(guiGraphics, left + 50, top + 42);
-        switch (getMachine().slotLayout()) {
-            case ITEM_CHEMICAL -> drawSlot(guiGraphics, left + 16, top + 34);
-            case DOUBLE_ITEM -> drawSlot(guiGraphics, left + 16, top + 42);
-            case SAWING, SINGLE_ITEM -> {
-            }
+    protected void addGuiElements() {
+        super.addGuiElements();
+        addRenderableWidget(new GuiVerticalPowerBar(this, tile.getEnergyContainer(), 164, 15));
+        addRenderableWidget(new GuiEnergyTab(this, tile.getEnergyContainer(), () -> 0L));
+        addRenderableWidget(new GuiProgress(tile::getScaledProgress, ProgressType.RIGHT, this, 72, 47));
+        if (getMachine().hasChemicalInput() && tile.getChemicalTank() != null) {
+            addRenderableWidget(new GuiChemicalBar(this, GuiChemicalBar.getProvider(tile.getChemicalTank(), tile.getChemicalTanks(null)), 7, 15, 4, 52, false));
+            dumpButton = addRenderableWidget(new GuiDumpButton<>(this, tile, 16, 59));
         }
-        drawSlot(guiGraphics, left + 108, top + 42);
-        if (getMachine().hasSecondaryOutput()) {
-            drawSlot(guiGraphics, left + 132, top + 42);
-        }
-        guiGraphics.blit(POWER, left + 142, top + 34, 0, 0, 18, 18, 18, 18);
-        guiGraphics.blit(PROGRESS, left + 72, top + 47, 0, 0, 28, 8, 28, 8);
-
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 3; col++) {
-                drawSlot(guiGraphics, left - 55 + col * 18, top + 16 + row * 18);
-            }
-        }
-    }
-
-    private static void drawSlot(GuiGraphics guiGraphics, int x, int y) {
-        guiGraphics.blit(SLOTS, x, y, 0, 0, 18, 18, 18, 18);
     }
 
     public MeMekanismMachine getMachine() {
-        return this.menu.getMachine();
+        return this.tile.getMachine();
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
+    protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        renderTitleText(guiGraphics);
+        renderInventoryText(guiGraphics, dumpButton == null ? getXSize() : dumpButton.getRelativeX());
+        super.drawForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

@@ -18,7 +18,6 @@ import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
-import com.beipuo.mekenergistics.block.MeMekanismMachineBlock;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import mekanism.api.Action;
@@ -31,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalTank;
-import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.CombinerRecipe;
@@ -65,7 +63,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,22 +102,20 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, this);
-        this.configComponent.setupItemIOConfig(
-                inventorySlots[INPUT_SLOT],
-                inventorySlots[OUTPUT_SLOT],
-                inventorySlots[SECONDARY_INPUT_SLOT],
-                inventorySlots[SECONDARY_OUTPUT_SLOT],
-                inventorySlots[PATTERN_SLOTS_START],
-                inventorySlots[PATTERN_SLOTS_START + 1],
-                inventorySlots[PATTERN_SLOTS_START + 2],
-                inventorySlots[PATTERN_SLOTS_START + 3],
-                inventorySlots[PATTERN_SLOTS_START + 4],
-                inventorySlots[PATTERN_SLOTS_START + 5],
-                inventorySlots[PATTERN_SLOTS_START + 6],
-                inventorySlots[PATTERN_SLOTS_START + 7],
-                inventorySlots[PATTERN_SLOTS_START + 8],
-                inventorySlots[SECONDARY_INPUT_SLOT] instanceof EnergyInventorySlot ? inventorySlots[SECONDARY_INPUT_SLOT] : null
-        );
+        List<IInventorySlot> inputSlots = new ArrayList<>();
+        inputSlots.add(inventorySlots[INPUT_SLOT]);
+        if (machine.hasSecondaryItemInput() || machine.hasChemicalInput()) {
+            inputSlots.add(inventorySlots[SECONDARY_INPUT_SLOT]);
+        }
+        for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
+            inputSlots.add(inventorySlots[slot]);
+        }
+        List<IInventorySlot> outputSlots = new ArrayList<>();
+        outputSlots.add(inventorySlots[OUTPUT_SLOT]);
+        if (machine.hasSecondaryOutput()) {
+            outputSlots.add(inventorySlots[SECONDARY_OUTPUT_SLOT]);
+        }
+        this.configComponent.setupItemIOConfig(inputSlots, outputSlots, null, false);
         this.configComponent.setupInputConfig(TransmissionType.ENERGY, this.energyContainer);
         if (this.chemicalTank != null) {
             this.configComponent.setupIOConfig(TransmissionType.CHEMICAL, this.chemicalTank, RelativeSide.RIGHT).setCanEject(false);
@@ -157,7 +152,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return null;
         }
         ChemicalTankHelper builder = ChemicalTankHelper.forSideWithConfig(this);
-        builder.addTank(this.chemicalTank = BasicChemicalTank.createModern(getChemicalCapacity(), ConstantPredicates.alwaysTrueBi(), listener));
+        builder.addTank(this.chemicalTank = BasicChemicalTank.createModern(getChemicalCapacity(), ConstantPredicates.alwaysTrue(), listener));
         return builder.build();
     }
 
@@ -217,7 +212,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         dumpChemical();
     }
 
-    public IEnergyContainer getEnergyContainer() {
+    public MachineEnergyContainer<MeMekanismMachineBlockEntity> getEnergyContainer() {
         return this.energyContainer;
     }
 
@@ -703,14 +698,14 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+    public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
         this.mainNode.saveToNBT(tag);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+    public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(TAG_CHEMICAL) && this.chemicalTank != null && this.chemicalTank.isEmpty()) {
             this.chemicalTank.setStack(ChemicalStack.parseOptional(registries, tag.getCompound(TAG_CHEMICAL)));
