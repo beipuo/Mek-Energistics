@@ -1,0 +1,13 @@
+{
+  "itemGroup.mekenergistics": "Example Mod Tab",
+  "block.mekenergistics.example_block": "Example Block",
+  "item.mekenergistics.example_item": "Example Item",
+
+  "mekenergistics.configuration.title": "Mek Energistics Configs",
+  "mekenergistics.configuration.section.mekenergistics.common.toml": "Mek Energistics Configs",
+  "mekenergistics.configuration.section.mekenergistics.common.toml.title": "Mek Energistics Configs",
+  "mekenergistics.configuration.items": "Item List",
+  "mekenergistics.configuration.logDirtBlock": "Log Dirt Block",
+  "mekenergistics.configuration.magicNumberIntroduction": "Magic Number Text",
+  "mekenergistics.configuration.magicNumber": "Magic Number"
+}

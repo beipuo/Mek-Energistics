@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.example.mekenergistics.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
