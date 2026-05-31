@@ -37,6 +37,7 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     public MeMekanismMachineBlock(MeMekanismMachine machine) {
         super(BlockBehaviour.Properties.of()
                 .strength(3.5F, 9.0F)
+                .noOcclusion()
                 .requiresCorrectToolForDrops());
         this.machine = machine;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));

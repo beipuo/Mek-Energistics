@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModCreativeTabs;
 import com.beipuo.mekenergistics.registry.ModItems;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
+import com.beipuo.mekenergistics.network.ModNetwork;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -21,6 +22,7 @@ public final class MekEnergistics {
         ModCreativeTabs.register(modEventBus);
         ModMenuTypes.register(modEventBus);
         ModBlockEntities.register(modEventBus);
+        modEventBus.addListener(ModNetwork::register);
 
         LOGGER.info("Loading Mek Energistics");
     }

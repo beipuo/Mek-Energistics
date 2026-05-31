@@ -24,6 +24,8 @@ import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.RelativeSide;
+import mekanism.api.SerializationConstants;
+import mekanism.api.Upgrade;
 import mekanism.api.chemical.BasicChemicalTank;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +47,7 @@ import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.capabilities.holder.slot.InventorySlotHelper;
 import mekanism.common.inventory.container.MekanismContainer;
+import mekanism.common.inventory.container.sync.SyncableInt;
 import mekanism.common.inventory.container.sync.SyncableLong;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.EnergyInventorySlot;
@@ -56,6 +59,8 @@ import mekanism.common.tile.interfaces.IHasDumpButton;
 import mekanism.common.tile.prefab.TileEntityAdvancedElectricMachine;
 import mekanism.common.tile.prefab.TileEntityConfigurableMachine;
 import mekanism.common.lib.transmitter.TransmissionType;
+import mekanism.common.util.MekanismUtils;
+import me.ramidzkh.mekae2.ae2.MekanismKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -69,6 +74,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         implements ICraftingProvider, IInWorldGridNodeHost, IGridNodeListener<MeMekanismMachineBlockEntity>, IActionHost, IHasDumpButton {
+    private static final int BASE_TICKS_REQUIRED = 10 * 20;
     public static final int INPUT_SLOT = 0;
     public static final int SECONDARY_INPUT_SLOT = 1;
     public static final int OUTPUT_SLOT = 2;
@@ -76,22 +82,27 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     public static final int PATTERN_SLOTS_START = 4;
     public static final int PATTERN_SLOTS_COUNT = 9;
     public static final int PATTERN_SLOTS_END = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT - 1;
-    public static final int TOTAL_SLOTS = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT;
+    public static final int ENERGY_SLOT = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT;
+    public static final int TOTAL_SLOTS = ENERGY_SLOT + 1;
 
     private static final String TAG_INVENTORY = "Inventory";
     private static final String TAG_PATTERN_PRIORITY = "PatternPriority";
     private static final String TAG_CHEMICAL = "Chemical";
+    private static final String TAG_AE_OUTPUT_MODE = "AeOutputMode";
 
-    private final IInventorySlot[] inventorySlots = new IInventorySlot[TOTAL_SLOTS];
+    private IInventorySlot[] inventorySlots;
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
     private final List<IPatternDetails> patterns = new ArrayList<>();
     private final List<PendingCraftingOutput> pendingCraftingOutputs = new ArrayList<>();
+    private final List<PendingKeyOutput> pendingKeyOutputs = new ArrayList<>();
     private final MeMekanismMachine machine;
     private IChemicalTank chemicalTank;
     private MachineEnergyContainer<MeMekanismMachineBlockEntity> energyContainer;
-    private int workCooldown;
+    private int operatingTicks;
+    private int ticksRequired = BASE_TICKS_REQUIRED;
     private int patternPriority = 0;
+    private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeMekanismMachineBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state);
@@ -102,6 +113,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, this);
+        IInventorySlot[] inventorySlots = slots();
         List<IInventorySlot> inputSlots = new ArrayList<>();
         inputSlots.add(inventorySlots[INPUT_SLOT]);
         if (machine.hasSecondaryItemInput() || machine.hasChemicalInput()) {
@@ -115,7 +127,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         if (machine.hasSecondaryOutput()) {
             outputSlots.add(inventorySlots[SECONDARY_OUTPUT_SLOT]);
         }
-        this.configComponent.setupItemIOConfig(inputSlots, outputSlots, null, false);
+        this.configComponent.setupItemIOConfig(inputSlots, outputSlots, inventorySlots[ENERGY_SLOT], false);
         this.configComponent.setupInputConfig(TransmissionType.ENERGY, this.energyContainer);
         if (this.chemicalTank != null) {
             this.configComponent.setupIOConfig(TransmissionType.CHEMICAL, this.chemicalTank, RelativeSide.RIGHT).setCanEject(false);
@@ -127,13 +139,23 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        if (this.workCooldown-- <= 0) {
-            this.workCooldown = 20;
-            processRecipe();
+        fillChemicalFromConversionSlot();
+        if (canProcessRecipe()) {
+            this.operatingTicks++;
+            setActive(true);
+            if (this.operatingTicks >= this.ticksRequired) {
+                processRecipe();
+                this.operatingTicks = 0;
+            }
+        } else {
+            this.operatingTicks = 0;
+            setActive(false);
         }
         processPendingCraftingOutputs();
+        processPendingKeyOutputs();
         insertOutputSlotIntoNetwork(OUTPUT_SLOT);
         insertOutputSlotIntoNetwork(SECONDARY_OUTPUT_SLOT);
+        insertChemicalTankIntoNetwork();
         return sendUpdatePacket;
     }
 
@@ -148,7 +170,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Nullable
     @Override
     public IChemicalTankHolder getInitialChemicalTanks(IContentsListener listener) {
-        if (!this.machine.hasChemicalInput()) {
+        if (!getMachineEarly().hasChemicalInput()) {
             return null;
         }
         ChemicalTankHelper builder = ChemicalTankHelper.forSideWithConfig(this);
@@ -159,11 +181,40 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @NotNull
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
+        MeMekanismMachine machine = getMachineEarly();
         InventorySlotHelper builder = InventorySlotHelper.forSideWithConfig(this);
-        inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 51, 43));
-        inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, this.machine.hasChemicalInput() ? 17 : 17, this.machine.hasChemicalInput() ? 35 : 43));
-        inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 109, 43));
-        inventorySlots[SECONDARY_OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 133, 43));
+        IInventorySlot[] inventorySlots = slots();
+        switch (machine.factoryType()) {
+            case INFUSING -> {
+                inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 17, 35));
+                inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 51, 43));
+                inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 109, 43));
+                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 143, 35));
+            }
+            case COMPRESSING, INJECTING, PURIFYING -> {
+                inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
+                inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 53));
+                inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
+                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
+            }
+            case COMBINING -> {
+                inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
+                inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 53));
+                inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
+                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
+            }
+            case SAWING -> {
+                inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 56, 17));
+                inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
+                inventorySlots[SECONDARY_OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 132, 35));
+                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 56, 53));
+            }
+            default -> {
+                inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
+                inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
+                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
+            }
+        }
         for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
             int index = slot - PATTERN_SLOTS_START;
             int x = -54 + index % 3 * 18;
@@ -221,7 +272,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     public double getScaledProgress() {
-        return this.workCooldown <= 0 ? 0 : 1 - this.workCooldown / 20.0;
+        return this.ticksRequired <= 0 ? 0 : this.operatingTicks / (double) this.ticksRequired;
     }
 
     public void setOwner(ServerPlayer player) {
@@ -233,8 +284,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     private long insertIntoNetwork(ItemStack stack) {
-        MEStorage storage = this.getNetworkStorage();
-        if (storage == null || stack.isEmpty()) {
+        if (stack.isEmpty()) {
             return 0;
         }
 
@@ -243,10 +293,21 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return 0;
         }
 
-        return storage.insert(key, stack.getCount(), Actionable.MODULATE, this.actionSource);
+        return insertIntoNetwork(key, stack.getCount());
+    }
+
+    private long insertIntoNetwork(AEKey key, long amount) {
+        MEStorage storage = this.getNetworkStorage();
+        if (storage == null || key == null || amount <= 0) {
+            return 0;
+        }
+        return storage.insert(key, amount, Actionable.MODULATE, this.actionSource);
     }
 
     private void insertOutputSlotIntoNetwork(int slot) {
+        if (!this.aeOutputMode.items()) {
+            return;
+        }
         ItemStack output = getStack(slot);
         if (output.isEmpty()) {
             return;
@@ -261,6 +322,26 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         setStack(slot, output.isEmpty() ? ItemStack.EMPTY : output);
     }
 
+    private void insertChemicalTankIntoNetwork() {
+        if (!this.aeOutputMode.chemicals()) {
+            return;
+        }
+        ChemicalStack stack = getChemicalStack();
+        if (stack.isEmpty()) {
+            return;
+        }
+        MekanismKey key = MekanismKey.of(stack);
+        if (key == null) {
+            return;
+        }
+        long inserted = insertIntoNetwork(key, stack.getAmount());
+        if (inserted <= 0) {
+            return;
+        }
+        this.chemicalTank.shrinkStack(inserted, Action.EXECUTE);
+        setChanged();
+    }
+
     private void processRecipe() {
         if (this.level == null) {
             return;
@@ -271,6 +352,94 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             case SAWING -> processSawingRecipe();
             case ITEM_CHEMICAL -> processItemChemicalRecipe();
         }
+    }
+
+    private boolean canProcessRecipe() {
+        if (this.level == null) {
+            return false;
+        }
+        return switch (this.machine.slotLayout()) {
+            case SINGLE_ITEM -> canProcessSingleItemRecipe();
+            case DOUBLE_ITEM -> canProcessCombinerRecipe();
+            case SAWING -> canProcessSawingRecipe();
+            case ITEM_CHEMICAL -> canProcessItemChemicalRecipe();
+        };
+    }
+
+    private boolean canProcessSingleItemRecipe() {
+        ItemStack input = getStack(INPUT_SLOT);
+        if (input.isEmpty()) {
+            return false;
+        }
+        ItemStackToItemStackRecipe recipe = switch (this.machine.factoryType()) {
+            case ENRICHING -> MekanismRecipeType.ENRICHING.getInputCache().findFirstRecipe(this.level, input);
+            case CRUSHING -> MekanismRecipeType.CRUSHING.getInputCache().findFirstRecipe(this.level, input);
+            case SMELTING -> MekanismRecipeType.SMELTING.getInputCache().findFirstRecipe(this.level, input);
+            default -> null;
+        };
+        if (recipe == null) {
+            return false;
+        }
+        int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
+        ItemStack output = recipe.getOutput(input);
+        return needed > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
+    }
+
+    private boolean canProcessCombinerRecipe() {
+        ItemStack input = getStack(INPUT_SLOT);
+        ItemStack secondary = getStack(SECONDARY_INPUT_SLOT);
+        if (input.isEmpty() || secondary.isEmpty()) {
+            return false;
+        }
+        CombinerRecipe recipe = MekanismRecipeType.COMBINING.getInputCache().findFirstRecipe(this.level, input, secondary);
+        if (recipe == null) {
+            return false;
+        }
+        int neededInput = clampNeeded(recipe.getMainInput().getNeededAmount(input));
+        int neededSecondary = clampNeeded(recipe.getExtraInput().getNeededAmount(secondary));
+        ItemStack output = recipe.getOutput(input, secondary);
+        return neededInput > 0 && neededSecondary > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
+    }
+
+    private boolean canProcessItemChemicalRecipe() {
+        ChemicalStack chemicalStack = getChemicalStack();
+        ItemStack input = getStack(INPUT_SLOT);
+        if (input.isEmpty() || chemicalStack.isEmpty()) {
+            return false;
+        }
+        ItemStackChemicalToItemStackRecipe recipe = switch (this.machine.factoryType()) {
+            case COMPRESSING -> MekanismRecipeType.COMPRESSING.getInputCache().findFirstRecipe(this.level, input, chemicalStack);
+            case INFUSING -> MekanismRecipeType.METALLURGIC_INFUSING.getInputCache().findFirstRecipe(this.level, input, chemicalStack);
+            case INJECTING -> MekanismRecipeType.INJECTING.getInputCache().findFirstRecipe(this.level, input, chemicalStack);
+            case PURIFYING -> MekanismRecipeType.PURIFYING.getInputCache().findFirstRecipe(this.level, input, chemicalStack);
+            default -> null;
+        };
+        if (recipe == null) {
+            return false;
+        }
+        int neededInput = clampNeeded(recipe.getItemInput().getNeededAmount(input));
+        long neededChemical = recipe.getChemicalInput().getNeededAmount(chemicalStack);
+        ItemStack output = recipe.getOutput(input, chemicalStack);
+        return neededInput > 0 && neededChemical > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
+    }
+
+    private boolean canProcessSawingRecipe() {
+        ItemStack input = getStack(INPUT_SLOT);
+        if (input.isEmpty()) {
+            return false;
+        }
+        SawmillRecipe recipe = MekanismRecipeType.SAWING.getInputCache().findFirstRecipe(this.level, input);
+        if (recipe == null) {
+            return false;
+        }
+        int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
+        SawmillRecipe.ChanceOutput output = recipe.getOutput(input);
+        ItemStack mainOutput = output.getMainOutput();
+        ItemStack secondaryOutput = output.getSecondaryOutput();
+        return needed > 0
+                && (!mainOutput.isEmpty() || !secondaryOutput.isEmpty())
+                && (mainOutput.isEmpty() || canFitOutput(OUTPUT_SLOT, mainOutput))
+                && (secondaryOutput.isEmpty() || canFitOutput(SECONDARY_OUTPUT_SLOT, secondaryOutput));
     }
 
     private void processSingleItemRecipe() {
@@ -327,8 +496,6 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     private void processItemChemicalRecipe() {
-        fillChemicalFromConversionSlot();
-
         ChemicalStack chemicalStack = getChemicalStack();
         ItemStack input = getStack(INPUT_SLOT);
         if (input.isEmpty() || chemicalStack.isEmpty()) {
@@ -395,7 +562,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     private long getChemicalCapacity() {
-        return this.machine.factoryType() == mekanism.common.content.blocktype.FactoryType.INFUSING
+        return getMachineEarly().factoryType() == mekanism.common.content.blocktype.FactoryType.INFUSING
                 ? TileEntityMetallurgicInfuser.MAX_INFUSE
                 : TileEntityAdvancedElectricMachine.MAX_GAS;
     }
@@ -527,26 +694,146 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return false;
         }
 
+        if (tryInsertItemChemicalPatternInputs(inputHolder)) {
+            return true;
+        }
+
         if (tryInsertPatternInputs(inputHolder)) {
             return true;
         }
 
-        if (this.machine.slotLayout() != MeMekanismMachine.SlotLayout.ITEM_CHEMICAL) {
+        return tryInsertChemicalConversionInput(patternDetails, inputHolder);
+    }
+
+    private ItemStack getSingleItemInput(KeyCounter counter) {
+        if (counter == null || counter.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        ItemStack input = ItemStack.EMPTY;
+        for (var entry : counter) {
+            AEKey key = entry.getKey();
+            long amount = entry.getLongValue();
+            if (!(key instanceof AEItemKey itemKey) || amount <= 0 || amount > Integer.MAX_VALUE || !input.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            input = itemKey.toStack((int) amount);
+        }
+        return input;
+    }
+
+    private boolean tryInsertChemicalConversionInput(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+        if (this.machine.slotLayout() != MeMekanismMachine.SlotLayout.ITEM_CHEMICAL || this.level == null || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
 
-        for (var output : patternDetails.getOutputs()) {
-            if (output.what() instanceof AEItemKey itemKey) {
-                if (output.amount() > Integer.MAX_VALUE) {
+        ItemStack input = getSingleItemInput(inputHolder[0]);
+        if (input.isEmpty()) {
+            return false;
+        }
+
+        ItemStack singleInput = input.copyWithCount(1);
+        ItemStackToChemicalRecipe recipe = MekanismRecipeType.CHEMICAL_CONVERSION.getInputCache().findTypeBasedRecipe(this.level, singleInput);
+        if (recipe == null) {
+            return false;
+        }
+
+        int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
+        if (needed <= 0 || input.getCount() < needed) {
+            return false;
+        }
+
+        ChemicalStack output = recipe.getOutput(singleInput);
+        if (output.isEmpty() || !matchesChemicalOutputs(patternDetails, output, output.getAmount() * needed)) {
+            return false;
+        }
+
+        ItemStack remainder = insertItem(SECONDARY_INPUT_SLOT, input.copyWithCount(needed));
+        if (!remainder.isEmpty()) {
+            return false;
+        }
+        setChanged();
+        return true;
+    }
+
+    private boolean tryInsertItemChemicalPatternInputs(KeyCounter[] inputHolder) {
+        if (this.machine.slotLayout() != MeMekanismMachine.SlotLayout.ITEM_CHEMICAL || inputHolder == null || inputHolder.length != 2 || this.chemicalTank == null) {
+            return false;
+        }
+
+        ItemStack itemInput = ItemStack.EMPTY;
+        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
+        for (KeyCounter counter : inputHolder) {
+            PatternInput input = getSinglePatternInput(counter);
+            if (input == null) {
+                return false;
+            }
+            if (!input.item().isEmpty()) {
+                if (!itemInput.isEmpty()) {
                     return false;
                 }
-                ItemStack outputStack = itemKey.toStack((int) output.amount());
-                this.pendingCraftingOutputs.add(new PendingCraftingOutput(outputStack, 1));
+                itemInput = input.item();
+            } else if (!input.chemical().isEmpty()) {
+                if (!chemicalInput.isEmpty()) {
+                    return false;
+                }
+                chemicalInput = input.chemical();
+            }
+        }
+
+        if (itemInput.isEmpty() || chemicalInput.isEmpty() || !canAddChemical(chemicalInput)) {
+            return false;
+        }
+
+        ItemStack itemRemainder = insertItem(INPUT_SLOT, itemInput);
+        if (!itemRemainder.isEmpty()) {
+            return false;
+        }
+        this.chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        setChanged();
+        return true;
+    }
+
+    @Nullable
+    private PatternInput getSinglePatternInput(KeyCounter counter) {
+        if (counter == null || counter.isEmpty()) {
+            return null;
+        }
+
+        PatternInput input = null;
+        for (var entry : counter) {
+            AEKey key = entry.getKey();
+            long amount = entry.getLongValue();
+            PatternInput next;
+            if (key instanceof AEItemKey itemKey && amount > 0 && amount <= Integer.MAX_VALUE) {
+                next = new PatternInput(itemKey.toStack((int) amount), ChemicalStack.EMPTY);
+            } else if (key instanceof MekanismKey chemicalKey && amount > 0) {
+                next = new PatternInput(ItemStack.EMPTY, chemicalKey.getStack().copyWithAmount(amount));
+            } else {
+                return null;
+            }
+            if (input != null) {
+                return null;
+            }
+            input = next;
+        }
+        return input;
+    }
+
+    private boolean matchesChemicalOutputs(IPatternDetails patternDetails, ChemicalStack expectedOutput, long expectedAmount) {
+        boolean matched = false;
+        for (var output : patternDetails.getOutputs()) {
+            if (output.what() instanceof MekanismKey chemicalKey) {
+                ChemicalStack chemicalOutput = chemicalKey.getStack();
+                if (matched || !chemicalOutput.is(expectedOutput.getChemicalHolder()) || output.amount() != expectedAmount) {
+                    return false;
+                }
+                matched = true;
             } else {
                 return false;
             }
         }
-        return true;
+        return matched;
     }
 
     @Override
@@ -671,12 +958,42 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
     }
 
+    private void processPendingKeyOutputs() {
+        for (int i = this.pendingKeyOutputs.size() - 1; i >= 0; i--) {
+            PendingKeyOutput pending = this.pendingKeyOutputs.get(i);
+            if (pending.delayTicks-- > 0) {
+                continue;
+            }
+
+            long inserted = this.insertIntoNetwork(pending.key, pending.amount);
+            if (inserted > 0) {
+                pending.amount -= inserted;
+            }
+            if (pending.amount <= 0) {
+                this.pendingKeyOutputs.remove(i);
+                setChanged();
+            }
+        }
+    }
+
     private static final class PendingCraftingOutput {
         private ItemStack stack;
         private int delayTicks;
 
         private PendingCraftingOutput(ItemStack stack, int delayTicks) {
             this.stack = stack;
+            this.delayTicks = delayTicks;
+        }
+    }
+
+    private static final class PendingKeyOutput {
+        private final AEKey key;
+        private long amount;
+        private int delayTicks;
+
+        private PendingKeyOutput(AEKey key, long amount, int delayTicks) {
+            this.key = key;
+            this.amount = amount;
             this.delayTicks = delayTicks;
         }
     }
@@ -701,6 +1018,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
+        tag.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
+        tag.putInt(SerializationConstants.PROGRESS, this.operatingTicks);
         this.mainNode.saveToNBT(tag);
     }
 
@@ -711,35 +1030,68 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             this.chemicalTank.setStack(ChemicalStack.parseOptional(registries, tag.getCompound(TAG_CHEMICAL)));
         }
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
+        this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
+        this.operatingTicks = tag.getInt(SerializationConstants.PROGRESS);
         this.mainNode.loadFromNBT(tag);
         this.updatePatterns();
+    }
+
+    @Override
+    public void recalculateUpgrades(Upgrade upgrade) {
+        super.recalculateUpgrades(upgrade);
+        if (upgrade == Upgrade.SPEED) {
+            this.ticksRequired = MekanismUtils.getTicks(this, BASE_TICKS_REQUIRED);
+        }
     }
 
     private ChemicalStack getChemicalStack() {
         return this.chemicalTank == null ? ChemicalStack.EMPTY : this.chemicalTank.getStack();
     }
 
+    private MeMekanismMachine getMachineEarly() {
+        return this.machine == null ? ModBlocks.getMachine(getBlockState().getBlock()) : this.machine;
+    }
+
     private ItemStack getStack(int slot) {
-        return inventorySlots[slot] == null ? ItemStack.EMPTY : inventorySlots[slot].getStack();
+        return slots()[slot] == null ? ItemStack.EMPTY : slots()[slot].getStack();
     }
 
     private void setStack(int slot, ItemStack stack) {
-        if (inventorySlots[slot] != null) {
-            inventorySlots[slot].setStack(stack);
+        if (slots()[slot] != null) {
+            slots()[slot].setStack(stack);
         }
     }
 
     private int getSlotLimit(int slot, ItemStack stack) {
-        return inventorySlots[slot] == null ? 0 : inventorySlots[slot].getLimit(stack);
+        return slots()[slot] == null ? 0 : slots()[slot].getLimit(stack);
     }
 
     private ItemStack insertItem(int slot, ItemStack stack) {
-        return inventorySlots[slot] == null ? stack : inventorySlots[slot].insertItem(stack, Action.EXECUTE, AutomationType.INTERNAL);
+        return slots()[slot] == null ? stack : slots()[slot].insertItem(stack, Action.EXECUTE, AutomationType.INTERNAL);
+    }
+
+    private IInventorySlot[] slots() {
+        if (this.inventorySlots == null) {
+            this.inventorySlots = new IInventorySlot[TOTAL_SLOTS];
+        }
+        return this.inventorySlots;
+    }
+
+    public AeOutputMode getAeOutputMode() {
+        return this.aeOutputMode;
+    }
+
+    public void cycleAeOutputMode() {
+        this.aeOutputMode = this.aeOutputMode.next();
+        setChanged();
     }
 
     @Override
     public void addContainerTrackers(MekanismContainer container) {
         super.addContainerTrackers(container);
+        container.track(SyncableInt.create(() -> this.operatingTicks, ticks -> this.operatingTicks = ticks));
+        container.track(SyncableInt.create(() -> this.ticksRequired, ticks -> this.ticksRequired = ticks));
+        container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode)));
         container.track(SyncableLong.create(() -> getChemicalStack().getAmount(), amount -> {
             if (this.chemicalTank != null && !this.chemicalTank.isEmpty()) {
                 ChemicalStack stack = this.chemicalTank.getStack().copy();
@@ -747,5 +1099,46 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
                 this.chemicalTank.setStack(stack);
             }
         }));
+    }
+
+    private record PatternInput(ItemStack item, ChemicalStack chemical) {
+    }
+
+    public enum AeOutputMode {
+        BOTH("AE: All", true, true),
+        ITEMS("AE: Item", true, false),
+        CHEMICALS("AE: Chem", false, true),
+        NONE("AE: Off", false, false);
+
+        private static final AeOutputMode[] VALUES = values();
+        private final String label;
+        private final boolean items;
+        private final boolean chemicals;
+
+        AeOutputMode(String label, boolean items, boolean chemicals) {
+            this.label = label;
+            this.items = items;
+            this.chemicals = chemicals;
+        }
+
+        public String label() {
+            return this.label;
+        }
+
+        public boolean items() {
+            return this.items;
+        }
+
+        public boolean chemicals() {
+            return this.chemicals;
+        }
+
+        private AeOutputMode next() {
+            return VALUES[(ordinal() + 1) % VALUES.length];
+        }
+
+        private static AeOutputMode byId(int id) {
+            return id < 0 || id >= VALUES.length ? BOTH : VALUES[id];
+        }
     }
 }

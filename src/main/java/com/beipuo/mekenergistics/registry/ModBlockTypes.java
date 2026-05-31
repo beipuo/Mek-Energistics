@@ -19,7 +19,7 @@ public final class ModBlockTypes {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
             MACHINES.put(machine, BlockTypeTile.BlockTileBuilder
                     .createBlock(() -> ModBlockEntities.getMachineBlockEntity(machine), lang(machine))
-                    .withGui(ModMenuTypes::getMachineContainer)
+                    .withGui(() -> ModMenuTypes.getMachineContainer(machine))
                     .withEnergyConfig(() -> 2_000_000L)
                     .with(new AttributeStateFacing(), Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY)
                     .withSideConfig(machine.hasChemicalInput()
