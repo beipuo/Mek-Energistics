@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mekanism:block/purification_chamber"
+    },
+    "facing=south": {
+      "model": "mekanism:block/purification_chamber",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "mekanism:block/purification_chamber",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "mekanism:block/purification_chamber",
+      "y": -90
+    }
+  }
+}

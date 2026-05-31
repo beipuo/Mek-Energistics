@@ -1,0 +1,14 @@
+{
+  "itemGroup.mekenergistics": "Mek Energistics",
+  "block.mekenergistics.me_enrichment_chamber": "ME 富集仓",
+  "block.mekenergistics.me_crusher": "ME 粉碎机",
+  "block.mekenergistics.me_energized_smelter": "ME 充能冶炼炉",
+  "block.mekenergistics.me_precision_sawmill": "ME 精密锯木机",
+  "block.mekenergistics.me_osmium_compressor": "ME 锇压缩机",
+  "block.mekenergistics.me_combiner": "ME 融合机",
+  "block.mekenergistics.me_metallurgic_infuser": "ME 冶金灌注机",
+  "block.mekenergistics.me_purification_chamber": "ME 提纯仓",
+  "block.mekenergistics.me_chemical_injection_chamber": "ME 化学灌注室",
+  "message.mekenergistics.me_metallurgic_infuser.online": "ME 冶金灌注机已连接网络",
+  "message.mekenergistics.me_metallurgic_infuser.offline": "ME 冶金灌注机未连接网络"
+}

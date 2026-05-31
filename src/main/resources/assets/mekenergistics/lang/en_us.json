@@ -1,13 +1,14 @@
 {
-  "itemGroup.mekenergistics": "Example Mod Tab",
-  "block.mekenergistics.example_block": "Example Block",
-  "item.mekenergistics.example_item": "Example Item",
-
-  "mekenergistics.configuration.title": "Mek Energistics Configs",
-  "mekenergistics.configuration.section.mekenergistics.common.toml": "Mek Energistics Configs",
-  "mekenergistics.configuration.section.mekenergistics.common.toml.title": "Mek Energistics Configs",
-  "mekenergistics.configuration.items": "Item List",
-  "mekenergistics.configuration.logDirtBlock": "Log Dirt Block",
-  "mekenergistics.configuration.magicNumberIntroduction": "Magic Number Text",
-  "mekenergistics.configuration.magicNumber": "Magic Number"
+  "itemGroup.mekenergistics": "Mek Energistics",
+  "block.mekenergistics.me_enrichment_chamber": "ME Enrichment Chamber",
+  "block.mekenergistics.me_crusher": "ME Crusher",
+  "block.mekenergistics.me_energized_smelter": "ME Energized Smelter",
+  "block.mekenergistics.me_precision_sawmill": "ME Precision Sawmill",
+  "block.mekenergistics.me_osmium_compressor": "ME Osmium Compressor",
+  "block.mekenergistics.me_combiner": "ME Combiner",
+  "block.mekenergistics.me_metallurgic_infuser": "ME Metallurgic Infuser",
+  "block.mekenergistics.me_purification_chamber": "ME Purification Chamber",
+  "block.mekenergistics.me_chemical_injection_chamber": "ME Chemical Injection Chamber",
+  "message.mekenergistics.me_metallurgic_infuser.online": "ME Metallurgic Infuser is connected",
+  "message.mekenergistics.me_metallurgic_infuser.offline": "ME Metallurgic Infuser is not connected"
 }

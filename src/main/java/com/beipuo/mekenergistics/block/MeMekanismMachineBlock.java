@@ -1,0 +1,89 @@
+package com.beipuo.mekenergistics.block;
+
+import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.registry.ModBlockTypes;
+import mekanism.common.block.attribute.Attribute;
+import mekanism.common.block.attribute.AttributeGui;
+import mekanism.common.block.interfaces.IHasTileEntity;
+import mekanism.common.block.interfaces.ITypeBlock;
+import mekanism.common.content.blocktype.BlockType;
+import mekanism.common.content.blocktype.BlockTypeTile;
+import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
+import mekanism.common.tile.base.TileEntityMekanism;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
+
+public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<MeMekanismMachineBlockEntity> {
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    private final MeMekanismMachine machine;
+
+    public MeMekanismMachineBlock(MeMekanismMachine machine) {
+        super(BlockBehaviour.Properties.of()
+                .strength(3.5F, 9.0F)
+                .requiresCorrectToolForDrops());
+        this.machine = machine;
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    public MeMekanismMachine getMachine() {
+        return this.machine;
+    }
+
+    @Override
+    public BlockType getType() {
+        return ModBlockTypes.getMachineBlockType(this.machine);
+    }
+
+    @Override
+    public TileEntityTypeRegistryObject<MeMekanismMachineBlockEntity> getTileType() {
+        return ModBlockTypes.getMachineBlockType(this.machine).getTileType();
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof TileEntityMekanism tile) {
+            if (level.isClientSide) {
+                return Attribute.has(this, AttributeGui.class) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            }
+            return tile.openGui(player);
+        }
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!level.isClientSide
+                && placer instanceof ServerPlayer player
+                && level.getBlockEntity(pos) instanceof MeMekanismMachineBlockEntity machineBlockEntity) {
+            machineBlockEntity.setOwner(player);
+        }
+    }
+}

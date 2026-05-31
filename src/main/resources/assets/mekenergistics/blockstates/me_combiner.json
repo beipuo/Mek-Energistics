@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mekanism:block/combiner"
+    },
+    "facing=south": {
+      "model": "mekanism:block/combiner",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "mekanism:block/combiner",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "mekanism:block/combiner",
+      "y": -90
+    }
+  }
+}
