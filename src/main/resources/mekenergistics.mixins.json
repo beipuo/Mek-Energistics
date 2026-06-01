@@ -22,7 +22,8 @@
     "TileEntityRotaryCondensentratorAccessor",
     "TileEntityAntiprotonicNucleosynthesizerAccessor",
     "TileEntityFormulaicAssemblicatorAccessor",
-    "TileEntityPressurizedReactionChamberAccessor"
+    "TileEntityPressurizedReactionChamberAccessor",
+    "TileEntityUpdateableMixin"
   ],
   "injectors": {
     "defaultRequire": 1

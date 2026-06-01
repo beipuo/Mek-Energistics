@@ -5,6 +5,8 @@ import com.beipuo.mekenergistics.blockentity.MeAeMachine;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
+import mekanism.common.inventory.container.slot.InventoryContainerSlot;
+import mekanism.common.inventory.container.slot.VirtualInventoryContainerSlot;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.registration.impl.ContainerTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -27,7 +29,7 @@ public class MePatternMachineContainer<TILE extends TileEntityMekanism & MeAeMac
             return ItemStack.EMPTY;
         }
         ItemStack slotStack = currentSlot.getItem();
-        if (!(currentSlot instanceof mekanism.common.inventory.container.slot.InventoryContainerSlot)
+        if (!(currentSlot instanceof InventoryContainerSlot)
                 && PatternDetailsHelper.isEncodedPattern(slotStack)) {
             ItemStack remaining = insertPattern(slotStack);
             if (remaining.getCount() != slotStack.getCount()) {
@@ -46,5 +48,18 @@ public class MePatternMachineContainer<TILE extends TileEntityMekanism & MeAeMac
             }
         }
         return remaining;
+    }
+
+    public VirtualInventoryContainerSlot getPatternContainerSlot(int index) {
+        if (index < 0 || index >= this.tile.getPatternSlots().size()) {
+            return null;
+        }
+        BasicInventorySlot patternSlot = this.tile.getPatternSlots().get(index);
+        for (InventoryContainerSlot containerSlot : getInventoryContainerSlots()) {
+            if (containerSlot.getInventorySlot() == patternSlot && containerSlot instanceof VirtualInventoryContainerSlot virtualSlot) {
+                return virtualSlot;
+            }
+        }
+        return null;
     }
 }

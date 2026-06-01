@@ -8,6 +8,7 @@ import appeng.helpers.patternprovider.PatternContainer;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
+import mekanism.common.lib.transmitter.TransmissionType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -16,6 +17,13 @@ public interface MeAeMachine extends PatternContainer {
     MeMekanismMachineBlockEntity.AeOutputMode getAeOutputMode();
 
     void cycleAeOutputMode();
+
+    default void cycleAeOutputMode(TransmissionType type) {
+        MeMekanismMachineBlockEntity.AeOutputMode target = getAeOutputMode().toggle(type);
+        for (int i = 0; i < MeMekanismMachineBlockEntity.AeOutputMode.values().length && getAeOutputMode() != target; i++) {
+            cycleAeOutputMode();
+        }
+    }
 
     void setOwner(ServerPlayer player);
 

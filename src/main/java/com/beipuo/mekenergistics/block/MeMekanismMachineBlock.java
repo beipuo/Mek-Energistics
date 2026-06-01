@@ -3,8 +3,13 @@ package com.beipuo.mekenergistics.block;
 import com.beipuo.mekenergistics.blockentity.MeAeMachine;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
+import java.util.ArrayList;
+import java.util.List;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeGui;
+import mekanism.common.block.attribute.AttributeState;
+import mekanism.common.block.attribute.AttributeStateFacing;
+import mekanism.common.block.attribute.Attributes;
 import mekanism.common.block.interfaces.IHasTileEntity;
 import mekanism.common.block.interfaces.ITypeBlock;
 import mekanism.common.content.blocktype.BlockType;
@@ -12,7 +17,6 @@ import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,13 +29,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<TileEntityMekanism> {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    private static final List<AttributeState> STATE_ATTRIBUTES = List.of(new AttributeStateFacing(), (AttributeState) Attributes.ACTIVE);
     private final MeMekanismMachine machine;
 
     public MeMekanismMachineBlock(MeMekanismMachine machine) {
@@ -40,7 +43,8 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
                 .noOcclusion()
                 .requiresCorrectToolForDrops());
         this.machine = machine;
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(STATE_ATTRIBUTES.stream()
+                .reduce(this.stateDefinition.any(), (state, attribute) -> attribute.getDefaultState(state), (left, right) -> right));
     }
 
     public MeMekanismMachine getMachine() {
@@ -59,12 +63,18 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        BlockState state = this.defaultBlockState();
+        for (AttributeState attribute : STATE_ATTRIBUTES) {
+            state = attribute.getStateForPlacement(state, context.getLevel(), context.getClickedPos(), context.getPlayer(), context.getClickedFace());
+        }
+        return state;
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        List<Property<?>> properties = new ArrayList<>();
+        STATE_ATTRIBUTES.forEach(attribute -> attribute.fillBlockStateContainer(this, properties));
+        properties.forEach(builder::add);
     }
 
     @Override

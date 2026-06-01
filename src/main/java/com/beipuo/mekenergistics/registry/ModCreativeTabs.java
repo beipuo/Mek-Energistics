@@ -21,9 +21,7 @@ public final class ModCreativeTabs {
                         for (var item : ModItems.getMachineItems()) {
                             output.accept(item.get());
                         }
-                        for (var item : ModItems.getInstallerItems()) {
-                            output.accept(item.get());
-                        }
+                        output.accept(ModItems.ME_FACTORY_INSTALLER.get());
                     })
                     .build()
     );

@@ -4,9 +4,7 @@ import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
-import mekanism.api.tier.BaseTier;
 import mekanism.common.attachments.component.AttachedEjector;
 import mekanism.common.attachments.component.AttachedSideConfig;
 import mekanism.common.attachments.component.AttachedSideConfig.LightConfigInfo;
@@ -21,12 +19,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class ModItems {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MekEnergistics.MODID);
     private static final Map<MeMekanismMachine, DeferredItem<BlockItem>> MACHINES = new EnumMap<>(MeMekanismMachine.class);
-    private static final List<DeferredItem<MeTierInstallerItem>> INSTALLERS = List.of(
-            ITEMS.register("me_basic_tier_installer", () -> new MeTierInstallerItem(null, BaseTier.BASIC, new Item.Properties())),
-            ITEMS.register("me_advanced_tier_installer", () -> new MeTierInstallerItem(BaseTier.BASIC, BaseTier.ADVANCED, new Item.Properties())),
-            ITEMS.register("me_elite_tier_installer", () -> new MeTierInstallerItem(BaseTier.ADVANCED, BaseTier.ELITE, new Item.Properties())),
-            ITEMS.register("me_ultimate_tier_installer", () -> new MeTierInstallerItem(BaseTier.ELITE, BaseTier.ULTIMATE, new Item.Properties()))
-    );
+    public static final DeferredItem<MeTierInstallerItem> ME_FACTORY_INSTALLER =
+            ITEMS.register("me_factory_installer", () -> new MeTierInstallerItem(new Item.Properties()));
 
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
@@ -48,10 +42,6 @@ public final class ModItems {
 
     public static Iterable<DeferredItem<BlockItem>> getMachineItems() {
         return MACHINES.values();
-    }
-
-    public static Iterable<DeferredItem<MeTierInstallerItem>> getInstallerItems() {
-        return INSTALLERS;
     }
 
     private static Item.Properties machineProperties(MeMekanismMachine machine) {

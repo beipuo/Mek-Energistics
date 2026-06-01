@@ -5,12 +5,15 @@ import appeng.api.networking.GridHelper;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
+import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
+import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.tile.factory.TileEntityItemStackChemicalToItemStackFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -44,6 +47,17 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
             }
         }));
         return builder.build();
+    }
+
+    @NotNull
+    @Override
+    protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
+        IInventorySlotHolder original = super.getInitialInventory(listener);
+        return side -> {
+            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
+            slots.addAll(this.aeSupport.getPatternSlots());
+            return slots;
+        };
     }
 
     @Override

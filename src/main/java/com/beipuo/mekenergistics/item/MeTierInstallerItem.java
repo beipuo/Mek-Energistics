@@ -2,10 +2,9 @@ package com.beipuo.mekenergistics.item;
 
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
-import mekanism.api.tier.BaseTier;
-import mekanism.api.text.TextComponentUtil;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeFactoryType;
+import mekanism.common.block.attribute.AttributeTier;
 import mekanism.common.block.states.BlockStateHelper;
 import mekanism.common.content.blocktype.FactoryType;
 import mekanism.common.tier.FactoryTier;
@@ -25,21 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MeTierInstallerItem extends Item {
-    @Nullable
-    private final BaseTier fromTier;
-    @NotNull
-    private final BaseTier toTier;
-
-    public MeTierInstallerItem(@Nullable BaseTier fromTier, @NotNull BaseTier toTier, Properties properties) {
+    public MeTierInstallerItem(Properties properties) {
         super(properties);
-        this.fromTier = fromTier;
-        this.toTier = toTier;
-    }
-
-    @NotNull
-    @Override
-    public Component getName(@NotNull ItemStack stack) {
-        return TextComponentUtil.build(this.toTier.getColor(), super.getName(stack));
     }
 
     @NotNull
@@ -52,20 +38,11 @@ public class MeTierInstallerItem extends Item {
             return InteractionResult.PASS;
         }
         BlockState state = context.getLevel().getBlockState(context.getClickedPos());
-        FactoryType factoryType = getFactoryType(state);
-        if (factoryType == null) {
-            return InteractionResult.PASS;
-        }
-        BaseTier currentTier = Attribute.getBaseTier(state.getBlockHolder());
-        if (currentTier != this.fromTier) {
-            return InteractionResult.PASS;
-        }
-        FactoryTier targetTier = getFactoryTier(this.toTier);
-        if (targetTier == null) {
-            return InteractionResult.PASS;
-        }
-        MeMekanismMachine target = MeMekanismMachine.getFactory(targetTier, factoryType);
+        MeMekanismMachine target = getTargetMachine(state);
         if (target == null) {
+            return InteractionResult.PASS;
+        }
+        if (ModBlocks.getMachineBlock(target).get() == state.getBlock()) {
             return InteractionResult.PASS;
         }
         BlockEntity oldTile = WorldUtils.getTileEntity(context.getLevel(), context.getClickedPos());
@@ -100,17 +77,18 @@ public class MeTierInstallerItem extends Item {
     }
 
     @Nullable
-    private static FactoryType getFactoryType(BlockState state) {
+    private static MeMekanismMachine getTargetMachine(BlockState state) {
         AttributeFactoryType attribute = Attribute.get(state, AttributeFactoryType.class);
-        return attribute == null ? null : attribute.getFactoryType();
-    }
-
-    @Nullable
-    private static FactoryTier getFactoryTier(BaseTier tier) {
-        for (FactoryTier factoryTier : FactoryTier.values()) {
-            if (factoryTier.getBaseTier() == tier) {
-                return factoryTier;
-            }
+        if (attribute == null) {
+            return null;
+        }
+        FactoryType factoryType = attribute.getFactoryType();
+        AttributeTier<?> tier = Attribute.get(state, AttributeTier.class);
+        if (tier == null) {
+            return MeMekanismMachine.getBaseMachine(factoryType);
+        }
+        if (tier.tier() instanceof FactoryTier factoryTier) {
+            return MeMekanismMachine.getFactory(factoryTier, factoryType);
         }
         return null;
     }

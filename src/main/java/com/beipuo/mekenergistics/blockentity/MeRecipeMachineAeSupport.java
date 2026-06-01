@@ -45,7 +45,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & MeAeMachine & ICraftingProvider & IActionHost> {
-    public static final int PATTERN_SLOTS = 9;
+    public static final int PATTERN_SLOTS = 36;
 
     private final TILE owner;
     private final IManagedGridNode mainNode;
@@ -63,9 +63,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, owner);
         for (int i = 0; i < PATTERN_SLOTS; i++) {
-            int x = -54 + i % 3 * 18;
-            int y = 17 + i / 3 * 18;
-            this.patternSlots.add(BasicInventorySlot.at(PatternDetailsHelper::isEncodedPattern, this::updatePatterns, x, y, 1));
+            this.patternSlots.add(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, this::updatePatterns));
         }
     }
 

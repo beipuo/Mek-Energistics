@@ -1,17 +1,32 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,active=false": {
       "model": "mekenergistics:block/me_teleporter"
     },
-    "facing=south": {
+    "facing=south,active=false": {
       "model": "mekenergistics:block/me_teleporter",
       "y": 180
     },
-    "facing=east": {
+    "facing=east,active=false": {
       "model": "mekenergistics:block/me_teleporter",
       "y": 90
     },
-    "facing=west": {
+    "facing=west,active=false": {
+      "model": "mekenergistics:block/me_teleporter",
+      "y": -90
+    },
+    "facing=north,active=true": {
+      "model": "mekenergistics:block/me_teleporter"
+    },
+    "facing=south,active=true": {
+      "model": "mekenergistics:block/me_teleporter",
+      "y": 180
+    },
+    "facing=east,active=true": {
+      "model": "mekenergistics:block/me_teleporter",
+      "y": 90
+    },
+    "facing=west,active=true": {
       "model": "mekenergistics:block/me_teleporter",
       "y": -90
     }

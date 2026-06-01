@@ -84,7 +84,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     public static final int OUTPUT_SLOT = 2;
     public static final int SECONDARY_OUTPUT_SLOT = 3;
     public static final int PATTERN_SLOTS_START = 4;
-    public static final int PATTERN_SLOTS_COUNT = 9;
+    public static final int PATTERN_SLOTS_COUNT = 36;
     public static final int PATTERN_SLOTS_END = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT - 1;
     public static final int ENERGY_SLOT = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT;
     public static final int TOTAL_SLOTS = ENERGY_SLOT + 1;
@@ -228,14 +228,10 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             }
         }
         for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
-            int index = slot - PATTERN_SLOTS_START;
-            int x = -54 + index % 3 * 18;
-            int y = 17 + index / 3 * 18;
-            int patternSlot = slot;
-            inventorySlots[slot] = builder.addSlot(BasicInventorySlot.at(PatternDetailsHelper::isEncodedPattern, () -> {
+            inventorySlots[slot] = builder.addSlot(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, () -> {
                 listener.onContentsChanged();
                 updatePatterns();
-            }, x, y, 1));
+            }));
         }
         return builder.build();
     }
@@ -1218,6 +1214,23 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
 
         public AeOutputMode next() {
             return VALUES[(ordinal() + 1) % VALUES.length];
+        }
+
+        public AeOutputMode toggle(mekanism.common.lib.transmitter.TransmissionType type) {
+            return switch (type) {
+                case ITEM -> byFlags(!this.items, this.chemicals);
+                case CHEMICAL -> byFlags(this.items, !this.chemicals);
+                default -> this;
+            };
+        }
+
+        private static AeOutputMode byFlags(boolean items, boolean chemicals) {
+            for (AeOutputMode mode : VALUES) {
+                if (mode.items == items && mode.chemicals == chemicals) {
+                    return mode;
+                }
+            }
+            return BOTH;
         }
 
         public static AeOutputMode byId(int id) {

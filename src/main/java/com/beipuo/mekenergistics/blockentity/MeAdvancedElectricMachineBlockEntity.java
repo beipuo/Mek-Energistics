@@ -66,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElectricMachine
         implements ICraftingProvider, IInWorldGridNodeHost, IGridNodeListener<MeAdvancedElectricMachineBlockEntity>, IActionHost, MeAeMachine {
-    private static final int PATTERN_SLOTS_COUNT = 9;
+    private static final int PATTERN_SLOTS_COUNT = 36;
     private static final String TAG_PATTERN_PRIORITY = "PatternPriority";
     private static final String TAG_AE_OUTPUT_MODE = "AeOutputMode";
 
@@ -112,8 +112,9 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
 
     @Override
     protected boolean useStatisticalMechanics() {
-        return (this.machine.factoryType() == mekanism.common.content.blocktype.FactoryType.PURIFYING
-                || this.machine.factoryType() == mekanism.common.content.blocktype.FactoryType.INJECTING)
+        MeMekanismMachine machine = getMachineEarly();
+        return (machine.factoryType() == mekanism.common.content.blocktype.FactoryType.PURIFYING
+                || machine.factoryType() == mekanism.common.content.blocktype.FactoryType.INJECTING)
                 && MekanismConfig.usage.randomizedConsumption.get();
     }
 
@@ -134,12 +135,10 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         InventorySlotHelper patternBuilder = InventorySlotHelper.readOnly();
         this.patternSlots = new ArrayList<>(PATTERN_SLOTS_COUNT);
         for (int i = 0; i < PATTERN_SLOTS_COUNT; i++) {
-            int x = -54 + i % 3 * 18;
-            int y = 17 + i / 3 * 18;
-            this.patternSlots.add(patternBuilder.addSlot(BasicInventorySlot.at(PatternDetailsHelper::isEncodedPattern, () -> {
+            this.patternSlots.add(patternBuilder.addSlot(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, () -> {
                 listener.onContentsChanged();
                 updatePatterns();
-            }, x, y, 1)));
+            })));
         }
         IInventorySlotHolder patterns = patternBuilder.build();
         return side -> {
@@ -373,6 +372,10 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
     @Override
     public MeMekanismMachine getMachine() {
         return this.machine;
+    }
+
+    private MeMekanismMachine getMachineEarly() {
+        return this.machine == null ? ModBlocks.getMachine(getBlockState().getBlock()) : this.machine;
     }
 
     @Override

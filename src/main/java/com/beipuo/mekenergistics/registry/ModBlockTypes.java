@@ -44,7 +44,7 @@ public final class ModBlockTypes {
                 .createBlock(() -> tileType, lang(machine))
                 .withGui(() -> ModMenuTypes.getMachineContainer(machine))
                 .withEnergyConfig(machine.energyUsage(), machine.energyStorage())
-                .with(new AttributeStateFacing(), Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY)
+                .with(new AttributeStateFacing(), Attributes.ACTIVE, Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY)
                 .withSideConfig(machine.hasChemicalInput()
                         ? new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL}
                         : new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY})
