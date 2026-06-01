@@ -10,23 +10,23 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
 
-record MeFactoryPatternInput(ItemStack item, ChemicalStack chemical, FluidStack fluid) {
+public record MeFactoryPatternInput(ItemStack item, ChemicalStack chemical, FluidStack fluid) {
     static final MeFactoryPatternInput EMPTY = new MeFactoryPatternInput(ItemStack.EMPTY, ChemicalStack.EMPTY, FluidStack.EMPTY);
 
-    boolean isItem() {
+    public boolean isItem() {
         return !this.item.isEmpty() && this.chemical.isEmpty() && this.fluid.isEmpty();
     }
 
-    boolean isChemical() {
+    public boolean isChemical() {
         return this.item.isEmpty() && !this.chemical.isEmpty() && this.fluid.isEmpty();
     }
 
-    boolean isFluid() {
+    public boolean isFluid() {
         return this.item.isEmpty() && this.chemical.isEmpty() && !this.fluid.isEmpty();
     }
 
     @Nullable
-    static MeFactoryPatternInput single(KeyCounter counter) {
+    public static MeFactoryPatternInput single(KeyCounter counter) {
         if (counter == null || counter.isEmpty()) {
             return null;
         }

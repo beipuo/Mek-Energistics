@@ -5,9 +5,11 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModCreativeTabs;
 import com.beipuo.mekenergistics.registry.ModItems;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
+import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.network.ModNetwork;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
@@ -16,7 +18,8 @@ public final class MekEnergistics {
     public static final String MODID = "mekenergistics";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public MekEnergistics(IEventBus modEventBus) {
+    public MekEnergistics(IEventBus modEventBus, ModContainer modContainer) {
+        MekEnergisticsConfig.register(modContainer);
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModCreativeTabs.register(modEventBus);

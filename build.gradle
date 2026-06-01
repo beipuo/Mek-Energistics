@@ -55,7 +55,7 @@ neoForge {
     }
 
     // This line is optional. Access Transformers are automatically detected
-    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -128,10 +128,14 @@ configurations {
 dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:19.2.16"
     implementation "org.appliedenergistics:guideme:2.5.1"
-    implementation "mekanism:Mekanism:1.21.1-10.7.15.81"
+    implementation "curse.maven:mekanism-268560:7904058"
+    implementation "curse.maven:mekanism-generators-268566:7904061"
     implementation "curse.maven:jei-238222:7420587"
     implementation "curse.maven:ae2-jei-integration-1074338:7727898"
     implementation "curse.maven:applied-mekanistics-574300:7096962"
+    implementation "curse.maven:mekanism-extras-1026040:7921191"
+    implementation "curse.maven:mekanism-more-machine-1275257:7919872"
+    implementation "curse.maven:jade-324717:7545219"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

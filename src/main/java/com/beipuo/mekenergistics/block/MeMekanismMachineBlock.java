@@ -1,6 +1,8 @@
 package com.beipuo.mekenergistics.block;
 
 import com.beipuo.mekenergistics.blockentity.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import mekanism.common.content.blocktype.BlockType;
 import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
+import mekanism.common.tile.base.TileEntityUpdateable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -91,10 +94,18 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide
-                && placer instanceof ServerPlayer player
-                && level.getBlockEntity(pos) instanceof MeAeMachine machineBlockEntity) {
-            machineBlockEntity.setOwner(player);
+        BlockEntity tile = level.getBlockEntity(pos);
+        if (tile instanceof TileEntityUpdateable updateable) {
+            updateable.onAdded();
+        }
+        if (!level.isClientSide && placer instanceof ServerPlayer player) {
+            if (tile instanceof MeAeMachine machineBlockEntity) {
+                machineBlockEntity.setOwner(player);
+            } else if (tile instanceof MeFactoryAeMachine machineBlockEntity) {
+                machineBlockEntity.setOwner(player);
+            } else if (tile instanceof TileEntityMekanism mekanismTile) {
+                MeOwnerHelper.claimMekanismOwnerIfMissing(mekanismTile, player);
+            }
         }
     }
 }

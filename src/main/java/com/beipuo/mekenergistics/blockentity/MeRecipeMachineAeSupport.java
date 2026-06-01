@@ -14,11 +14,16 @@ import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
+import appeng.api.networking.ticking.IGridTickable;
+import appeng.api.networking.ticking.TickRateModulation;
+import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.storage.MEStorage;
+import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,13 +50,14 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & MeAeMachine & ICraftingProvider & IActionHost> {
-    public static final int PATTERN_SLOTS = 36;
-
     private final TILE owner;
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
-    private final List<BasicInventorySlot> patternSlots = new ArrayList<>(PATTERN_SLOTS);
+    private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final List<OutputInventorySlot> knownOutputSlots = new ArrayList<>();
+    private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
+    private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
     private int patternPriority;
 
     public MeRecipeMachineAeSupport(TILE owner) {
@@ -61,8 +67,9 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
                 .setInWorldNode(true)
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
-                .addService(ICraftingProvider.class, owner);
-        for (int i = 0; i < PATTERN_SLOTS; i++) {
+                .addService(ICraftingProvider.class, owner)
+                .addService(IGridTickable.class, new AeTicker());
+        for (int i = 0; i < MekEnergisticsConfig.patternSlots(); i++) {
             this.patternSlots.add(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, this::updatePatterns));
         }
     }
@@ -98,21 +105,23 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     public boolean insertOutputSlotIntoNetwork(OutputInventorySlot outputSlot, MeMekanismMachineBlockEntity.AeOutputMode mode) {
+        rememberOutputSlot(outputSlot);
         return mode.items() && insertOutputStackIntoNetwork(outputSlot);
     }
 
     public boolean insertOutputSlotsIntoNetwork(MeMekanismMachineBlockEntity.AeOutputMode mode, OutputInventorySlot... outputSlots) {
-        if (!mode.items()) {
-            return false;
-        }
         boolean changed = false;
         for (OutputInventorySlot outputSlot : outputSlots) {
-            changed |= insertOutputStackIntoNetwork(outputSlot);
+            rememberOutputSlot(outputSlot);
+            if (mode.items()) {
+                changed |= insertOutputStackIntoNetwork(outputSlot);
+            }
         }
         return changed;
     }
 
     public boolean insertChemicalTankIntoNetwork(IChemicalTank tank, MeMekanismMachineBlockEntity.AeOutputMode mode) {
+        rememberChemicalTank(tank);
         if (!mode.chemicals() || tank == null || tank.isEmpty()) {
             return false;
         }
@@ -131,6 +140,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     public boolean insertFluidTankIntoNetwork(IExtendedFluidTank tank, MeMekanismMachineBlockEntity.AeOutputMode mode) {
+        rememberFluidTank(tank);
         if (!mode.items() || tank == null || tank.isEmpty()) {
             return false;
         }
@@ -148,7 +158,75 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         return true;
     }
 
+    private void rememberOutputSlot(OutputInventorySlot outputSlot) {
+        if (outputSlot != null && !this.knownOutputSlots.contains(outputSlot)) {
+            this.knownOutputSlots.add(outputSlot);
+        }
+    }
+
+    private void rememberChemicalTank(IChemicalTank tank) {
+        if (tank != null && !this.knownChemicalOutputTanks.contains(tank)) {
+            this.knownChemicalOutputTanks.add(tank);
+        }
+    }
+
+    private void rememberFluidTank(IExtendedFluidTank tank) {
+        if (tank != null && !this.knownFluidOutputTanks.contains(tank)) {
+            this.knownFluidOutputTanks.add(tank);
+        }
+    }
+
+    private boolean hasAeOutputWork() {
+        MeMekanismMachineBlockEntity.AeOutputMode mode = this.owner.getAeOutputMode();
+        if (mode.items()) {
+            for (OutputInventorySlot slot : this.knownOutputSlots) {
+                if (slot != null && !slot.getStack().isEmpty()) {
+                    return true;
+                }
+            }
+            for (IExtendedFluidTank tank : this.knownFluidOutputTanks) {
+                if (tank != null && !tank.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        if (mode.chemicals()) {
+            for (IChemicalTank tank : this.knownChemicalOutputTanks) {
+                if (tank != null && !tank.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean processAeOutputWork() {
+        boolean hadWork = hasAeOutputWork();
+        MeMekanismMachineBlockEntity.AeOutputMode mode = this.owner.getAeOutputMode();
+        for (OutputInventorySlot slot : this.knownOutputSlots) {
+            insertOutputSlotIntoNetwork(slot, mode);
+        }
+        for (IChemicalTank tank : this.knownChemicalOutputTanks) {
+            insertChemicalTankIntoNetwork(tank, mode);
+        }
+        for (IExtendedFluidTank tank : this.knownFluidOutputTanks) {
+            insertFluidTankIntoNetwork(tank, mode);
+        }
+        boolean hasWork = hasAeOutputWork();
+        if (hasWork) {
+            alertAeTicker();
+        }
+        return hadWork && !hasWork;
+    }
+
+    private void alertAeTicker() {
+        this.mainNode.ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
+    }
+
     private boolean insertOutputStackIntoNetwork(OutputInventorySlot outputSlot) {
+        if (outputSlot == null) {
+            return false;
+        }
         ItemStack output = outputSlot.getStack();
         if (output.isEmpty()) {
             return false;
@@ -312,6 +390,26 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         @Override
         public void onSaveChanges(TileEntityMekanism nodeOwner, IGridNode node) {
             nodeOwner.setChanged();
+        }
+    }
+
+    private final class AeTicker implements IGridTickable {
+        @Override
+        public TickingRequest getTickingRequest(IGridNode node) {
+            return new TickingRequest(TickRates.Interface, !hasAeOutputWork());
+        }
+
+        @Override
+        public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
+            if (!mainNode.isActive()) {
+                return TickRateModulation.SLEEP;
+            }
+            boolean hadWork = hasAeOutputWork();
+            boolean finished = processAeOutputWork();
+            if (!hasAeOutputWork()) {
+                return TickRateModulation.SLEEP;
+            }
+            return finished || hadWork ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
         }
     }
 }

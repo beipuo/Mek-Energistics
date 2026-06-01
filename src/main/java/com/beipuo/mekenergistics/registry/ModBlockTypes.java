@@ -3,6 +3,8 @@ package com.beipuo.mekenergistics.registry;
 import com.beipuo.mekenergistics.block.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.MekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.MekanismMoreMachineCompat;
 import java.util.EnumMap;
 import java.util.Map;
 import mekanism.api.Upgrade;
@@ -21,7 +23,9 @@ public final class ModBlockTypes {
 
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
-            MACHINES.put(machine, createMachineBlockType(machine));
+            if (machine.isAvailable()) {
+                MACHINES.put(machine, createMachineBlockType(machine));
+            }
         }
     }
 
@@ -40,6 +44,12 @@ public final class ModBlockTypes {
     private static <TILE extends TileEntityMekanism> BlockTypeTile<TILE> createMachineBlockType(
             MeMekanismMachine machine,
             mekanism.common.registration.impl.TileEntityTypeRegistryObject<TILE> tileType) {
+        if (machine.isMekanismExtrasFactory()) {
+            return MekanismExtrasCompat.createFactoryBlockType(machine, tileType);
+        }
+        if (machine.isMoreMachineFactory()) {
+            return MekanismMoreMachineCompat.createFactoryBlockType(machine, tileType);
+        }
         var builder = BlockTypeTile.BlockTileBuilder
                 .createBlock(() -> tileType, lang(machine))
                 .withGui(() -> ModMenuTypes.getMachineContainer(machine))

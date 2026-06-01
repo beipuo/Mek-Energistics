@@ -16,7 +16,9 @@ public final class ModBlocks {
 
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
-            MACHINES.put(machine, BLOCKS.register(machine.registryName(), () -> new MeMekanismMachineBlock(machine)));
+            if (machine.isAvailable()) {
+                MACHINES.put(machine, BLOCKS.register(machine.registryName(), () -> new MeMekanismMachineBlock(machine)));
+            }
         }
     }
 

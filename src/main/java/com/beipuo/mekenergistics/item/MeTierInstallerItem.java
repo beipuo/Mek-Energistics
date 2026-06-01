@@ -1,7 +1,11 @@
 package com.beipuo.mekenergistics.item;
 
+import com.beipuo.mekenergistics.blockentity.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import mekanism.api.security.IBlockSecurityUtils;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeFactoryType;
 import mekanism.common.block.attribute.AttributeTier;
@@ -46,6 +50,9 @@ public class MeTierInstallerItem extends Item {
             return InteractionResult.PASS;
         }
         BlockEntity oldTile = WorldUtils.getTileEntity(context.getLevel(), context.getClickedPos());
+        if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(context.getPlayer(), context.getLevel(), context.getClickedPos(), oldTile)) {
+            return InteractionResult.FAIL;
+        }
         IUpgradeData upgradeData = null;
         if (oldTile instanceof ITierUpgradable tierUpgradable) {
             upgradeData = tierUpgradable.getUpgradeData(context.getLevel().registryAccess());
@@ -64,6 +71,15 @@ public class MeTierInstallerItem extends Item {
             }
             if (upgradeData != null) {
                 upgradedTile.parseUpgradeData(context.getLevel().registryAccess(), upgradeData);
+            }
+            if (context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player) {
+                if (upgradedTile instanceof MeAeMachine machine) {
+                    machine.setOwner(player);
+                } else if (upgradedTile instanceof MeFactoryAeMachine machine) {
+                    machine.setOwner(player);
+                } else {
+                    MeOwnerHelper.claimMekanismOwnerIfMissing(upgradedTile, player);
+                }
             }
             upgradedTile.resyncMasterToBounding();
             upgradedTile.sendUpdatePacket();

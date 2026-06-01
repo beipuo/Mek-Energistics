@@ -24,10 +24,12 @@ public final class ModItems {
 
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
-            MACHINES.put(machine, ITEMS.register(
-                    machine.registryName(),
-                    () -> new BlockItem(ModBlocks.getMachineBlock(machine).get(), machineProperties(machine))
-            ));
+            if (machine.isAvailable()) {
+                MACHINES.put(machine, ITEMS.register(
+                        machine.registryName(),
+                        () -> new BlockItem(ModBlocks.getMachineBlock(machine).get(), machineProperties(machine))
+                ));
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.registry;
 
 import com.beipuo.mekenergistics.MekEnergistics;
+import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,6 +20,9 @@ public final class ModCreativeTabs {
                     .icon(() -> ModItems.ME_METALLURGIC_INFUSER.get().getDefaultInstance())
                     .displayItems((parameters, output) -> {
                         for (var item : ModItems.getMachineItems()) {
+                            if (item == ModItems.getMachineItem(MeMekanismMachine.SEISMIC_VIBRATOR)) {
+                                continue;
+                            }
                             output.accept(item.get());
                         }
                         output.accept(ModItems.ME_FACTORY_INSTALLER.get());

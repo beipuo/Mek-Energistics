@@ -65,7 +65,7 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
     @Override public MeFactoryAeSupport getAeSupport() { return this.aeSupport; }
     @Override public MeMekanismMachine getMachine() { return this.machine; }
     @Override public Level getOwnerLevel() { return getLevel(); }
-    public void setOwner(ServerPlayer player) { getMainNode().setOwningPlayer(player); }
+    public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
     @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
 

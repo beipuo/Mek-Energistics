@@ -39,6 +39,8 @@ import com.beipuo.mekenergistics.blockentity.MeSeismicVibratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.MeSolarNeutronActivatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.MekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.MekanismMoreMachineCompat;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -58,11 +60,13 @@ public final class ModBlockEntities {
 
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
-            MACHINES.put(machine, registerMachine(machine));
+            if (machine.isAvailable()) {
+                MACHINES.put(machine, registerMachine(machine));
+            }
         }
     }
 
-    private static <TILE extends TileEntityMekanism> TileEntityTypeRegistryObject<TILE> registerMachine(
+    public static <TILE extends TileEntityMekanism> TileEntityTypeRegistryObject<TILE> registerMachine(
             MeMekanismMachine machine, MachineFactory<TILE> factory) {
         return BLOCK_ENTITIES.mekBuilder(
                 ModBlocks.getMachineBlock(machine),
@@ -77,7 +81,11 @@ public final class ModBlockEntities {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerMachine(MeMekanismMachine machine) {
         TileEntityTypeRegistryObject<?> registered;
-        if (machine.isFactory()) {
+        if (machine.isMekanismExtrasFactory()) {
+            registered = MekanismExtrasCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
+        } else if (machine.isMoreMachineFactory()) {
+            registered = MekanismMoreMachineCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
+        } else if (machine.isFactory()) {
             registered = registerFactoryMachine(machine);
         } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
             registered = registerMachine(machine, MeElectricMachineBlockEntity::new);
@@ -165,8 +173,13 @@ public final class ModBlockEntities {
     }
 
     @FunctionalInterface
-    private interface MachineFactory<TILE extends TileEntityMekanism> {
+    public interface MachineFactory<TILE extends TileEntityMekanism> {
         TILE create(MeMekanismMachine machine, BlockPos pos, BlockState state);
+    }
+
+    @FunctionalInterface
+    public interface MachineFactoryRegistrar {
+        <TILE extends TileEntityMekanism> TileEntityTypeRegistryObject<TILE> register(MeMekanismMachine machine, MachineFactory<TILE> factory);
     }
 
     public static final TileEntityTypeRegistryObject<? extends TileEntityMekanism> ME_METALLURGIC_INFUSER =
@@ -195,8 +208,15 @@ public final class ModBlockEntities {
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
+            if (!machine.isAvailable()) {
+                continue;
+            }
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder = MACHINES.get(machine);
-            if (machine.isFactory()) {
+            if (machine.isMekanismExtrasFactory()) {
+                MekanismExtrasCompat.registerGridNodeHost(event, holder);
+            } else if (machine.isMoreMachineFactory()) {
+                MekanismMoreMachineCompat.registerGridNodeHost(event, holder);
+            } else if (machine.isFactory()) {
                 switch (machine.factoryType()) {
                     case SMELTING, ENRICHING, CRUSHING ->
                             registerGridNodeHost(event, holder, MeItemStackToItemStackFactoryBlockEntity.class);
@@ -250,14 +270,14 @@ public final class ModBlockEntities {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <TILE extends TileEntityMekanism & appeng.api.networking.IInWorldGridNodeHost> void registerGridNodeHost(
+    public static void registerGridNodeHost(
             RegisterCapabilitiesEvent event,
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder,
-            Class<TILE> tileClass) {
+            Class<? extends appeng.api.networking.IInWorldGridNodeHost> tileClass) {
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 (net.minecraft.world.level.block.entity.BlockEntityType) holder.get(),
-                (blockEntity, context) -> tileClass.isInstance(blockEntity) ? tileClass.cast(blockEntity) : null
+                (blockEntity, context) -> tileClass.isInstance(blockEntity) ? (appeng.api.networking.IInWorldGridNodeHost) tileClass.cast(blockEntity) : null
         );
     }
 }

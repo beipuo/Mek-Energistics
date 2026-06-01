@@ -78,7 +78,7 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
     }
 
     public void setOwner(ServerPlayer player) {
-        getMainNode().setOwningPlayer(player);
+        MeOwnerHelper.setOwner(this, getMainNode(), player);
     }
 
     @Override

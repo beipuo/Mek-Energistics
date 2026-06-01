@@ -76,7 +76,7 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     }
 
     public void setOwner(ServerPlayer player) {
-        getMainNode().setOwningPlayer(player);
+        MeOwnerHelper.setOwner(this, getMainNode(), player);
     }
 
     @Override

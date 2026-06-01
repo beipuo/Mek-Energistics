@@ -9,17 +9,21 @@ import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IGridNodeListener;
-import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
+import appeng.api.networking.ticking.IGridTickable;
+import appeng.api.networking.ticking.TickRateModulation;
+import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
+import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
@@ -77,17 +81,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BooleanSupplier;
 
 public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
-        implements ICraftingProvider, IInWorldGridNodeHost, IGridNodeListener<MeMekanismMachineBlockEntity>, IActionHost, IHasDumpButton, MeAeMachine {
+        implements ICraftingProvider, MeSmartCableConnection, IGridNodeListener<MeMekanismMachineBlockEntity>, IActionHost, IHasDumpButton, MeAeMachine {
     private static final int BASE_TICKS_REQUIRED = 10 * 20;
     public static final int INPUT_SLOT = 0;
     public static final int SECONDARY_INPUT_SLOT = 1;
     public static final int OUTPUT_SLOT = 2;
     public static final int SECONDARY_OUTPUT_SLOT = 3;
     public static final int PATTERN_SLOTS_START = 4;
-    public static final int PATTERN_SLOTS_COUNT = 36;
-    public static final int PATTERN_SLOTS_END = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT - 1;
-    public static final int ENERGY_SLOT = PATTERN_SLOTS_START + PATTERN_SLOTS_COUNT;
-    public static final int TOTAL_SLOTS = ENERGY_SLOT + 1;
 
     private static final String TAG_INVENTORY = "Inventory";
     private static final String TAG_PATTERN_PRIORITY = "PatternPriority";
@@ -116,14 +116,15 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
                 .setInWorldNode(true)
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
-                .addService(ICraftingProvider.class, this);
+                .addService(ICraftingProvider.class, this)
+                .addService(IGridTickable.class, new AeTicker());
         IInventorySlot[] inventorySlots = slots();
         List<IInventorySlot> inputSlots = new ArrayList<>();
         inputSlots.add(inventorySlots[INPUT_SLOT]);
         if (machine.hasSecondaryItemInput() || machine.hasChemicalInput()) {
             inputSlots.add(inventorySlots[SECONDARY_INPUT_SLOT]);
         }
-        for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
+        for (int slot = PATTERN_SLOTS_START; slot <= patternSlotsEnd(); slot++) {
             inputSlots.add(inventorySlots[slot]);
         }
         List<IInventorySlot> outputSlots = new ArrayList<>();
@@ -131,7 +132,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         if (machine.hasSecondaryOutput()) {
             outputSlots.add(inventorySlots[SECONDARY_OUTPUT_SLOT]);
         }
-        this.configComponent.setupItemIOConfig(inputSlots, outputSlots, inventorySlots[ENERGY_SLOT], false);
+        this.configComponent.setupItemIOConfig(inputSlots, outputSlots, inventorySlots[energySlot()], false);
         this.configComponent.setupInputConfig(TransmissionType.ENERGY, this.energyContainer);
         if (this.chemicalTank != null) {
             this.configComponent.setupIOConfig(TransmissionType.CHEMICAL, this.chemicalTank, RelativeSide.RIGHT).setCanEject(false);
@@ -143,7 +144,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        if (this.inventorySlots[ENERGY_SLOT] instanceof EnergyInventorySlot energySlot) {
+        if (this.inventorySlots[energySlot()] instanceof EnergyInventorySlot energySlot) {
             energySlot.fillContainerOrConvert();
         }
         fillChemicalFromConversionSlot();
@@ -159,11 +160,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             this.operatingTicks = 0;
             setActive(false);
         }
-        processPendingCraftingOutputs();
-        processPendingKeyOutputs();
-        insertOutputSlotIntoNetwork(OUTPUT_SLOT);
-        insertOutputSlotIntoNetwork(SECONDARY_OUTPUT_SLOT);
-        insertChemicalTankIntoNetwork();
+        processAeNetworkOutputs();
         return sendUpdatePacket;
     }
 
@@ -195,39 +192,39 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         if (!machine.hasRecipeLogic()) {
             inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
             inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
-            inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
+            inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
         } else switch (machine.factoryType()) {
             case INFUSING -> {
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 17, 35));
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 51, 43));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 109, 43));
-                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 143, 35));
+                inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 143, 35));
             }
             case COMPRESSING, INJECTING, PURIFYING -> {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 53));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
-                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
+                inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
             }
             case COMBINING -> {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 53));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
-                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
+                inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
             }
             case SAWING -> {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 56, 17));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
                 inventorySlots[SECONDARY_OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 132, 35));
-                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 56, 53));
+                inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 56, 53));
             }
             default -> {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
-                inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
+                inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
             }
         }
-        for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
+        for (int slot = PATTERN_SLOTS_START; slot <= patternSlotsEnd(); slot++) {
             inventorySlots[slot] = builder.addSlot(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, () -> {
                 listener.onContentsChanged();
                 updatePatterns();
@@ -293,14 +290,14 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     public void setOwner(ServerPlayer player) {
-        this.mainNode.setOwningPlayer(player);
+        MeOwnerHelper.setOwner(this, this.mainNode, player);
     }
 
     @Override
     public List<BasicInventorySlot> getPatternSlots() {
-        List<BasicInventorySlot> patternSlots = new ArrayList<>(PATTERN_SLOTS_COUNT);
+        List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
         IInventorySlot[] slots = slots();
-        for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
+        for (int slot = PATTERN_SLOTS_START; slot <= patternSlotsEnd(); slot++) {
             if (slots[slot] instanceof BasicInventorySlot patternSlot) {
                 patternSlots.add(patternSlot);
             }
@@ -369,6 +366,34 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
         this.chemicalTank.shrinkStack(inserted, Action.EXECUTE);
         setChanged();
+    }
+
+    private boolean processAeNetworkOutputs() {
+        boolean hadWork = hasAeNetworkOutputWork();
+        processPendingCraftingOutputs();
+        processPendingKeyOutputs();
+        insertOutputSlotIntoNetwork(OUTPUT_SLOT);
+        insertOutputSlotIntoNetwork(SECONDARY_OUTPUT_SLOT);
+        insertChemicalTankIntoNetwork();
+        boolean hasWork = hasAeNetworkOutputWork();
+        if (hasWork) {
+            alertAeTicker();
+        }
+        return hadWork && !hasWork;
+    }
+
+    private boolean hasAeNetworkOutputWork() {
+        if (!this.pendingCraftingOutputs.isEmpty() || !this.pendingKeyOutputs.isEmpty()) {
+            return true;
+        }
+        if (this.aeOutputMode.items() && (!getStack(OUTPUT_SLOT).isEmpty() || !getStack(SECONDARY_OUTPUT_SLOT).isEmpty())) {
+            return true;
+        }
+        return this.aeOutputMode.chemicals() && this.chemicalTank != null && !this.chemicalTank.isEmpty();
+    }
+
+    private void alertAeTicker() {
+        this.mainNode.ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
     }
 
     private void processRecipe() {
@@ -920,8 +945,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return false;
         }
 
-        ItemStack[] simulated = new ItemStack[TOTAL_SLOTS];
-        for (int i = 0; i < TOTAL_SLOTS; i++) {
+        ItemStack[] simulated = new ItemStack[totalSlots()];
+        for (int i = 0; i < totalSlots(); i++) {
             simulated[i] = getStack(i).copy();
         }
 
@@ -1057,9 +1082,29 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
     }
 
+    private final class AeTicker implements IGridTickable {
+        @Override
+        public TickingRequest getTickingRequest(IGridNode node) {
+            return new TickingRequest(TickRates.Interface, !hasAeNetworkOutputWork());
+        }
+
+        @Override
+        public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
+            if (!mainNode.isActive()) {
+                return TickRateModulation.SLEEP;
+            }
+            boolean hadWork = hasAeNetworkOutputWork();
+            boolean finished = processAeNetworkOutputs();
+            if (!hasAeNetworkOutputWork()) {
+                return TickRateModulation.SLEEP;
+            }
+            return finished || hadWork ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
+        }
+    }
+
     private void updatePatterns() {
         this.patterns.clear();
-        for (int i = PATTERN_SLOTS_START; i <= PATTERN_SLOTS_END; i++) {
+        for (int i = PATTERN_SLOTS_START; i <= patternSlotsEnd(); i++) {
             ItemStack stack = getStack(i);
             if (!stack.isEmpty()) {
                 IPatternDetails pattern = PatternDetailsHelper.decodePattern(stack, this.level);
@@ -1131,9 +1176,21 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
 
     private IInventorySlot[] slots() {
         if (this.inventorySlots == null) {
-            this.inventorySlots = new IInventorySlot[TOTAL_SLOTS];
+            this.inventorySlots = new IInventorySlot[totalSlots()];
         }
         return this.inventorySlots;
+    }
+
+    private static int patternSlotsEnd() {
+        return PATTERN_SLOTS_START + MekEnergisticsConfig.patternSlots() - 1;
+    }
+
+    private static int energySlot() {
+        return PATTERN_SLOTS_START + MekEnergisticsConfig.patternSlots();
+    }
+
+    private static int totalSlots() {
+        return energySlot() + 1;
     }
 
     public AeOutputMode getAeOutputMode() {
@@ -1238,3 +1295,4 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
     }
 }
+

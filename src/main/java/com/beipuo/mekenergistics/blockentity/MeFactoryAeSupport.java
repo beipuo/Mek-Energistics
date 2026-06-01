@@ -15,9 +15,14 @@ import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
+import appeng.api.networking.ticking.IGridTickable;
+import appeng.api.networking.ticking.TickRateModulation;
+import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
+import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +35,7 @@ import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
-import mekanism.common.tile.factory.TileEntityFactory;
+import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -39,14 +44,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public final class MeFactoryAeSupport {
-    public static final int PATTERN_SLOTS = 36;
-
     private final MeFactoryAeMachine owner;
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
-    private final List<BasicInventorySlot> patternSlots = new ArrayList<>(PATTERN_SLOTS);
+    private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final InternalInventory terminalPatternInventory = new PatternSlotInternalInventory(new PatternSlotOwner());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final List<IInventorySlot> knownOutputSlots = new ArrayList<>();
     private int patternPriority;
 
     public MeFactoryAeSupport(MeFactoryAeMachine owner) {
@@ -56,8 +60,9 @@ public final class MeFactoryAeSupport {
                 .setInWorldNode(true)
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
-                .addService(ICraftingProvider.class, owner);
-        for (int i = 0; i < PATTERN_SLOTS; i++) {
+                .addService(ICraftingProvider.class, owner)
+                .addService(IGridTickable.class, new AeTicker());
+        for (int i = 0; i < MekEnergisticsConfig.patternSlots(); i++) {
             this.patternSlots.add(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, this::updatePatterns));
         }
     }
@@ -94,6 +99,7 @@ public final class MeFactoryAeSupport {
     }
 
     public boolean insertOutputSlotsIntoNetwork(List<IInventorySlot> outputSlots) {
+        rememberOutputSlots(outputSlots);
         MEStorage storage = getNetworkStorage();
         if (storage == null) {
             return false;
@@ -119,6 +125,37 @@ public final class MeFactoryAeSupport {
             this.owner.saveChanges();
         }
         return changed;
+    }
+
+    private void rememberOutputSlots(List<IInventorySlot> outputSlots) {
+        for (IInventorySlot outputSlot : outputSlots) {
+            if (outputSlot != null && !this.knownOutputSlots.contains(outputSlot)) {
+                this.knownOutputSlots.add(outputSlot);
+            }
+        }
+    }
+
+    private boolean hasAeOutputWork() {
+        for (IInventorySlot outputSlot : this.knownOutputSlots) {
+            if (outputSlot != null && !outputSlot.getStack().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean processAeOutputWork() {
+        boolean hadWork = hasAeOutputWork();
+        insertOutputSlotsIntoNetwork(this.knownOutputSlots);
+        boolean hasWork = hasAeOutputWork();
+        if (hasWork) {
+            alertAeTicker();
+        }
+        return hadWork && !hasWork;
+    }
+
+    private void alertAeTicker() {
+        this.mainNode.ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
     }
 
     private MEStorage getNetworkStorage() {
@@ -225,10 +262,30 @@ public final class MeFactoryAeSupport {
         }
     }
 
-    public static final class AeBackedFactoryEnergyContainer extends MachineEnergyContainer<TileEntityFactory<?>> {
-        private final TileEntityFactory<?> owner;
+    private final class AeTicker implements IGridTickable {
+        @Override
+        public TickingRequest getTickingRequest(IGridNode node) {
+            return new TickingRequest(TickRates.Interface, !hasAeOutputWork());
+        }
 
-        public AeBackedFactoryEnergyContainer(TileEntityFactory<?> owner, IContentsListener listener) {
+        @Override
+        public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
+            if (!mainNode.isActive()) {
+                return TickRateModulation.SLEEP;
+            }
+            boolean hadWork = hasAeOutputWork();
+            boolean finished = processAeOutputWork();
+            if (!hasAeOutputWork()) {
+                return TickRateModulation.SLEEP;
+            }
+            return finished || hadWork ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
+        }
+    }
+
+    public static final class AeBackedFactoryEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE> {
+        private final TILE owner;
+
+        public AeBackedFactoryEnergyContainer(TILE owner, IContentsListener listener) {
             super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
                     BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
             this.owner = owner;

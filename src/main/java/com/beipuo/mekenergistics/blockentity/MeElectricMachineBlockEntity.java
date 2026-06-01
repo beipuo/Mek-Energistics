@@ -9,17 +9,21 @@ import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IGridNodeListener;
-import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
+import appeng.api.networking.ticking.IGridTickable;
+import appeng.api.networking.ticking.TickRateModulation;
+import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
+import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.mixin.TileEntityElectricMachineAccessor;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
@@ -63,8 +67,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
-        implements ICraftingProvider, IInWorldGridNodeHost, IGridNodeListener<MeElectricMachineBlockEntity>, IActionHost, MeAeMachine {
-    private static final int PATTERN_SLOTS_COUNT = 36;
+        implements ICraftingProvider, MeSmartCableConnection, IGridNodeListener<MeElectricMachineBlockEntity>, IActionHost, MeAeMachine {
     private static final String TAG_PATTERN_PRIORITY = "PatternPriority";
     private static final String TAG_AE_OUTPUT_MODE = "AeOutputMode";
 
@@ -84,7 +87,8 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
                 .setInWorldNode(true)
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
-                .addService(ICraftingProvider.class, this);
+                .addService(ICraftingProvider.class, this)
+                .addService(IGridTickable.class, new AeTicker());
     }
 
     @NotNull
@@ -123,8 +127,8 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener, IContentsListener recipeCacheListener, IContentsListener recipeCacheUnpauseListener) {
         IInventorySlotHolder original = super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener);
         InventorySlotHelper patternBuilder = InventorySlotHelper.readOnly();
-        this.patternSlots = new ArrayList<>(PATTERN_SLOTS_COUNT);
-        for (int i = 0; i < PATTERN_SLOTS_COUNT; i++) {
+        this.patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
+        for (int i = 0; i < MekEnergisticsConfig.patternSlots(); i++) {
             this.patternSlots.add(patternBuilder.addSlot(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, () -> {
                 listener.onContentsChanged();
                 updatePatterns();
@@ -141,7 +145,7 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        insertOutputSlotIntoNetwork();
+        processAeOutputWork();
         return sendUpdatePacket;
     }
 
@@ -178,6 +182,25 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
         output.shrink((int) inserted);
         outputSlot.setStack(output.isEmpty() ? ItemStack.EMPTY : output);
         setChanged();
+    }
+
+    private boolean hasAeOutputWork() {
+        OutputInventorySlot outputSlot = ((TileEntityElectricMachineAccessor) this).mekenergistics$getOutputSlot();
+        return this.aeOutputMode.items() && outputSlot != null && !outputSlot.getStack().isEmpty();
+    }
+
+    private boolean processAeOutputWork() {
+        boolean hadWork = hasAeOutputWork();
+        insertOutputSlotIntoNetwork();
+        boolean hasWork = hasAeOutputWork();
+        if (hasWork) {
+            alertAeTicker();
+        }
+        return hadWork && !hasWork;
+    }
+
+    private void alertAeTicker() {
+        this.mainNode.ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
     }
 
     private long insertIntoNetwork(ItemStack stack) {
@@ -344,7 +367,7 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
 
     @Override
     public void setOwner(ServerPlayer player) {
-        this.mainNode.setOwningPlayer(player);
+        MeOwnerHelper.setOwner(this, this.mainNode, player);
     }
 
     @Override
@@ -445,4 +468,25 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
             this.energyContainer.deserializeNBT(provider, nbt);
         }
     }
+
+    private final class AeTicker implements IGridTickable {
+        @Override
+        public TickingRequest getTickingRequest(IGridNode node) {
+            return new TickingRequest(TickRates.Interface, !hasAeOutputWork());
+        }
+
+        @Override
+        public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
+            if (!mainNode.isActive()) {
+                return TickRateModulation.SLEEP;
+            }
+            boolean hadWork = hasAeOutputWork();
+            boolean finished = processAeOutputWork();
+            if (!hasAeOutputWork()) {
+                return TickRateModulation.SLEEP;
+            }
+            return finished || hadWork ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
+        }
+    }
 }
+

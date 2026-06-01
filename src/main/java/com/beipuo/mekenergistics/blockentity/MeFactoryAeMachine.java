@@ -10,9 +10,10 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
-public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlockEntity, IActionHost, appeng.helpers.patternprovider.PatternContainer {
+public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlockEntity, IActionHost, MeSmartCableConnection, appeng.helpers.patternprovider.PatternContainer {
     MeFactoryAeSupport getAeSupport();
 
     MeMekanismMachine getMachine();
@@ -33,6 +34,14 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
 
     default List<BasicInventorySlot> getPatternSlots() {
         return getAeSupport().getPatternSlots();
+    }
+
+    default void setOwner(ServerPlayer player) {
+        if (this instanceof mekanism.common.tile.base.TileEntityMekanism tile) {
+            MeOwnerHelper.setOwner(tile, getMainNode(), player);
+        } else {
+            getMainNode().setOwningPlayer(player);
+        }
     }
 
     @Override

@@ -4,7 +4,6 @@ import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.KeyCounter;
@@ -35,7 +34,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MeFormulaicAssemblicatorBlockEntity extends TileEntityFormulaicAssemblicator implements ICraftingProvider, IInWorldGridNodeHost, IActionHost, MeAeMachine {
+public class MeFormulaicAssemblicatorBlockEntity extends TileEntityFormulaicAssemblicator implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeFormulaicAssemblicatorBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
     private MeMekanismMachineBlockEntity.AeOutputMode aeOutputMode = MeMekanismMachineBlockEntity.AeOutputMode.BOTH;
 
@@ -146,7 +145,7 @@ public class MeFormulaicAssemblicatorBlockEntity extends TileEntityFormulaicAsse
     @Override public ItemStack getTerminalIconStack() { return new ItemStack(ModBlocks.getMachineBlock(getMachine()).get()); }
     @Override public IGrid getGrid() { return this.aeSupport.getGrid(); }
     public appeng.api.networking.IManagedGridNode getMainNode() { return this.aeSupport.getMainNode(); }
-    @Override public void setOwner(ServerPlayer player) { getMainNode().setOwningPlayer(player); }
+    @Override public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
     @Nullable @Override public IGridNode getGridNode(Direction dir) { return getMainNode().getNode(); }
     @Nullable @Override public IGridNode getActionableNode() { return getMainNode().getNode(); }
     @Override public MeMekanismMachineBlockEntity.AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
@@ -158,3 +157,4 @@ public class MeFormulaicAssemblicatorBlockEntity extends TileEntityFormulaicAsse
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); tag.putInt("AeOutputMode", this.aeOutputMode.ordinal()); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
     @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = MeMekanismMachineBlockEntity.AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
 }
+
