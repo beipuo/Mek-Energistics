@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mekenergistics:block/me_antiprotonic_nucleosynthesizer"
+    },
+    "facing=south": {
+      "model": "mekenergistics:block/me_antiprotonic_nucleosynthesizer",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "mekenergistics:block/me_antiprotonic_nucleosynthesizer",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "mekenergistics:block/me_antiprotonic_nucleosynthesizer",
+      "y": -90
+    }
+  }
+}

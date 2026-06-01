@@ -1,16 +1,17 @@
 package com.beipuo.mekenergistics.client.screen;
 
 import com.beipuo.mekenergistics.blockentity.MeElectricMachineBlockEntity;
-import mekanism.client.gui.element.GuiUpArrow;
-import mekanism.client.gui.element.bar.GuiVerticalPowerBar;
-import mekanism.client.gui.element.progress.GuiProgress;
-import mekanism.client.gui.element.progress.ProgressType;
-import mekanism.client.gui.element.tab.GuiEnergyTab;
+import com.beipuo.mekenergistics.network.CycleAeOutputModePacket;
+import mekanism.client.gui.element.button.MekanismButton;
+import mekanism.client.gui.machine.GuiElectricMachine;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-public class MeElectricMachineScreen extends MeMekanismMachineScreen<MeElectricMachineBlockEntity> {
+public class MeElectricMachineScreen extends GuiElectricMachine<MeElectricMachineBlockEntity, MekanismTileContainer<MeElectricMachineBlockEntity>> {
+    private MekanismButton aeOutputModeButton;
+
     public MeElectricMachineScreen(MekanismTileContainer<MeElectricMachineBlockEntity> menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
@@ -18,9 +19,19 @@ public class MeElectricMachineScreen extends MeMekanismMachineScreen<MeElectricM
     @Override
     protected void addGuiElements() {
         super.addGuiElements();
-        addRenderableWidget(new GuiUpArrow(this, 68, 38));
-        addRenderableWidget(new GuiVerticalPowerBar(this, tile.getEnergyContainer(), 164, 16));
-        addRenderableWidget(new GuiEnergyTab(this, tile.getEnergyContainer(), () -> 0L));
-        addRenderableWidget(new GuiProgress(tile::getScaledProgress, ProgressType.BAR, this, 86, 38));
+        this.aeOutputModeButton = addRenderableWidget(new MekanismButton(this, 7, 4, 58, 12,
+                Component.literal(tile.getAeOutputMode().label()),
+                (element, mouseX, mouseY) -> {
+                    PacketDistributor.sendToServer(new CycleAeOutputModePacket(tile.getBlockPos()));
+                    return true;
+                }));
+    }
+
+    @Override
+    public void containerTick() {
+        super.containerTick();
+        if (this.aeOutputModeButton != null) {
+            this.aeOutputModeButton.setMessage(Component.literal(tile.getAeOutputMode().label()));
+        }
     }
 }

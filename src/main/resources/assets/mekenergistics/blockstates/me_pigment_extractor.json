@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mekenergistics:block/me_pigment_extractor"
+    },
+    "facing=south": {
+      "model": "mekenergistics:block/me_pigment_extractor",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "mekenergistics:block/me_pigment_extractor",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "mekenergistics:block/me_pigment_extractor",
+      "y": -90
+    }
+  }
+}

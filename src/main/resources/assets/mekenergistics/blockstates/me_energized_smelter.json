@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=north": {
-      "model": "mekanism:block/energized_smelter"
+      "model": "mekenergistics:block/me_energized_smelter"
     },
     "facing=south": {
-      "model": "mekanism:block/energized_smelter",
+      "model": "mekenergistics:block/me_energized_smelter",
       "y": 180
     },
     "facing=east": {
-      "model": "mekanism:block/energized_smelter",
+      "model": "mekenergistics:block/me_energized_smelter",
       "y": 90
     },
     "facing=west": {
-      "model": "mekanism:block/energized_smelter",
+      "model": "mekenergistics:block/me_energized_smelter",
       "y": -90
     }
   }

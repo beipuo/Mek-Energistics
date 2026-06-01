@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.network;
 
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.MeAeMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -30,7 +30,7 @@ public record CycleAeOutputModePacket(BlockPos pos) implements CustomPacketPaylo
                 return;
             }
             BlockEntity blockEntity = player.level().getBlockEntity(this.pos);
-            if (blockEntity instanceof MeMekanismMachineBlockEntity machine) {
+            if (blockEntity instanceof MeAeMachine machine) {
                 machine.cycleAeOutputMode();
             }
         });

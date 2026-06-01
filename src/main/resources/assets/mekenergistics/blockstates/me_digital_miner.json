@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mekenergistics:block/me_digital_miner"
+    },
+    "facing=south": {
+      "model": "mekenergistics:block/me_digital_miner",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "mekenergistics:block/me_digital_miner",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "mekenergistics:block/me_digital_miner",
+      "y": -90
+    }
+  }
+}

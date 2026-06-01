@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.blockentity;
 
 import appeng.api.config.Actionable;
+import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.GridFlags;
@@ -35,11 +36,13 @@ import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.CombinerRecipe;
+import mekanism.api.recipes.cache.CachedRecipe.OperationTracker.RecipeError;
 import mekanism.api.recipes.ItemStackChemicalToItemStackRecipe;
 import mekanism.api.recipes.ItemStackToChemicalRecipe;
 import mekanism.api.recipes.ItemStackToItemStackRecipe;
 import mekanism.api.recipes.SawmillRecipe;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.holder.chemical.ChemicalTankHelper;
 import mekanism.common.capabilities.holder.chemical.IChemicalTankHolder;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -71,9 +74,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.function.BooleanSupplier;
 
 public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
-        implements ICraftingProvider, IInWorldGridNodeHost, IGridNodeListener<MeMekanismMachineBlockEntity>, IActionHost, IHasDumpButton {
+        implements ICraftingProvider, IInWorldGridNodeHost, IGridNodeListener<MeMekanismMachineBlockEntity>, IActionHost, IHasDumpButton, MeAeMachine {
     private static final int BASE_TICKS_REQUIRED = 10 * 20;
     public static final int INPUT_SLOT = 0;
     public static final int SECONDARY_INPUT_SLOT = 1;
@@ -139,8 +143,12 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
+        if (this.inventorySlots[ENERGY_SLOT] instanceof EnergyInventorySlot energySlot) {
+            energySlot.fillContainerOrConvert();
+        }
         fillChemicalFromConversionSlot();
         if (canProcessRecipe()) {
+            this.energyContainer.extract(this.energyContainer.getEnergyPerTick(), Action.EXECUTE, AutomationType.INTERNAL);
             this.operatingTicks++;
             setActive(true);
             if (this.operatingTicks >= this.ticksRequired) {
@@ -163,7 +171,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Override
     protected IEnergyContainerHolder getInitialEnergyContainers(IContentsListener listener) {
         EnergyContainerHelper builder = EnergyContainerHelper.forSideWithConfig(this);
-        builder.addContainer(this.energyContainer = MachineEnergyContainer.input(this, listener));
+        builder.addContainer(this.energyContainer = new AeBackedEnergyContainer(this, listener));
         return builder.build();
     }
 
@@ -184,7 +192,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         MeMekanismMachine machine = getMachineEarly();
         InventorySlotHelper builder = InventorySlotHelper.forSideWithConfig(this);
         IInventorySlot[] inventorySlots = slots();
-        switch (machine.factoryType()) {
+        if (!machine.hasRecipeLogic()) {
+            inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
+            inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
+            inventorySlots[ENERGY_SLOT] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
+        } else switch (machine.factoryType()) {
             case INFUSING -> {
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 17, 35));
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 51, 43));
@@ -232,6 +244,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return this.machine;
     }
 
+    @Override
+    public ItemStack getTerminalIconStack() {
+        return new ItemStack(ModBlocks.getMachineBlock(this.machine).get());
+    }
+
     public Component getStatusMessage() {
         if (this.machine.hasChemicalInput() && this.chemicalTank != null && !this.chemicalTank.isEmpty()) {
             ChemicalStack stack = this.chemicalTank.getStack();
@@ -275,8 +292,24 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return this.ticksRequired <= 0 ? 0 : this.operatingTicks / (double) this.ticksRequired;
     }
 
+    public BooleanSupplier getWarningCheck(RecipeError error) {
+        return () -> false;
+    }
+
     public void setOwner(ServerPlayer player) {
         this.mainNode.setOwningPlayer(player);
+    }
+
+    @Override
+    public List<BasicInventorySlot> getPatternSlots() {
+        List<BasicInventorySlot> patternSlots = new ArrayList<>(PATTERN_SLOTS_COUNT);
+        IInventorySlot[] slots = slots();
+        for (int slot = PATTERN_SLOTS_START; slot <= PATTERN_SLOTS_END; slot++) {
+            if (slots[slot] instanceof BasicInventorySlot patternSlot) {
+                patternSlots.add(patternSlot);
+            }
+        }
+        return Collections.unmodifiableList(patternSlots);
     }
 
     public Component getDisplayName() {
@@ -343,7 +376,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     private void processRecipe() {
-        if (this.level == null) {
+        if (this.level == null || !this.machine.hasRecipeLogic()) {
             return;
         }
         switch (this.machine.slotLayout()) {
@@ -355,7 +388,10 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     private boolean canProcessRecipe() {
-        if (this.level == null) {
+        if (this.level == null || !this.machine.hasRecipeLogic()) {
+            return false;
+        }
+        if (!hasEnergyForRecipe()) {
             return false;
         }
         return switch (this.machine.slotLayout()) {
@@ -364,6 +400,31 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             case SAWING -> canProcessSawingRecipe();
             case ITEM_CHEMICAL -> canProcessItemChemicalRecipe();
         };
+    }
+
+    private boolean hasEnergyForRecipe() {
+        long energyPerTick = this.energyContainer.getEnergyPerTick();
+        return energyPerTick <= 0 || this.energyContainer.getEnergy() >= energyPerTick
+                || extractAeAsFe(energyPerTick - this.energyContainer.getEnergy(), Action.SIMULATE) >= energyPerTick - this.energyContainer.getEnergy();
+    }
+
+    private long extractAeAsFe(long requestedFe, Action action) {
+        if (requestedFe <= 0) {
+            return 0;
+        }
+        IGridNode node = this.mainNode == null ? null : this.mainNode.getNode();
+        if (node == null || !node.isActive()) {
+            return 0;
+        }
+        IGrid grid = node.getGrid();
+        if (grid == null) {
+            return 0;
+        }
+        double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
+        double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
+                action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
+                appeng.api.config.PowerMultiplier.ONE);
+        return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
     }
 
     private boolean canProcessSingleItemRecipe() {
@@ -626,18 +687,20 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
 
     @Nullable
     private MEStorage getNetworkStorage() {
-        IGridNode node = this.mainNode.getNode();
-        if (node == null || !node.isActive()) {
-            return null;
-        }
-
-        IGrid grid = node.getGrid();
+        IGrid grid = getGrid();
         if (grid == null) {
             return null;
         }
 
         IStorageService storageService = grid.getService(IStorageService.class);
         return storageService == null ? null : storageService.getInventory();
+    }
+
+    @Nullable
+    @Override
+    public IGrid getGrid() {
+        IGridNode node = this.mainNode.getNode();
+        return node == null || !node.isActive() ? null : node.getGrid();
     }
 
     @Override
@@ -1104,6 +1167,26 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     private record PatternInput(ItemStack item, ChemicalStack chemical) {
     }
 
+    private static final class AeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismMachineBlockEntity> {
+        private final MeMekanismMachineBlockEntity owner;
+
+        private AeBackedEnergyContainer(MeMekanismMachineBlockEntity owner, IContentsListener listener) {
+            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
+                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
+            this.owner = owner;
+        }
+
+        @Override
+        public long extract(long amount, Action action, AutomationType automationType) {
+            long localExtracted = super.extract(amount, action, automationType);
+            long remaining = amount - localExtracted;
+            if (remaining <= 0 || automationType != AutomationType.INTERNAL) {
+                return localExtracted;
+            }
+            return localExtracted + this.owner.extractAeAsFe(remaining, action);
+        }
+    }
+
     public enum AeOutputMode {
         BOTH("AE: All", true, true),
         ITEMS("AE: Item", true, false),
@@ -1133,11 +1216,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return this.chemicals;
         }
 
-        private AeOutputMode next() {
+        public AeOutputMode next() {
             return VALUES[(ordinal() + 1) % VALUES.length];
         }
 
-        private static AeOutputMode byId(int id) {
+        public static AeOutputMode byId(int id) {
             return id < 0 || id >= VALUES.length ? BOTH : VALUES[id];
         }
     }

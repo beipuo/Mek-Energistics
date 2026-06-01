@@ -1,6 +1,6 @@
 package com.beipuo.mekenergistics.block;
 
-import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.MeAeMachine;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import mekanism.common.block.attribute.Attribute;
@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<MeMekanismMachineBlockEntity> {
+public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<TileEntityMekanism> {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     private final MeMekanismMachine machine;
 
@@ -53,7 +53,7 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     }
 
     @Override
-    public TileEntityTypeRegistryObject<MeMekanismMachineBlockEntity> getTileType() {
+    public TileEntityTypeRegistryObject<? extends TileEntityMekanism> getTileType() {
         return ModBlockTypes.getMachineBlockType(this.machine).getTileType();
     }
 
@@ -83,7 +83,7 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide
                 && placer instanceof ServerPlayer player
-                && level.getBlockEntity(pos) instanceof MeMekanismMachineBlockEntity machineBlockEntity) {
+                && level.getBlockEntity(pos) instanceof MeAeMachine machineBlockEntity) {
             machineBlockEntity.setOwner(player);
         }
     }

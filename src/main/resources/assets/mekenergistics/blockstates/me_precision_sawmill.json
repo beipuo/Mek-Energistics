@@ -1,18 +1,18 @@
 {
   "variants": {
     "facing=north": {
-      "model": "mekanism:block/precision_sawmill"
+      "model": "mekenergistics:block/me_precision_sawmill"
     },
     "facing=south": {
-      "model": "mekanism:block/precision_sawmill",
+      "model": "mekenergistics:block/me_precision_sawmill",
       "y": 180
     },
     "facing=east": {
-      "model": "mekanism:block/precision_sawmill",
+      "model": "mekenergistics:block/me_precision_sawmill",
       "y": 90
     },
     "facing=west": {
-      "model": "mekanism:block/precision_sawmill",
+      "model": "mekenergistics:block/me_precision_sawmill",
       "y": -90
     }
   }

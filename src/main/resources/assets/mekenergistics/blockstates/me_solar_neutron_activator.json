@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "mekenergistics:block/me_solar_neutron_activator"
+    },
+    "facing=south": {
+      "model": "mekenergistics:block/me_solar_neutron_activator",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "mekenergistics:block/me_solar_neutron_activator",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "mekenergistics:block/me_solar_neutron_activator",
+      "y": -90
+    }
+  }
+}
