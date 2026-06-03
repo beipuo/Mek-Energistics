@@ -4,7 +4,7 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
-import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.client.screen.element.MeGuiSideConfiguration;
 import com.beipuo.mekenergistics.network.packet.CycleAeOutputTypePacket;
 import java.util.Map;
@@ -103,7 +103,10 @@ public final class AeOutputConfigOverlay {
                     return null;
                 }
                 TransmissionType type = getCurrentType(sideConfig);
-                return new OverlayTarget(screenTarget.gui(), sideConfig, screenTarget.container().getTileEntity(), screenTarget.machine(), type);
+                MekEnergistics.LOGGER.debug("Using fallback AE output overlay for {} at {}",
+                        screenTarget.container().getTileEntity().getClass().getName(),
+                        screenTarget.container().getTileEntity().getBlockPos());
+                return new OverlayTarget(screenTarget.gui(), sideConfig, screenTarget.container().getTileEntity(), screenTarget.output(), type);
             }
         }
         return null;
@@ -111,10 +114,14 @@ public final class AeOutputConfigOverlay {
 
     private static ScreenTarget findScreenTarget(Screen screen) {
         if (!(screen instanceof GuiMekanism<?> gui) || !(gui.getMenu() instanceof MekanismTileContainer<?> container) ||
-                !(container.getTileEntity() instanceof MeAeMachine machine) || !(container.getTileEntity() instanceof ISideConfiguration sideConfig)) {
+                !(container.getTileEntity() instanceof ISideConfiguration sideConfig)) {
             return null;
         }
-        return new ScreenTarget(gui, container, machine, sideConfig);
+        Object output = container.getTileEntity();
+        if (!(output instanceof MeAeMachine) && !(output instanceof MeFactoryAeMachine)) {
+            return null;
+        }
+        return new ScreenTarget(gui, container, output, sideConfig);
     }
 
     private static TransmissionType getCurrentType(GuiSideConfiguration<?> sideConfig) {
@@ -151,16 +158,26 @@ public final class AeOutputConfigOverlay {
         PacketDistributor.sendToServer(new CycleAeOutputTypePacket(target.tile().getBlockPos(), target.type()));
     }
 
+    private static AeOutputMode getAeOutputMode(Object output) {
+        if (output instanceof MeAeMachine machine) {
+            return machine.getAeOutputMode();
+        }
+        if (output instanceof MeFactoryAeMachine machine) {
+            return machine.getAeOutputMode();
+        }
+        return AeOutputMode.NONE;
+    }
+
     private static ButtonBounds bounds(GuiMekanism<?> gui, GuiSideConfiguration<?> sideConfig) {
         return new ButtonBounds(gui.getGuiLeft() + sideConfig.getRelativeX() + BUTTON_X_OFFSET,
                 gui.getGuiTop() + sideConfig.getRelativeY() + BUTTON_Y_OFFSET, BUTTON_SIZE);
     }
 
-    private record ScreenTarget(GuiMekanism<?> gui, MekanismTileContainer<?> container, MeAeMachine machine, ISideConfiguration sideConfig) {
+    private record ScreenTarget(GuiMekanism<?> gui, MekanismTileContainer<?> container, Object output, ISideConfiguration sideConfig) {
     }
 
     private record OverlayTarget(GuiMekanism<?> gui, GuiSideConfiguration<?> sideConfig,
-                                 net.minecraft.world.level.block.entity.BlockEntity tile, MeAeMachine machine,
+                                 net.minecraft.world.level.block.entity.BlockEntity tile, Object output,
                                  TransmissionType type) {
     }
 
@@ -183,7 +200,7 @@ public final class AeOutputConfigOverlay {
             if (this.target == null || !canToggle(this.target.type())) {
                 return;
             }
-            Component text = Component.literal(isTypeEnabled(this.target.machine().getAeOutputMode(), this.target.type()) ? "AE: 开" : "AE: 关");
+            Component text = Component.literal(isTypeEnabled(getAeOutputMode(this.target.output()), this.target.type()) ? "AE: 开" : "AE: 关");
             drawScaledScrollingString(guiGraphics, text, 0, 0, TextAlignment.RIGHT, screenTextColor(), getWidth(), 1, false, 0.8F);
         }
     }

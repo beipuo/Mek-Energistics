@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.client.screen.element;
 
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
+import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.network.packet.CycleAeOutputTypePacket;
@@ -33,6 +34,7 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
     public MeGuiSideConfiguration(IGuiWrapper gui, int x, int y, TILE tile, SelectedWindowData windowData) {
         super(gui, x, y, tile, windowData);
         this.tile = tile;
+        MekEnergistics.LOGGER.debug("Created native ME side configuration for {} at {}", tile.getClass().getName(), tile.getBlockPos());
         this.aeButton = addChild(new AeOutputButton((GuiMekanism<?>) gui, relativeX + BUTTON_X_OFFSET, relativeY + BUTTON_Y_OFFSET));
         addChild(new AeOutputText((GuiMekanism<?>) gui, relativeX + AE_TEXT_X_OFFSET, relativeY + AE_TEXT_Y_OFFSET));
         updateAeElements();
