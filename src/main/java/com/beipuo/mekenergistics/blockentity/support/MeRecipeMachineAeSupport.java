@@ -23,7 +23,6 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.storage.MEStorage;
-import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
@@ -401,7 +400,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     private final class AeTicker implements IGridTickable {
         @Override
         public TickingRequest getTickingRequest(IGridNode node) {
-            return new TickingRequest(TickRates.Interface, !hasAeOutputWork());
+            return new TickingRequest(1, 1, !hasAeOutputWork());
         }
 
         @Override

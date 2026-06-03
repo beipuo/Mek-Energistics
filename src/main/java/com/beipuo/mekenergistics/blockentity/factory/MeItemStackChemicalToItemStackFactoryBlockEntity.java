@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.blockentity.factory;
 
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import appeng.api.crafting.IPatternDetails;
@@ -121,17 +122,12 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
         if (itemInput.isEmpty() || chemicalInput.isEmpty()) {
             return false;
         }
-        for (var inputSlot : this.inputSlots) {
-            ItemStack remainder = inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL);
-            if (remainder.isEmpty()) {
-                long chemicalRemainder = getChemicalTank().insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount();
-                if (chemicalRemainder == 0) {
-                    inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
-                    getChemicalTank().insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-                    setChanged();
-                    return true;
-                }
-            }
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, itemInput)
+                && getChemicalTank().insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, itemInput);
+            getChemicalTank().insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+            setChanged();
+            return true;
         }
         return false;
     }

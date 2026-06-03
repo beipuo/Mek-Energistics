@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.blockentity.factory;
 
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import appeng.api.crafting.IPatternDetails;
@@ -13,7 +14,6 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.Action;
-import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -87,14 +87,12 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
         ItemStack main = first.item();
         ItemStack extra = second.item();
         InputInventorySlot extraSlot = ((TileEntityCombiningFactoryAccessor) this).mekenergistics$getExtraSlot();
-        for (var inputSlot : this.inputSlots) {
-            if (inputSlot.insertItem(main.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                    && extraSlot.insertItem(extra.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-                inputSlot.insertItem(main, Action.EXECUTE, AutomationType.INTERNAL);
-                extraSlot.insertItem(extra, Action.EXECUTE, AutomationType.INTERNAL);
-                setChanged();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, main)
+                && extraSlot.insertItem(extra.copy(), Action.SIMULATE, mekanism.api.AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, main);
+            extraSlot.insertItem(extra, Action.EXECUTE, mekanism.api.AutomationType.INTERNAL);
+            setChanged();
+            return true;
         }
         return false;
     }

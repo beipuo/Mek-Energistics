@@ -9,7 +9,6 @@ import appeng.api.networking.ticking.TickRateModulation;
 import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.MEStorage;
-import appeng.core.settings.TickRates;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.Action;
@@ -170,7 +169,7 @@ final class MeMekanismMachineAeOutput implements IGridTickable {
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        return new TickingRequest(TickRates.Interface, !hasWork());
+        return new TickingRequest(1, 1, !hasWork());
     }
 
     @Override

@@ -5,6 +5,7 @@ import appeng.api.networking.GridHelper;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.ArrayList;
@@ -96,14 +97,12 @@ public final class MeExternalFactorySupport {
         if (itemInput.isEmpty() || chemicalInput.isEmpty()) {
             return false;
         }
-        for (IInventorySlot inputSlot : owner.meInputSlots()) {
-            if (inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                    && chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-                inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
-                chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-                owner.saveChanges();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), itemInput)
+                && chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), itemInput);
+            chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+            owner.saveChanges();
+            return true;
         }
         return false;
     }
@@ -216,14 +215,12 @@ public final class MeExternalFactorySupport {
                 || !chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
             return false;
         }
-        for (IInventorySlot inputSlot : owner.meInputSlots()) {
-            if (inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-                inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
-                fluidTank.insert(fluidInput, Action.EXECUTE, AutomationType.INTERNAL);
-                chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-                owner.saveChanges();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), itemInput)) {
+            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), itemInput);
+            fluidTank.insert(fluidInput, Action.EXECUTE, AutomationType.INTERNAL);
+            chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+            owner.saveChanges();
+            return true;
         }
         return false;
     }
@@ -247,14 +244,12 @@ public final class MeExternalFactorySupport {
         if (first == null || second == null || !first.isItem() || !second.isItem()) {
             return false;
         }
-        for (IInventorySlot inputSlot : owner.meInputSlots()) {
-            if (inputSlot.insertItem(first.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                    && extraSlot.insertItem(second.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-                inputSlot.insertItem(first.item(), Action.EXECUTE, AutomationType.INTERNAL);
-                extraSlot.insertItem(second.item(), Action.EXECUTE, AutomationType.INTERNAL);
-                owner.saveChanges();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), first.item())
+                && extraSlot.insertItem(second.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), first.item());
+            extraSlot.insertItem(second.item(), Action.EXECUTE, AutomationType.INTERNAL);
+            owner.saveChanges();
+            return true;
         }
         return false;
     }
@@ -269,16 +264,14 @@ public final class MeExternalFactorySupport {
         if (first.isEmpty() || second.isEmpty() || third.isEmpty()) {
             return false;
         }
-        for (IInventorySlot inputSlot : owner.meInputSlots()) {
-            if (inputSlot.insertItem(first.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                    && secondSlot.insertItem(second.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                    && thirdSlot.insertItem(third.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-                inputSlot.insertItem(first, Action.EXECUTE, AutomationType.INTERNAL);
-                secondSlot.insertItem(second, Action.EXECUTE, AutomationType.INTERNAL);
-                thirdSlot.insertItem(third, Action.EXECUTE, AutomationType.INTERNAL);
-                owner.saveChanges();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), first)
+                && secondSlot.insertItem(second.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
+                && thirdSlot.insertItem(third.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), first);
+            secondSlot.insertItem(second, Action.EXECUTE, AutomationType.INTERNAL);
+            thirdSlot.insertItem(third, Action.EXECUTE, AutomationType.INTERNAL);
+            owner.saveChanges();
+            return true;
         }
         return false;
     }
@@ -287,12 +280,9 @@ public final class MeExternalFactorySupport {
         if (input.isEmpty()) {
             return false;
         }
-        for (IInventorySlot inputSlot : owner.meInputSlots()) {
-            if (inputSlot.insertItem(input.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-                inputSlot.insertItem(input, Action.EXECUTE, AutomationType.INTERNAL);
-                owner.saveChanges();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), input)) {
+            owner.saveChanges();
+            return true;
         }
         return false;
     }

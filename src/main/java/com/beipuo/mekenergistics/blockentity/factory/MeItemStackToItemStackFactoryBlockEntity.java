@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.blockentity.factory;
 
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.GridHelper;
@@ -12,8 +13,6 @@ import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
-import mekanism.api.Action;
-import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
@@ -104,13 +103,9 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
         if (input.isEmpty()) {
             return false;
         }
-        for (var inputSlot : this.inputSlots) {
-            ItemStack remainder = inputSlot.insertItem(input.copy(), Action.SIMULATE, AutomationType.INTERNAL);
-            if (remainder.isEmpty()) {
-                inputSlot.insertItem(input, Action.EXECUTE, AutomationType.INTERNAL);
-                setChanged();
-                return true;
-            }
+        if (MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, input)) {
+            setChanged();
+            return true;
         }
         return false;
     }
