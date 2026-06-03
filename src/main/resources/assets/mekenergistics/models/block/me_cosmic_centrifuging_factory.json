@@ -9,7 +9,7 @@
       "parent": "mekanism_extras:block/factory/centrifuging/cosmic"
     },
     "front_led": {
-      "parent": "mekenergistics:block/factory/front_led/cosmic"
+      "parent": "mekenergistics:block/factory/front_led/tall/cosmic"
     }
   }
 }

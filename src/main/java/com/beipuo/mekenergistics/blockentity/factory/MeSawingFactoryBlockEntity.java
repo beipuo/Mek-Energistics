@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.IContentsListener;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.SawmillRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
@@ -71,6 +73,12 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
     public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
     @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
+
+    @NotNull
+    @Override
+    public CachedRecipe<SawmillRecipe> createNewCachedRecipe(@NotNull SawmillRecipe recipe, int cacheIndex) {
+        return MeFactoryAeSupport.withAeRecipeEnergy(this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex));
+    }
 
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {

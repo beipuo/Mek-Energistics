@@ -9,7 +9,7 @@
       "parent": "mekanism_extras:block/factory/centrifuging/infinite"
     },
     "front_led": {
-      "parent": "mekenergistics:block/factory/front_led/infinite"
+      "parent": "mekenergistics:block/factory/front_led/tall/infinite"
     }
   }
 }

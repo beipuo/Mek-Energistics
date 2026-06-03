@@ -54,6 +54,34 @@ public final class ModItems {
     }
 
     private static AttachedSideConfig defaultSideConfig(MeMekanismMachine machine) {
+        if (machine.factoryType() != null && machine.isFactory()) {
+            return switch (machine.factoryType()) {
+                case SMELTING, ENRICHING, CRUSHING, SAWING -> AttachedSideConfig.ELECTRIC_MACHINE;
+                case COMPRESSING, INFUSING -> AttachedSideConfig.ADVANCED_MACHINE;
+                case COMBINING -> AttachedSideConfig.EXTRA_MACHINE;
+                case PURIFYING, INJECTING -> AttachedSideConfig.ADVANCED_MACHINE_INPUT_ONLY;
+            };
+        }
+        if (machine.moreMachineFactoryTypeName() != null) {
+            return switch (machine.moreMachineFactoryTypeName()) {
+                case "stamping" -> AttachedSideConfig.EXTRA_MACHINE;
+                case "planting", "replicating" -> AttachedSideConfig.ADVANCED_MACHINE_INPUT_ONLY;
+                default -> AttachedSideConfig.ELECTRIC_MACHINE;
+            };
+        }
+        if (machine.moreMachineAdvancedFactoryTypeName() != null) {
+            return switch (machine.moreMachineAdvancedFactoryTypeName()) {
+                case "oxidizing", "pigment_extracting" -> AttachedSideConfig.CHEMICAL_OUT_MACHINE;
+                case "dissolving" -> AttachedSideConfig.DISSOLUTION;
+                case "washing" -> AttachedSideConfig.WASHER;
+                case "pressurised_reacting" -> AttachedSideConfig.REACTION;
+                case "crystallizing" -> AttachedSideConfig.CRYSTALLIZER;
+                case "centrifuging" -> AttachedSideConfig.CENTRIFUGE;
+                case "liquifying" -> AttachedSideConfig.LIQUIFIER;
+                case "painting" -> AttachedSideConfig.PAINTING;
+                default -> AttachedSideConfig.ELECTRIC_MACHINE;
+            };
+        }
         return switch (machine) {
             case ENRICHMENT_CHAMBER, CRUSHER, ENERGIZED_SMELTER, PRECISION_SAWMILL ->
                     AttachedSideConfig.ELECTRIC_MACHINE;

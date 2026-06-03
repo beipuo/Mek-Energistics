@@ -9,7 +9,7 @@
       "parent": "mekmm:block/factory/centrifuging/elite"
     },
     "front_led": {
-      "parent": "mekenergistics:block/factory/front_led/elite"
+      "parent": "mekenergistics:block/factory/front_led/tall/elite"
     }
   }
 }

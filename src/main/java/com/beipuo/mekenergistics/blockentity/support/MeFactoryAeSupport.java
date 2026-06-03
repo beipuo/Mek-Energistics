@@ -40,9 +40,12 @@ import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalTank;
+import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.fluid.IExtendedFluidTank;
 import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.MekanismRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
@@ -287,6 +290,26 @@ public final class MeFactoryAeSupport {
         return storage == null || key == null || amount <= 0 ? 0 : storage.insert(key, amount, Actionable.MODULATE, this.actionSource);
     }
 
+    public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer) {
+        return energyContainer instanceof AeBackedFactoryEnergyContainer<?> aeBackedEnergyContainer
+                ? new FactoryRecipeEnergyView(aeBackedEnergyContainer.owner instanceof MeFactoryAeMachine aeMachine ? aeMachine : null, aeBackedEnergyContainer)
+                : energyContainer;
+    }
+
+    public static IEnergyContainer recipeEnergyView(MeFactoryAeMachine owner, MachineEnergyContainer<?> energyContainer) {
+        return new FactoryRecipeEnergyView(owner, energyContainer);
+    }
+
+    public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
+            MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick, recipeEnergyView(energyContainer));
+    }
+
+    public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
+            MeFactoryAeMachine owner, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick, recipeEnergyView(owner, energyContainer));
+    }
+
     public void create(Level level, BlockPos pos) {
         this.mainNode.create(level, pos);
         updatePatterns();
@@ -427,15 +450,74 @@ public final class MeFactoryAeSupport {
         }
 
         private long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {
-            IGrid grid = aeMachine.getAeSupport().getGrid();
-            if (grid == null) {
-                return 0;
-            }
-            double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
-            double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
-                    action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
-                    appeng.api.config.PowerMultiplier.ONE);
-            return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
+            return MeFactoryAeSupport.extractAeAsFe(aeMachine, requestedFe, action);
         }
+    }
+
+    public static final class FactoryRecipeEnergyView implements IEnergyContainer {
+        private final MeFactoryAeMachine owner;
+        private final MachineEnergyContainer<?> energyContainer;
+
+        public FactoryRecipeEnergyView(MeFactoryAeMachine owner, MachineEnergyContainer<?> energyContainer) {
+            this.owner = owner;
+            this.energyContainer = energyContainer;
+        }
+
+        @Override
+        public long getEnergy() {
+            long local = this.energyContainer.getEnergy();
+            long needed = this.energyContainer.getMaxEnergy() - local;
+            if (needed <= 0 || this.owner == null) {
+                return local;
+            }
+            return Math.min(this.energyContainer.getMaxEnergy(), local + extractAeAsFe(this.owner, needed, Action.SIMULATE));
+        }
+
+        @Override
+        public void setEnergy(long energy) {
+            this.energyContainer.setEnergy(energy);
+        }
+
+        @Override
+        public long extract(long amount, Action action, AutomationType automationType) {
+            long localExtracted = this.energyContainer.extract(amount, action, automationType);
+            long remaining = amount - localExtracted;
+            if (remaining <= 0 || automationType != AutomationType.INTERNAL || this.owner == null) {
+                return localExtracted;
+            }
+            return localExtracted + extractAeAsFe(this.owner, remaining, action);
+        }
+
+        @Override
+        public long getMaxEnergy() {
+            return this.energyContainer.getMaxEnergy();
+        }
+
+        @Override
+        public void onContentsChanged() {
+            this.energyContainer.onContentsChanged();
+        }
+
+        @Override
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            return this.energyContainer.serializeNBT(provider);
+        }
+
+        @Override
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            this.energyContainer.deserializeNBT(provider, nbt);
+        }
+    }
+
+    private static long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {
+        IGrid grid = aeMachine.getAeSupport().getGrid();
+        if (grid == null) {
+            return 0;
+        }
+        double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
+        double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
+                action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
+                appeng.api.config.PowerMultiplier.ONE);
+        return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
     }
 }

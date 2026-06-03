@@ -14,6 +14,8 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.IContentsListener;
+import mekanism.api.recipes.ItemStackToItemStackRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.api.inventory.IInventorySlot;
@@ -124,6 +126,12 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
             input = itemKey.toStack((int) amount);
         }
         return input;
+    }
+
+    @NotNull
+    @Override
+    public CachedRecipe<ItemStackToItemStackRecipe> createNewCachedRecipe(@NotNull ItemStackToItemStackRecipe recipe, int cacheIndex) {
+        return MeFactoryAeSupport.withAeRecipeEnergy(this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex));
     }
 
     @Override

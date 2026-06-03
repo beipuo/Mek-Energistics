@@ -16,6 +16,8 @@ import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.IContentsListener;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.CombinerRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
@@ -73,6 +75,12 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
     public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
     @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
+
+    @NotNull
+    @Override
+    public CachedRecipe<CombinerRecipe> createNewCachedRecipe(@NotNull CombinerRecipe recipe, int cacheIndex) {
+        return MeFactoryAeSupport.withAeRecipeEnergy(this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex));
+    }
 
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {

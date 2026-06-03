@@ -9,7 +9,7 @@
       "parent": "mekanism_extras:block/factory/centrifuging/supreme"
     },
     "front_led": {
-      "parent": "mekenergistics:block/factory/front_led/supreme"
+      "parent": "mekenergistics:block/factory/front_led/tall/supreme"
     }
   }
 }

@@ -9,7 +9,7 @@
       "parent": "mekmm:block/factory/centrifuging/active/basic"
     },
     "front_led": {
-      "parent": "mekenergistics:block/factory/front_led/active/basic"
+      "parent": "mekenergistics:block/factory/front_led/tall/active/basic"
     }
   }
 }

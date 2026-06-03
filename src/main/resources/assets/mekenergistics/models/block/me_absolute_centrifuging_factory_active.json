@@ -9,7 +9,7 @@
       "parent": "mekanism_extras:block/factory/centrifuging/active/absolute"
     },
     "front_led": {
-      "parent": "mekenergistics:block/factory/front_led/active/absolute"
+      "parent": "mekenergistics:block/factory/front_led/tall/active/absolute"
     }
   }
 }

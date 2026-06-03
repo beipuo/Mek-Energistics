@@ -13,10 +13,11 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
 import com.jerry.mekextras.common.block.attribute.ExtraAttribute;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeTier;
+import com.jerry.mekextras.common.block.attribute.ExtraAttributeUpgradeSupport;
 import com.jerry.mekextras.common.tier.ExtraFactoryTier;
 import java.util.Locale;
-import mekanism.api.Upgrade;
 import mekanism.common.block.attribute.AttributeFactoryType;
+import mekanism.common.block.attribute.AttributeUpgradeSupport;
 import mekanism.common.block.attribute.AttributeStateFacing;
 import mekanism.common.block.attribute.Attributes;
 import mekanism.common.content.blocktype.BlockTypeTile;
@@ -56,7 +57,7 @@ public final class MekanismExtrasCompat {
                 .withSideConfig(machine.hasChemicalInput()
                         ? new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL}
                         : new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY})
-                .withSupportedUpgrades(Upgrade.SPEED, Upgrade.ENERGY);
+                .with(extraUpgradeSupport(machine.factoryType()));
         if (machine.factoryType() != null) {
             builder.with(new AttributeFactoryType(machine.factoryType()));
         }
@@ -67,6 +68,13 @@ public final class MekanismExtrasCompat {
             builder.with(new MeExtraUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));
         }
         return builder.build();
+    }
+
+    private static AttributeUpgradeSupport extraUpgradeSupport(FactoryType type) {
+        return switch (type) {
+            case PURIFYING, INJECTING -> ExtraAttributeUpgradeSupport.EXTRA_ADVANCED_MACHINE_UPGRADES;
+            case SMELTING, ENRICHING, CRUSHING, COMPRESSING, COMBINING, INFUSING, SAWING -> ExtraAttributeUpgradeSupport.EXTRA_MACHINE_UPGRADES;
+        };
     }
 
     public static ExtraFactoryTier extraTier(MeMekanismMachine machine) {

@@ -16,6 +16,8 @@ import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.ItemStackChemicalToItemStackRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
@@ -93,6 +95,12 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     @Override
     public int getPatternPriority() {
         return this.aeSupport.getPatternPriority();
+    }
+
+    @NotNull
+    @Override
+    public CachedRecipe<ItemStackChemicalToItemStackRecipe> createNewCachedRecipe(@NotNull ItemStackChemicalToItemStackRecipe recipe, int cacheIndex) {
+        return MeFactoryAeSupport.withAeRecipeEnergy(this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex));
     }
 
     @Override
