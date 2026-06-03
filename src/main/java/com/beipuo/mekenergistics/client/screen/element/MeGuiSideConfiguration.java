@@ -26,9 +26,9 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
     private static final int BUTTON_X_OFFSET = 120;
     private static final int BUTTON_Y_OFFSET = 6;
     private static final int BUTTON_SIZE = 14;
-    private static final int AE_TEXT_X_OFFSET = 76;
-    private static final int AE_TEXT_Y_OFFSET = 29;
-    private static final int AE_TEXT_WIDTH = 40;
+    private static final int AE_TEXT_X_OFFSET = 78;
+    private static final int AE_TEXT_Y_OFFSET = 27;
+    private static final int AE_TEXT_WIDTH = 38;
     private final TILE tile;
     private final AeOutputButton aeButton;
 
