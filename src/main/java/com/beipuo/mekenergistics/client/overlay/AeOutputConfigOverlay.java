@@ -19,7 +19,6 @@ import mekanism.client.render.IFancyFontRenderer.TextAlignment;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.interfaces.ISideConfiguration;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -82,7 +81,7 @@ public final class AeOutputConfigOverlay {
         }
         button.visible = shouldRender(target.type());
         button.active = canToggle(target.type());
-        button.setMessage(Component.empty());
+        button.setMessage(Component.literal("A"));
         AeOutputText text = TEXTS.computeIfAbsent(target.sideConfig(), sideConfig -> {
             AeOutputText newText = new AeOutputText(target.gui(), sideConfig.getRelativeX() + AE_TEXT_X_OFFSET,
                     sideConfig.getRelativeY() + AE_TEXT_Y_OFFSET);
@@ -210,7 +209,7 @@ public final class AeOutputConfigOverlay {
         private OverlayTarget target;
 
         private AeOutputButton(GuiMekanism<?> gui, int x, int y) {
-            super(gui, x, y, BUTTON_SIZE, BUTTON_SIZE, Component.empty(), (element, mouseX, mouseY) -> {
+            super(gui, x, y, BUTTON_SIZE, BUTTON_SIZE, Component.literal("A"), (element, mouseX, mouseY) -> {
                 if (element instanceof AeOutputButton button && button.target != null && canToggle(button.target.type())) {
                     sendToggle(button.target);
                     return true;
@@ -221,11 +220,8 @@ public final class AeOutputConfigOverlay {
         }
 
         @Override
-        public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-            super.renderForeground(guiGraphics, mouseX, mouseY);
-            var font = Minecraft.getInstance().font;
-            String text = "A";
-            guiGraphics.drawString(font, text, (getWidth() - font.width(text)) / 2, (getHeight() - 8) / 2, 0x232323, false);
+        protected int getButtonTextColor(int mouseX, int mouseY) {
+            return 0x232323;
         }
     }
 }

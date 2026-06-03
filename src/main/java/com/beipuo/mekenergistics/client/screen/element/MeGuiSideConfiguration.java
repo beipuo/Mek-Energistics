@@ -16,7 +16,6 @@ import mekanism.common.inventory.container.SelectedWindowData;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.interfaces.ISideConfiguration;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -123,7 +122,7 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
 
     private final class AeOutputButton extends MekanismButton {
         private AeOutputButton(GuiMekanism<?> gui, int x, int y) {
-            super(gui, x, y, BUTTON_SIZE, BUTTON_SIZE, Component.empty(), (element, mouseX, mouseY) -> {
+            super(gui, x, y, BUTTON_SIZE, BUTTON_SIZE, Component.literal("A"), (element, mouseX, mouseY) -> {
                 sendToggle();
                 return true;
             });
@@ -131,11 +130,8 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
         }
 
         @Override
-        public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-            super.renderForeground(guiGraphics, mouseX, mouseY);
-            var font = Minecraft.getInstance().font;
-            String text = "A";
-            guiGraphics.drawString(font, text, (getWidth() - font.width(text)) / 2, (getHeight() - 8) / 2, 0x232323, false);
+        protected int getButtonTextColor(int mouseX, int mouseY) {
+            return 0x232323;
         }
     }
 }
