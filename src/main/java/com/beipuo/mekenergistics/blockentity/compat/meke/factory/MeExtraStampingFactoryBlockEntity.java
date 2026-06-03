@@ -10,6 +10,7 @@ import java.util.List;
 import mekanism.api.IContentsListener;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
+import mekanism.common.inventory.container.MekanismContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -39,6 +40,7 @@ public class MeExtraStampingFactoryBlockEntity extends TileEntityExtraStampingFa
     @Override public int getPatternPriority() { return getAeSupport().getPatternPriority(); }
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExtraFactoryBridge.pushTwoItems(this, inputHolder, getExtraSlot()); }
     @Override public boolean isBusy() { return false; }
+    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override protected boolean onUpdateServer() { return MeExtraFactoryBridge.updateServer(this, super.onUpdateServer()); }
     @Override public void clearRemoved() { super.clearRemoved(); MeExtraFactoryBridge.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }

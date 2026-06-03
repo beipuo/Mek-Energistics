@@ -19,6 +19,7 @@ import mekanism.client.render.IFancyFontRenderer.TextAlignment;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.interfaces.ISideConfiguration;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -35,9 +36,9 @@ public final class AeOutputConfigOverlay {
     private static final int BUTTON_X_OFFSET = 120;
     private static final int BUTTON_Y_OFFSET = 6;
     private static final int BUTTON_SIZE = 14;
-    private static final int AE_TEXT_X_OFFSET = 78;
-    private static final int AE_TEXT_Y_OFFSET = 28;
-    private static final int AE_TEXT_WIDTH = 38;
+    private static final int AE_TEXT_X_OFFSET = 76;
+    private static final int AE_TEXT_Y_OFFSET = 29;
+    private static final int AE_TEXT_WIDTH = 40;
     private static final Map<GuiSideConfiguration<?>, MekanismButton> BUTTONS = new WeakHashMap<>();
     private static final Map<GuiSideConfiguration<?>, AeOutputText> TEXTS = new WeakHashMap<>();
 
@@ -81,7 +82,7 @@ public final class AeOutputConfigOverlay {
         }
         button.visible = shouldRender(target.type());
         button.active = canToggle(target.type());
-        button.setMessage(Component.literal("A"));
+        button.setMessage(Component.empty());
         AeOutputText text = TEXTS.computeIfAbsent(target.sideConfig(), sideConfig -> {
             AeOutputText newText = new AeOutputText(target.gui(), sideConfig.getRelativeX() + AE_TEXT_X_OFFSET,
                     sideConfig.getRelativeY() + AE_TEXT_Y_OFFSET);
@@ -209,7 +210,7 @@ public final class AeOutputConfigOverlay {
         private OverlayTarget target;
 
         private AeOutputButton(GuiMekanism<?> gui, int x, int y) {
-            super(gui, x, y, BUTTON_SIZE, BUTTON_SIZE, Component.literal("A"), (element, mouseX, mouseY) -> {
+            super(gui, x, y, BUTTON_SIZE, BUTTON_SIZE, Component.empty(), (element, mouseX, mouseY) -> {
                 if (element instanceof AeOutputButton button && button.target != null && canToggle(button.target.type())) {
                     sendToggle(button.target);
                     return true;
@@ -220,8 +221,11 @@ public final class AeOutputConfigOverlay {
         }
 
         @Override
-        protected int getButtonTextColor(int mouseX, int mouseY) {
-            return 0x232323;
+        public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+            super.renderForeground(guiGraphics, mouseX, mouseY);
+            var font = Minecraft.getInstance().font;
+            String text = "A";
+            guiGraphics.drawString(font, text, (getWidth() - font.width(text)) / 2, (getHeight() - 8) / 2, 0x232323, false);
         }
     }
 }
