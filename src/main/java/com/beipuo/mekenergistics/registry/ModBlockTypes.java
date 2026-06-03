@@ -64,9 +64,7 @@ public final class ModBlockTypes {
                 .withGui(() -> ModMenuTypes.getMachineContainer(machine))
                 .withEnergyConfig(machine.energyUsage(), machine.energyStorage())
                 .with(new AttributeStateFacing(), Attributes.ACTIVE_LIGHT, Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY, Attributes.COMPARATOR)
-                .withSideConfig(machine.hasChemicalInput()
-                        ? new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL}
-                        : new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY})
+                .withSideConfig(sideConfigFor(machine))
                 .withSupportedUpgrades(Upgrade.SPEED, Upgrade.ENERGY);
         if (machine.factoryType() != null) {
             builder.with(new AttributeFactoryType(machine.factoryType()));
@@ -90,5 +88,25 @@ public final class ModBlockTypes {
 
     private static ILangEntry lang(MeMekanismMachine machine) {
         return machine::translationKey;
+    }
+
+    private static TransmissionType[] sideConfigFor(MeMekanismMachine machine) {
+        return switch (machine) {
+            case PRESSURIZED_REACTION_CHAMBER ->
+                    new TransmissionType[] {TransmissionType.ITEM, TransmissionType.CHEMICAL, TransmissionType.FLUID, TransmissionType.ENERGY};
+            case CHEMICAL_INFUSER, ISOTOPIC_CENTRIFUGE, PIGMENT_MIXER ->
+                    new TransmissionType[] {TransmissionType.CHEMICAL, TransmissionType.ITEM, TransmissionType.ENERGY};
+            case CHEMICAL_WASHER, ROTARY_CONDENSENTRATOR ->
+                    new TransmissionType[] {TransmissionType.CHEMICAL, TransmissionType.FLUID, TransmissionType.ITEM, TransmissionType.ENERGY};
+            case ELECTROLYTIC_SEPARATOR ->
+                    new TransmissionType[] {TransmissionType.FLUID, TransmissionType.CHEMICAL, TransmissionType.ITEM, TransmissionType.ENERGY};
+            case NUTRITIONAL_LIQUIFIER ->
+                    new TransmissionType[] {TransmissionType.ITEM, TransmissionType.FLUID, TransmissionType.ENERGY};
+            case SOLAR_NEUTRON_ACTIVATOR ->
+                    new TransmissionType[] {TransmissionType.CHEMICAL, TransmissionType.ITEM};
+            default -> machine.hasChemicalInput()
+                    ? new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL}
+                    : new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY};
+        };
     }
 }

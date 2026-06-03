@@ -6,6 +6,7 @@ import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeChemicalInputHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
@@ -21,8 +22,6 @@ import com.beipuo.mekenergistics.mixin.TileEntityPigmentMixerAccessor;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.List;
-import mekanism.api.Action;
-import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.inventory.IInventorySlot;
@@ -97,13 +96,9 @@ public class MePigmentMixerBlockEntity extends TileEntityPigmentMixer implements
     }
 
     private boolean tryInsertChemicals(ChemicalStack left, ChemicalStack right) {
-        long leftRemainder = this.leftInputTank.insert(left.copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount();
-        long rightRemainder = this.rightInputTank.insert(right.copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount();
-        if (leftRemainder != 0 || rightRemainder != 0) {
+        if (!MeChemicalInputHelper.insertPair(this.leftInputTank, this.rightInputTank, left, right)) {
             return false;
         }
-        this.leftInputTank.insert(left, Action.EXECUTE, AutomationType.INTERNAL);
-        this.rightInputTank.insert(right, Action.EXECUTE, AutomationType.INTERNAL);
         setChanged();
         return true;
     }

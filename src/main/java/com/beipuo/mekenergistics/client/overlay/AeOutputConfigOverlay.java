@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.client.screen.element.MeGuiSideConfiguration;
 import com.beipuo.mekenergistics.network.packet.CycleAeOutputTypePacket;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -98,6 +99,9 @@ public final class AeOutputConfigOverlay {
         }
         for (GuiWindow window : screenTarget.gui().getWindows()) {
             if (window instanceof GuiSideConfiguration<?> sideConfig) {
+                if (sideConfig instanceof MeGuiSideConfiguration<?>) {
+                    return null;
+                }
                 TransmissionType type = getCurrentType(sideConfig);
                 return new OverlayTarget(screenTarget.gui(), sideConfig, screenTarget.container().getTileEntity(), screenTarget.machine(), type);
             }
