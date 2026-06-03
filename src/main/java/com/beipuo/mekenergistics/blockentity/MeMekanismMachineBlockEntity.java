@@ -1,5 +1,9 @@
 package com.beipuo.mekenergistics.blockentity;
 
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
@@ -13,18 +17,13 @@ import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.networking.ticking.IGridTickable;
-import appeng.api.networking.ticking.TickRateModulation;
-import appeng.api.networking.ticking.TickingRequest;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
-import appeng.api.storage.MEStorage;
-import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import com.jerry.mekmm.api.recipes.RecyclerRecipe;
+import com.jerry.mekmm.api.recipes.StamperRecipe;
+import com.jerry.mekmm.common.recipe.MoreMachineRecipeType;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
@@ -42,7 +41,6 @@ import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.CombinerRecipe;
 import mekanism.api.recipes.cache.CachedRecipe.OperationTracker.RecipeError;
 import mekanism.api.recipes.ItemStackChemicalToItemStackRecipe;
-import mekanism.api.recipes.ItemStackToChemicalRecipe;
 import mekanism.api.recipes.ItemStackToItemStackRecipe;
 import mekanism.api.recipes.SawmillRecipe;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
@@ -67,7 +65,6 @@ import mekanism.common.tile.prefab.TileEntityAdvancedElectricMachine;
 import mekanism.common.tile.prefab.TileEntityConfigurableMachine;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.util.MekanismUtils;
-import me.ramidzkh.mekae2.ae2.MekanismKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -98,8 +95,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
     private final List<IPatternDetails> patterns = new ArrayList<>();
-    private final List<PendingCraftingOutput> pendingCraftingOutputs = new ArrayList<>();
-    private final List<PendingKeyOutput> pendingKeyOutputs = new ArrayList<>();
+    private final MeMekanismMachineAeOutput aeOutput;
     private final MeMekanismMachine machine;
     private IChemicalTank chemicalTank;
     private MachineEnergyContainer<MeMekanismMachineBlockEntity> energyContainer;
@@ -112,12 +108,13 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         super(ModBlocks.getMachineBlock(machine), pos, state);
         this.machine = machine;
         this.actionSource = IActionSource.ofMachine(this);
+        this.aeOutput = new MeMekanismMachineAeOutput(this);
         this.mainNode = GridHelper.createManagedNode(this, this)
                 .setInWorldNode(true)
                 .setTagName("node")
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, this)
-                .addService(IGridTickable.class, new AeTicker());
+                .addService(appeng.api.networking.ticking.IGridTickable.class, this.aeOutput);
         IInventorySlot[] inventorySlots = slots();
         List<IInventorySlot> inputSlots = new ArrayList<>();
         inputSlots.add(inventorySlots[INPUT_SLOT]);
@@ -160,7 +157,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             this.operatingTicks = 0;
             setActive(false);
         }
-        processAeNetworkOutputs();
+        this.aeOutput.process();
         return sendUpdatePacket;
     }
 
@@ -193,36 +190,30 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
             inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
             inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
-        } else switch (machine.factoryType()) {
-            case INFUSING -> {
+        } else if (machine.factoryType() == mekanism.common.content.blocktype.FactoryType.INFUSING) {
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 17, 35));
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 51, 43));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 109, 43));
                 inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 143, 35));
-            }
-            case COMPRESSING, INJECTING, PURIFYING -> {
+        } else if (machine.hasChemicalInput()) {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 53));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
                 inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
-            }
-            case COMBINING -> {
+        } else if (machine.hasSecondaryItemInput()) {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
                 inventorySlots[SECONDARY_INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 53));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
                 inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 39, 35));
-            }
-            case SAWING -> {
+        } else if (machine.hasSecondaryOutput()) {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 56, 17));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
                 inventorySlots[SECONDARY_OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 132, 35));
                 inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 56, 53));
-            }
-            default -> {
+        } else {
                 inventorySlots[INPUT_SLOT] = builder.addSlot(BasicInventorySlot.at(listener, 64, 17));
                 inventorySlots[OUTPUT_SLOT] = builder.addSlot(OutputInventorySlot.at(listener, 116, 35));
                 inventorySlots[energySlot()] = builder.addSlot(EnergyInventorySlot.fillOrConvert(this.energyContainer, this::getLevel, listener, 64, 53));
-            }
         }
         for (int slot = PATTERN_SLOTS_START; slot <= patternSlotsEnd(); slot++) {
             inventorySlots[slot] = builder.addSlot(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, () -> {
@@ -309,93 +300,6 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return Component.translatable(this.machine.translationKey());
     }
 
-    private long insertIntoNetwork(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return 0;
-        }
-
-        AEItemKey key = AEItemKey.of(stack);
-        if (key == null) {
-            return 0;
-        }
-
-        return insertIntoNetwork(key, stack.getCount());
-    }
-
-    private long insertIntoNetwork(AEKey key, long amount) {
-        MEStorage storage = this.getNetworkStorage();
-        if (storage == null || key == null || amount <= 0) {
-            return 0;
-        }
-        return storage.insert(key, amount, Actionable.MODULATE, this.actionSource);
-    }
-
-    private void insertOutputSlotIntoNetwork(int slot) {
-        if (!this.aeOutputMode.items()) {
-            return;
-        }
-        ItemStack output = getStack(slot);
-        if (output.isEmpty()) {
-            return;
-        }
-
-        long inserted = this.insertIntoNetwork(output);
-        if (inserted <= 0) {
-            return;
-        }
-
-        output.shrink((int) inserted);
-        setStack(slot, output.isEmpty() ? ItemStack.EMPTY : output);
-    }
-
-    private void insertChemicalTankIntoNetwork() {
-        if (!this.aeOutputMode.chemicals()) {
-            return;
-        }
-        ChemicalStack stack = getChemicalStack();
-        if (stack.isEmpty()) {
-            return;
-        }
-        MekanismKey key = MekanismKey.of(stack);
-        if (key == null) {
-            return;
-        }
-        long inserted = insertIntoNetwork(key, stack.getAmount());
-        if (inserted <= 0) {
-            return;
-        }
-        this.chemicalTank.shrinkStack(inserted, Action.EXECUTE);
-        setChanged();
-    }
-
-    private boolean processAeNetworkOutputs() {
-        boolean hadWork = hasAeNetworkOutputWork();
-        processPendingCraftingOutputs();
-        processPendingKeyOutputs();
-        insertOutputSlotIntoNetwork(OUTPUT_SLOT);
-        insertOutputSlotIntoNetwork(SECONDARY_OUTPUT_SLOT);
-        insertChemicalTankIntoNetwork();
-        boolean hasWork = hasAeNetworkOutputWork();
-        if (hasWork) {
-            alertAeTicker();
-        }
-        return hadWork && !hasWork;
-    }
-
-    private boolean hasAeNetworkOutputWork() {
-        if (!this.pendingCraftingOutputs.isEmpty() || !this.pendingKeyOutputs.isEmpty()) {
-            return true;
-        }
-        if (this.aeOutputMode.items() && (!getStack(OUTPUT_SLOT).isEmpty() || !getStack(SECONDARY_OUTPUT_SLOT).isEmpty())) {
-            return true;
-        }
-        return this.aeOutputMode.chemicals() && this.chemicalTank != null && !this.chemicalTank.isEmpty();
-    }
-
-    private void alertAeTicker() {
-        this.mainNode.ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
-    }
-
     private void processRecipe() {
         if (this.level == null || !this.machine.hasRecipeLogic()) {
             return;
@@ -453,12 +357,16 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         if (input.isEmpty()) {
             return false;
         }
-        ItemStackToItemStackRecipe recipe = switch (this.machine.factoryType()) {
-            case ENRICHING -> MekanismRecipeType.ENRICHING.getInputCache().findFirstRecipe(this.level, input);
-            case CRUSHING -> MekanismRecipeType.CRUSHING.getInputCache().findFirstRecipe(this.level, input);
-            case SMELTING -> MekanismRecipeType.SMELTING.getInputCache().findFirstRecipe(this.level, input);
-            default -> null;
-        };
+        if (this.machine == MeMekanismMachine.RECYCLER) {
+            RecyclerRecipe recipe = MoreMachineRecipeType.RECYCLING.getInputCache().findFirstRecipe(this.level, input);
+            if (recipe == null) {
+                return false;
+            }
+            int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
+            ItemStack output = recipe.getOutput(input).getMaxChanceOutput();
+            return needed > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
+        }
+        ItemStackToItemStackRecipe recipe = getSingleItemRecipe(input);
         if (recipe == null) {
             return false;
         }
@@ -467,11 +375,37 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return needed > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
     }
 
+    @Nullable
+    private ItemStackToItemStackRecipe getSingleItemRecipe(ItemStack input) {
+        if (this.machine == MeMekanismMachine.CNC_LATHE) {
+            return MoreMachineRecipeType.LATHING.getInputCache().findFirstRecipe(this.level, input);
+        }
+        if (this.machine == MeMekanismMachine.CNC_ROLLING_MILL) {
+            return MoreMachineRecipeType.ROLLING_MILL.getInputCache().findFirstRecipe(this.level, input);
+        }
+        return switch (this.machine.factoryType()) {
+            case ENRICHING -> MekanismRecipeType.ENRICHING.getInputCache().findFirstRecipe(this.level, input);
+            case CRUSHING -> MekanismRecipeType.CRUSHING.getInputCache().findFirstRecipe(this.level, input);
+            case SMELTING -> MekanismRecipeType.SMELTING.getInputCache().findFirstRecipe(this.level, input);
+            case null, default -> null;
+        };
+    }
+
     private boolean canProcessCombinerRecipe() {
         ItemStack input = getStack(INPUT_SLOT);
         ItemStack secondary = getStack(SECONDARY_INPUT_SLOT);
         if (input.isEmpty() || secondary.isEmpty()) {
             return false;
+        }
+        if (this.machine == MeMekanismMachine.CNC_STAMPER) {
+            StamperRecipe recipe = MoreMachineRecipeType.STAMPING.getInputCache().findFirstRecipe(this.level, input, secondary);
+            if (recipe == null) {
+                return false;
+            }
+            int neededInput = clampNeeded(recipe.getInput().getNeededAmount(input));
+            int neededSecondary = clampNeeded(recipe.getMold().getNeededAmount(secondary));
+            ItemStack output = recipe.getOutput(input, secondary);
+            return neededInput > 0 && neededSecondary > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
         }
         CombinerRecipe recipe = MekanismRecipeType.COMBINING.getInputCache().findFirstRecipe(this.level, input, secondary);
         if (recipe == null) {
@@ -529,13 +463,24 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         if (input.isEmpty()) {
             return;
         }
+        if (this.machine == MeMekanismMachine.RECYCLER) {
+            RecyclerRecipe recipe = MoreMachineRecipeType.RECYCLING.getInputCache().findFirstRecipe(this.level, input);
+            if (recipe == null) {
+                return;
+            }
+            int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
+            ItemStack output = recipe.getOutput(input).getChanceOutput();
+            if (needed <= 0 || output.isEmpty() || !canFitOutput(OUTPUT_SLOT, output)) {
+                return;
+            }
+            input.shrink(needed);
+            setStack(INPUT_SLOT, input.isEmpty() ? ItemStack.EMPTY : input);
+            addToOutput(OUTPUT_SLOT, output);
+            setChanged();
+            return;
+        }
 
-        ItemStackToItemStackRecipe recipe = switch (this.machine.factoryType()) {
-            case ENRICHING -> MekanismRecipeType.ENRICHING.getInputCache().findFirstRecipe(this.level, input);
-            case CRUSHING -> MekanismRecipeType.CRUSHING.getInputCache().findFirstRecipe(this.level, input);
-            case SMELTING -> MekanismRecipeType.SMELTING.getInputCache().findFirstRecipe(this.level, input);
-            default -> null;
-        };
+        ItemStackToItemStackRecipe recipe = getSingleItemRecipe(input);
         if (recipe == null) {
             return;
         }
@@ -555,6 +500,25 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         ItemStack input = getStack(INPUT_SLOT);
         ItemStack secondary = getStack(SECONDARY_INPUT_SLOT);
         if (input.isEmpty() || secondary.isEmpty()) {
+            return;
+        }
+        if (this.machine == MeMekanismMachine.CNC_STAMPER) {
+            StamperRecipe recipe = MoreMachineRecipeType.STAMPING.getInputCache().findFirstRecipe(this.level, input, secondary);
+            if (recipe == null) {
+                return;
+            }
+            int neededInput = clampNeeded(recipe.getInput().getNeededAmount(input));
+            int neededSecondary = clampNeeded(recipe.getMold().getNeededAmount(secondary));
+            ItemStack output = recipe.getOutput(input, secondary);
+            if (neededInput <= 0 || neededSecondary <= 0 || output.isEmpty() || !canFitOutput(OUTPUT_SLOT, output)) {
+                return;
+            }
+            input.shrink(neededInput);
+            secondary.shrink(neededSecondary);
+            setStack(INPUT_SLOT, input.isEmpty() ? ItemStack.EMPTY : input);
+            setStack(SECONDARY_INPUT_SLOT, secondary.isEmpty() ? ItemStack.EMPTY : secondary);
+            addToOutput(OUTPUT_SLOT, output);
+            setChanged();
             return;
         }
 
@@ -616,7 +580,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
 
         ItemStack singleInput = conversionInput.copyWithCount(1);
-        ItemStackToChemicalRecipe conversion = MekanismRecipeType.CHEMICAL_CONVERSION.getInputCache().findTypeBasedRecipe(this.level, singleInput);
+        var conversion = MekanismRecipeType.CHEMICAL_CONVERSION.getInputCache().findTypeBasedRecipe(this.level, singleInput);
         if (conversion == null) {
             return;
         }
@@ -632,7 +596,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         setChanged();
     }
 
-    private boolean canAddChemical(ChemicalStack stack) {
+    boolean canAddChemical(ChemicalStack stack) {
         if (stack.isEmpty()) {
             return false;
         }
@@ -680,7 +644,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         setChanged();
     }
 
-    private static int clampNeeded(long needed) {
+    static int clampNeeded(long needed) {
         return needed > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) needed;
     }
 
@@ -704,17 +668,6 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
         existing.grow(stack.getCount());
         setStack(slot, existing);
-    }
-
-    @Nullable
-    private MEStorage getNetworkStorage() {
-        IGrid grid = getGrid();
-        if (grid == null) {
-            return null;
-        }
-
-        IStorageService storageService = grid.getService(IStorageService.class);
-        return storageService == null ? null : storageService.getInventory();
     }
 
     @Nullable
@@ -757,6 +710,14 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return this.mainNode.getNode();
     }
 
+    IManagedGridNode getManagedNode() {
+        return this.mainNode;
+    }
+
+    IActionSource getActionSource() {
+        return this.actionSource;
+    }
+
     @Override
     public void onSaveChanges(MeMekanismMachineBlockEntity nodeOwner, IGridNode node) {
         this.setChanged();
@@ -778,328 +739,12 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return false;
         }
 
-        if (tryInsertItemChemicalPatternInputs(inputHolder)) {
-            return true;
-        }
-
-        if (tryInsertPatternInputs(inputHolder)) {
-            return true;
-        }
-
-        return tryInsertChemicalConversionInput(patternDetails, inputHolder);
-    }
-
-    private ItemStack getSingleItemInput(KeyCounter counter) {
-        if (counter == null || counter.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-
-        ItemStack input = ItemStack.EMPTY;
-        for (var entry : counter) {
-            AEKey key = entry.getKey();
-            long amount = entry.getLongValue();
-            if (!(key instanceof AEItemKey itemKey) || amount <= 0 || amount > Integer.MAX_VALUE || !input.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-            input = itemKey.toStack((int) amount);
-        }
-        return input;
-    }
-
-    private boolean tryInsertChemicalConversionInput(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
-        if (this.machine.slotLayout() != MeMekanismMachine.SlotLayout.ITEM_CHEMICAL || this.level == null || inputHolder == null || inputHolder.length != 1) {
-            return false;
-        }
-
-        ItemStack input = getSingleItemInput(inputHolder[0]);
-        if (input.isEmpty()) {
-            return false;
-        }
-
-        ItemStack singleInput = input.copyWithCount(1);
-        ItemStackToChemicalRecipe recipe = MekanismRecipeType.CHEMICAL_CONVERSION.getInputCache().findTypeBasedRecipe(this.level, singleInput);
-        if (recipe == null) {
-            return false;
-        }
-
-        int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
-        if (needed <= 0 || input.getCount() < needed) {
-            return false;
-        }
-
-        ChemicalStack output = recipe.getOutput(singleInput);
-        if (output.isEmpty() || !matchesChemicalOutputs(patternDetails, output, output.getAmount() * needed)) {
-            return false;
-        }
-
-        ItemStack remainder = insertItem(SECONDARY_INPUT_SLOT, input.copyWithCount(needed));
-        if (!remainder.isEmpty()) {
-            return false;
-        }
-        setChanged();
-        return true;
-    }
-
-    private boolean tryInsertItemChemicalPatternInputs(KeyCounter[] inputHolder) {
-        if (this.machine.slotLayout() != MeMekanismMachine.SlotLayout.ITEM_CHEMICAL || inputHolder == null || inputHolder.length != 2 || this.chemicalTank == null) {
-            return false;
-        }
-
-        ItemStack itemInput = ItemStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            PatternInput input = getSinglePatternInput(counter);
-            if (input == null) {
-                return false;
-            }
-            if (!input.item().isEmpty()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (!input.chemical().isEmpty()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            }
-        }
-
-        if (itemInput.isEmpty() || chemicalInput.isEmpty() || !canAddChemical(chemicalInput)) {
-            return false;
-        }
-
-        ItemStack itemRemainder = insertItem(INPUT_SLOT, itemInput);
-        if (!itemRemainder.isEmpty()) {
-            return false;
-        }
-        this.chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-        setChanged();
-        return true;
-    }
-
-    @Nullable
-    private PatternInput getSinglePatternInput(KeyCounter counter) {
-        if (counter == null || counter.isEmpty()) {
-            return null;
-        }
-
-        PatternInput input = null;
-        for (var entry : counter) {
-            AEKey key = entry.getKey();
-            long amount = entry.getLongValue();
-            PatternInput next;
-            if (key instanceof AEItemKey itemKey && amount > 0 && amount <= Integer.MAX_VALUE) {
-                next = new PatternInput(itemKey.toStack((int) amount), ChemicalStack.EMPTY);
-            } else if (key instanceof MekanismKey chemicalKey && amount > 0) {
-                next = new PatternInput(ItemStack.EMPTY, chemicalKey.getStack().copyWithAmount(amount));
-            } else {
-                return null;
-            }
-            if (input != null) {
-                return null;
-            }
-            input = next;
-        }
-        return input;
-    }
-
-    private boolean matchesChemicalOutputs(IPatternDetails patternDetails, ChemicalStack expectedOutput, long expectedAmount) {
-        boolean matched = false;
-        for (var output : patternDetails.getOutputs()) {
-            if (output.what() instanceof MekanismKey chemicalKey) {
-                ChemicalStack chemicalOutput = chemicalKey.getStack();
-                if (matched || !chemicalOutput.is(expectedOutput.getChemicalHolder()) || output.amount() != expectedAmount) {
-                    return false;
-                }
-                matched = true;
-            } else {
-                return false;
-            }
-        }
-        return matched;
+        return MeMekanismMachinePatternInput.push(this, patternDetails, inputHolder);
     }
 
     @Override
     public boolean isBusy() {
         return false;
-    }
-
-    private boolean storeInOutputSlot(ItemStack stack) {
-        ItemStack existing = getStack(OUTPUT_SLOT);
-        if (existing.isEmpty()) {
-            setStack(OUTPUT_SLOT, stack);
-            return true;
-        }
-        if (ItemStack.isSameItemSameComponents(existing, stack)) {
-            existing.grow(stack.getCount());
-            setStack(OUTPUT_SLOT, existing);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean tryInsertPatternInputs(KeyCounter[] inputHolder) {
-        int[] slots = getPatternInputSlots(inputHolder);
-        if (slots == null) {
-            return false;
-        }
-
-        ItemStack[] simulated = new ItemStack[totalSlots()];
-        for (int i = 0; i < totalSlots(); i++) {
-            simulated[i] = getStack(i).copy();
-        }
-
-        for (int i = 0; i < inputHolder.length; i++) {
-            KeyCounter counter = inputHolder[i];
-            if (counter == null || counter.isEmpty()) {
-                return false;
-            }
-
-            int slot = slots[i];
-            for (var entry : counter) {
-                AEKey key = entry.getKey();
-                long amount = entry.getLongValue();
-                if (!(key instanceof AEItemKey itemKey) || amount <= 0 || amount > Integer.MAX_VALUE) {
-                    return false;
-                }
-
-                ItemStack stack = itemKey.toStack((int) amount);
-                if (!insertIntoSimulatedSlot(simulated, slot, stack)) {
-                    return false;
-                }
-            }
-        }
-
-        for (int slot : slots) {
-            setStack(slot, simulated[slot]);
-        }
-        setChanged();
-        return true;
-    }
-
-    @Nullable
-    private int[] getPatternInputSlots(KeyCounter[] inputHolder) {
-        if (inputHolder == null) {
-            return null;
-        }
-
-        return switch (this.machine.slotLayout()) {
-            case SINGLE_ITEM, SAWING -> inputHolder.length == 1 ? new int[] { INPUT_SLOT } : null;
-            case DOUBLE_ITEM -> inputHolder.length == 2 ? new int[] { INPUT_SLOT, SECONDARY_INPUT_SLOT } : null;
-            case ITEM_CHEMICAL -> inputHolder.length == 2 ? new int[] { INPUT_SLOT, SECONDARY_INPUT_SLOT } : null;
-        };
-    }
-
-    private boolean insertIntoSimulatedSlot(ItemStack[] simulated, int slot, ItemStack stack) {
-        if (stack.isEmpty() || slot < 0 || slot >= simulated.length) {
-            return false;
-        }
-
-        ItemStack existing = simulated[slot];
-        int limit = Math.min(stack.getMaxStackSize(), getSlotLimit(slot, stack));
-        if (existing.isEmpty()) {
-            if (stack.getCount() > limit) {
-                return false;
-            }
-            simulated[slot] = stack.copy();
-            return true;
-        }
-
-        if (!ItemStack.isSameItemSameComponents(existing, stack)) {
-            return false;
-        }
-        int existingLimit = Math.min(existing.getMaxStackSize(), getSlotLimit(slot, existing));
-        if (existing.getCount() + stack.getCount() > existingLimit) {
-            return false;
-        }
-        existing.grow(stack.getCount());
-        simulated[slot] = existing;
-        return true;
-    }
-
-    private void processPendingCraftingOutputs() {
-        for (int i = this.pendingCraftingOutputs.size() - 1; i >= 0; i--) {
-            PendingCraftingOutput pending = this.pendingCraftingOutputs.get(i);
-            if (pending.delayTicks-- > 0) {
-                continue;
-            }
-
-            long inserted = this.insertIntoNetwork(pending.stack);
-            if (inserted > 0) {
-                pending.stack.shrink((int) inserted);
-            }
-            if (!pending.stack.isEmpty()) {
-                pending.stack = insertItem(OUTPUT_SLOT, pending.stack);
-            }
-            if (!pending.stack.isEmpty()) {
-                pending.stack = insertItem(SECONDARY_OUTPUT_SLOT, pending.stack);
-            }
-            if (pending.stack.isEmpty()) {
-                this.pendingCraftingOutputs.remove(i);
-                setChanged();
-            }
-        }
-    }
-
-    private void processPendingKeyOutputs() {
-        for (int i = this.pendingKeyOutputs.size() - 1; i >= 0; i--) {
-            PendingKeyOutput pending = this.pendingKeyOutputs.get(i);
-            if (pending.delayTicks-- > 0) {
-                continue;
-            }
-
-            long inserted = this.insertIntoNetwork(pending.key, pending.amount);
-            if (inserted > 0) {
-                pending.amount -= inserted;
-            }
-            if (pending.amount <= 0) {
-                this.pendingKeyOutputs.remove(i);
-                setChanged();
-            }
-        }
-    }
-
-    private static final class PendingCraftingOutput {
-        private ItemStack stack;
-        private int delayTicks;
-
-        private PendingCraftingOutput(ItemStack stack, int delayTicks) {
-            this.stack = stack;
-            this.delayTicks = delayTicks;
-        }
-    }
-
-    private static final class PendingKeyOutput {
-        private final AEKey key;
-        private long amount;
-        private int delayTicks;
-
-        private PendingKeyOutput(AEKey key, long amount, int delayTicks) {
-            this.key = key;
-            this.amount = amount;
-            this.delayTicks = delayTicks;
-        }
-    }
-
-    private final class AeTicker implements IGridTickable {
-        @Override
-        public TickingRequest getTickingRequest(IGridNode node) {
-            return new TickingRequest(TickRates.Interface, !hasAeNetworkOutputWork());
-        }
-
-        @Override
-        public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
-            if (!mainNode.isActive()) {
-                return TickRateModulation.SLEEP;
-            }
-            boolean hadWork = hasAeNetworkOutputWork();
-            boolean finished = processAeNetworkOutputs();
-            if (!hasAeNetworkOutputWork()) {
-                return TickRateModulation.SLEEP;
-            }
-            return finished || hadWork ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
-        }
     }
 
     private void updatePatterns() {
@@ -1148,7 +793,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
     }
 
-    private ChemicalStack getChemicalStack() {
+    ChemicalStack getChemicalStack() {
         return this.chemicalTank == null ? ChemicalStack.EMPTY : this.chemicalTank.getStack();
     }
 
@@ -1156,21 +801,21 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return this.machine == null ? ModBlocks.getMachine(getBlockState().getBlock()) : this.machine;
     }
 
-    private ItemStack getStack(int slot) {
+    ItemStack getStack(int slot) {
         return slots()[slot] == null ? ItemStack.EMPTY : slots()[slot].getStack();
     }
 
-    private void setStack(int slot, ItemStack stack) {
+    void setStack(int slot, ItemStack stack) {
         if (slots()[slot] != null) {
             slots()[slot].setStack(stack);
         }
     }
 
-    private int getSlotLimit(int slot, ItemStack stack) {
+    int getSlotLimit(int slot, ItemStack stack) {
         return slots()[slot] == null ? 0 : slots()[slot].getLimit(stack);
     }
 
-    private ItemStack insertItem(int slot, ItemStack stack) {
+    ItemStack insertItem(int slot, ItemStack stack) {
         return slots()[slot] == null ? stack : slots()[slot].insertItem(stack, Action.EXECUTE, AutomationType.INTERNAL);
     }
 
@@ -1189,7 +834,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return PATTERN_SLOTS_START + MekEnergisticsConfig.patternSlots();
     }
 
-    private static int totalSlots() {
+    static int totalSlots() {
         return energySlot() + 1;
     }
 

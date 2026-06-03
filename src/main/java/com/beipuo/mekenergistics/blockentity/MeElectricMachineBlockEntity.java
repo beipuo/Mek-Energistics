@@ -1,5 +1,9 @@
 package com.beipuo.mekenergistics.blockentity;
 
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;

@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.network;
 
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.blockentity.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import mekanism.common.lib.transmitter.TransmissionType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;

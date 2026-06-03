@@ -136,6 +136,7 @@ dependencies {
     implementation "curse.maven:mekanism-extras-1026040:7921191"
     implementation "curse.maven:mekanism-more-machine-1275257:7919872"
     implementation "curse.maven:jade-324717:7545219"
+    implementation "curse.maven:building-gadgets-298187:6850515"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

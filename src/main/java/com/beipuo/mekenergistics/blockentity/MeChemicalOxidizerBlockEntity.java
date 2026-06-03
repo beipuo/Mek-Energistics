@@ -1,5 +1,10 @@
 package com.beipuo.mekenergistics.blockentity;
 
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
+import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;

@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.network;
 
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.blockentity.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

@@ -1,8 +1,8 @@
 package com.beipuo.mekenergistics.block;
 
-import com.beipuo.mekenergistics.blockentity.MeAeMachine;
-import com.beipuo.mekenergistics.blockentity.MeFactoryAeMachine;
-import com.beipuo.mekenergistics.blockentity.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
@@ -41,13 +41,23 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     private final MeMekanismMachine machine;
 
     public MeMekanismMachineBlock(MeMekanismMachine machine) {
-        super(BlockBehaviour.Properties.of()
-                .strength(3.5F, 9.0F)
-                .noOcclusion()
-                .requiresCorrectToolForDrops());
+        super(properties(machine));
         this.machine = machine;
         this.registerDefaultState(STATE_ATTRIBUTES.stream()
                 .reduce(this.stateDefinition.any(), (state, attribute) -> attribute.getDefaultState(state), (left, right) -> right));
+    }
+
+    private static BlockBehaviour.Properties properties(MeMekanismMachine machine) {
+        BlockBehaviour.Properties properties = BlockBehaviour.Properties.of()
+                .strength(3.5F, 16.0F)
+                .requiresCorrectToolForDrops();
+        BlockTypeTile<? extends TileEntityMekanism> blockType = ModBlockTypes.getMachineBlockType(machine);
+        if (blockType != null) {
+            for (Attribute attribute : blockType.getAll()) {
+                attribute.adjustProperties(properties);
+            }
+        }
+        return machine.isFactory() || machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER ? properties.noOcclusion() : properties;
     }
 
     public MeMekanismMachine getMachine() {

@@ -3,8 +3,8 @@ package com.beipuo.mekenergistics.registry;
 import com.beipuo.mekenergistics.block.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
-import com.beipuo.mekenergistics.compat.MekanismExtrasCompat;
-import com.beipuo.mekenergistics.compat.MekanismMoreMachineCompat;
+import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
 import java.util.EnumMap;
 import java.util.Map;
 import mekanism.api.Upgrade;
@@ -16,6 +16,7 @@ import mekanism.common.block.attribute.Attributes;
 import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.base.TileEntityMekanism;
+import net.neoforged.fml.ModList;
 
 public final class ModBlockTypes {
     private static final Map<MeMekanismMachine, BlockTypeTile<? extends TileEntityMekanism>> MACHINES =
@@ -44,17 +45,23 @@ public final class ModBlockTypes {
     private static <TILE extends TileEntityMekanism> BlockTypeTile<TILE> createMachineBlockType(
             MeMekanismMachine machine,
             mekanism.common.registration.impl.TileEntityTypeRegistryObject<TILE> tileType) {
-        if (machine.isMekanismExtrasFactory()) {
+        if (machine.isMekanismExtrasMekanismFactory()) {
             return MekanismExtrasCompat.createFactoryBlockType(machine, tileType);
+        }
+        if (machine.isMoreMachineAdvancedFactory()) {
+            return MekanismMoreMachineCompat.createAdvancedFactoryBlockType(machine, tileType);
         }
         if (machine.isMoreMachineFactory()) {
             return MekanismMoreMachineCompat.createFactoryBlockType(machine, tileType);
+        }
+        if (machine.isMoreMachineBaseMachine()) {
+            return MekanismMoreMachineCompat.createBaseBlockType(machine, tileType);
         }
         var builder = BlockTypeTile.BlockTileBuilder
                 .createBlock(() -> tileType, lang(machine))
                 .withGui(() -> ModMenuTypes.getMachineContainer(machine))
                 .withEnergyConfig(machine.energyUsage(), machine.energyStorage())
-                .with(new AttributeStateFacing(), Attributes.ACTIVE, Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY)
+                .with(new AttributeStateFacing(), Attributes.ACTIVE_LIGHT, Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY, Attributes.COMPARATOR)
                 .withSideConfig(machine.hasChemicalInput()
                         ? new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL}
                         : new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY})
@@ -68,6 +75,9 @@ public final class ModBlockTypes {
         MeMekanismMachine upgradeTarget = machine.isFactory() ? machine.getNextFactory() : machine.getBasicFactory();
         if (upgradeTarget != null) {
             builder.with(new MeUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));
+            if (upgradeTarget.extraFactoryTierName() != null && ModList.get().isLoaded("mekanism_extras")) {
+                MekanismExtrasCompat.withExtraUpgradeable(builder, () -> ModBlocks.getMachineBlock(upgradeTarget).get());
+            }
         }
         return builder.build();
     }

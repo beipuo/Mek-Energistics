@@ -1,9 +1,11 @@
 package com.beipuo.mekenergistics.item;
 
-import com.beipuo.mekenergistics.blockentity.MeAeMachine;
-import com.beipuo.mekenergistics.blockentity.MeFactoryAeMachine;
-import com.beipuo.mekenergistics.blockentity.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import mekanism.api.security.IBlockSecurityUtils;
 import mekanism.common.block.attribute.Attribute;
@@ -17,13 +19,16 @@ import mekanism.common.tile.interfaces.ITierUpgradable;
 import mekanism.common.tile.interfaces.ITileDirectional;
 import mekanism.common.upgrade.IUpgradeData;
 import mekanism.common.util.WorldUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,11 +99,23 @@ public class MeTierInstallerItem extends Item {
 
     @Nullable
     private static MeMekanismMachine getTargetMachine(BlockState state) {
+        if (ModList.get().isLoaded("mekmm")) {
+            MeMekanismMachine moreMachineTarget = MekanismMoreMachineCompat.getFactoryTarget(state);
+            if (moreMachineTarget != null) {
+                return moreMachineTarget;
+            }
+        }
         AttributeFactoryType attribute = Attribute.get(state, AttributeFactoryType.class);
         if (attribute == null) {
-            return null;
+            return getTargetByRegistryName(state);
         }
         FactoryType factoryType = attribute.getFactoryType();
+        if (ModList.get().isLoaded("mekanism_extras")) {
+            MeMekanismMachine extraTarget = MekanismExtrasCompat.getFactoryTarget(state, factoryType);
+            if (extraTarget != null) {
+                return extraTarget;
+            }
+        }
         AttributeTier<?> tier = Attribute.get(state, AttributeTier.class);
         if (tier == null) {
             return MeMekanismMachine.getBaseMachine(factoryType);
@@ -106,6 +123,20 @@ public class MeTierInstallerItem extends Item {
         if (tier.tier() instanceof FactoryTier factoryTier) {
             return MeMekanismMachine.getFactory(factoryTier, factoryType);
         }
+        MeMekanismMachine directTarget = getTargetByRegistryName(state);
+        if (directTarget != null) {
+            return directTarget;
+        }
         return null;
+    }
+
+    @Nullable
+    private static MeMekanismMachine getTargetByRegistryName(BlockState state) {
+        ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        String path = id.getPath();
+        if (path.startsWith("me_")) {
+            return null;
+        }
+        return MeMekanismMachine.getByRegistryName("me_" + path);
     }
 }

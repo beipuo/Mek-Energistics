@@ -22,7 +22,6 @@ public class MekEnergisticsJadePlugin implements IWailaPlugin {
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
-        registration.addConfig(AE_STATUS, true);
         registration.registerBlockComponent((IComponentProvider<BlockAccessor>) MeAeStatusComponentProvider.INSTANCE, Block.class);
     }
 }

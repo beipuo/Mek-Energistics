@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.menu;
 
 import appeng.api.crafting.PatternDetailsHelper;
-import com.beipuo.mekenergistics.blockentity.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;

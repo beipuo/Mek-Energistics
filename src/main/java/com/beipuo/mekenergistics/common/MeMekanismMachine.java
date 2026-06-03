@@ -45,6 +45,10 @@ public enum MeMekanismMachine {
     DIMENSIONAL_STABILIZER((FactoryType) null, "dimensional_stabilizer", "ME Dimensional Stabilizer"),
     OREDICTIONIFICATOR((FactoryType) null, "oredictionificator", "ME Oredictionificator"),
     MODIFICATION_STATION((FactoryType) null, "modification_station", "ME Modification Station"),
+    RECYCLER("recycler", "recycling", "ME Recycler"),
+    CNC_STAMPER("cnc_stamper", "stamping", "ME CNC Stamper"),
+    CNC_LATHE("cnc_lathe", "lathing", "ME CNC Lathe"),
+    CNC_ROLLING_MILL("cnc_rolling_mill", "rolling_mill", "ME CNC Rolling Mill"),
     BASIC_SMELTING_FACTORY(FactoryTier.BASIC, FactoryType.SMELTING),
     BASIC_ENRICHING_FACTORY(FactoryTier.BASIC, FactoryType.ENRICHING),
     BASIC_CRUSHING_FACTORY(FactoryTier.BASIC, FactoryType.CRUSHING),
@@ -140,7 +144,103 @@ public enum MeMekanismMachine {
     ULTIMATE_STAMPING_FACTORY(FactoryTier.ULTIMATE, "stamping", "Stamping"),
     ULTIMATE_LATHING_FACTORY(FactoryTier.ULTIMATE, "lathing", "Lathing"),
     ULTIMATE_ROLLING_MILL_FACTORY(FactoryTier.ULTIMATE, "rolling_mill", "Rolling Mill"),
-    ULTIMATE_REPLICATING_FACTORY(FactoryTier.ULTIMATE, "replicating", "Replicating");
+    ULTIMATE_REPLICATING_FACTORY(FactoryTier.ULTIMATE, "replicating", "Replicating"),
+    ABSOLUTE_RECYCLING_FACTORY("absolute", "recycling", "Recycling", false, false),
+    ABSOLUTE_PLANTING_FACTORY("absolute", "planting", "Planting", false, false),
+    ABSOLUTE_STAMPING_FACTORY("absolute", "stamping", "Stamping", false, false),
+    ABSOLUTE_LATHING_FACTORY("absolute", "lathing", "Lathing", false, false),
+    ABSOLUTE_ROLLING_MILL_FACTORY("absolute", "rolling_mill", "Rolling Mill", false, false),
+    ABSOLUTE_REPLICATING_FACTORY("absolute", "replicating", "Replicating", false, false),
+    SUPREME_RECYCLING_FACTORY("supreme", "recycling", "Recycling", false, false),
+    SUPREME_PLANTING_FACTORY("supreme", "planting", "Planting", false, false),
+    SUPREME_STAMPING_FACTORY("supreme", "stamping", "Stamping", false, false),
+    SUPREME_LATHING_FACTORY("supreme", "lathing", "Lathing", false, false),
+    SUPREME_ROLLING_MILL_FACTORY("supreme", "rolling_mill", "Rolling Mill", false, false),
+    SUPREME_REPLICATING_FACTORY("supreme", "replicating", "Replicating", false, false),
+    COSMIC_RECYCLING_FACTORY("cosmic", "recycling", "Recycling", false, false),
+    COSMIC_PLANTING_FACTORY("cosmic", "planting", "Planting", false, false),
+    COSMIC_STAMPING_FACTORY("cosmic", "stamping", "Stamping", false, false),
+    COSMIC_LATHING_FACTORY("cosmic", "lathing", "Lathing", false, false),
+    COSMIC_ROLLING_MILL_FACTORY("cosmic", "rolling_mill", "Rolling Mill", false, false),
+    COSMIC_REPLICATING_FACTORY("cosmic", "replicating", "Replicating", false, false),
+    INFINITE_RECYCLING_FACTORY("infinite", "recycling", "Recycling", false, false),
+    INFINITE_PLANTING_FACTORY("infinite", "planting", "Planting", false, false),
+    INFINITE_STAMPING_FACTORY("infinite", "stamping", "Stamping", false, false),
+    INFINITE_LATHING_FACTORY("infinite", "lathing", "Lathing", false, false),
+    INFINITE_ROLLING_MILL_FACTORY("infinite", "rolling_mill", "Rolling Mill", false, false),
+    INFINITE_REPLICATING_FACTORY("infinite", "replicating", "Replicating", false, false),
+    BASIC_OXIDIZING_FACTORY(FactoryTier.BASIC, "oxidizing", "Oxidizing", true),
+    BASIC_DISSOLVING_FACTORY(FactoryTier.BASIC, "dissolving", "Dissolving", true),
+    BASIC_WASHING_FACTORY(FactoryTier.BASIC, "washing", "Washing", true),
+    BASIC_CRYSTALLIZING_FACTORY(FactoryTier.BASIC, "crystallizing", "Crystallizing", true),
+    BASIC_PRESSURISED_REACTING_FACTORY(FactoryTier.BASIC, "pressurised_reacting", "Pressurised Reacting", true),
+    BASIC_CENTRIFUGING_FACTORY(FactoryTier.BASIC, "centrifuging", "Centrifuging", true),
+    BASIC_LIQUIFYING_FACTORY(FactoryTier.BASIC, "liquifying", "Liquifying", true),
+    BASIC_PIGMENT_EXTRACTING_FACTORY(FactoryTier.BASIC, "pigment_extracting", "Pigment Extracting", true),
+    BASIC_PAINTING_FACTORY(FactoryTier.BASIC, "painting", "Painting", true),
+    ADVANCED_OXIDIZING_FACTORY(FactoryTier.ADVANCED, "oxidizing", "Oxidizing", true),
+    ADVANCED_DISSOLVING_FACTORY(FactoryTier.ADVANCED, "dissolving", "Dissolving", true),
+    ADVANCED_WASHING_FACTORY(FactoryTier.ADVANCED, "washing", "Washing", true),
+    ADVANCED_CRYSTALLIZING_FACTORY(FactoryTier.ADVANCED, "crystallizing", "Crystallizing", true),
+    ADVANCED_PRESSURISED_REACTING_FACTORY(FactoryTier.ADVANCED, "pressurised_reacting", "Pressurised Reacting", true),
+    ADVANCED_CENTRIFUGING_FACTORY(FactoryTier.ADVANCED, "centrifuging", "Centrifuging", true),
+    ADVANCED_LIQUIFYING_FACTORY(FactoryTier.ADVANCED, "liquifying", "Liquifying", true),
+    ADVANCED_PIGMENT_EXTRACTING_FACTORY(FactoryTier.ADVANCED, "pigment_extracting", "Pigment Extracting", true),
+    ADVANCED_PAINTING_FACTORY(FactoryTier.ADVANCED, "painting", "Painting", true),
+    ELITE_OXIDIZING_FACTORY(FactoryTier.ELITE, "oxidizing", "Oxidizing", true),
+    ELITE_DISSOLVING_FACTORY(FactoryTier.ELITE, "dissolving", "Dissolving", true),
+    ELITE_WASHING_FACTORY(FactoryTier.ELITE, "washing", "Washing", true),
+    ELITE_CRYSTALLIZING_FACTORY(FactoryTier.ELITE, "crystallizing", "Crystallizing", true),
+    ELITE_PRESSURISED_REACTING_FACTORY(FactoryTier.ELITE, "pressurised_reacting", "Pressurised Reacting", true),
+    ELITE_CENTRIFUGING_FACTORY(FactoryTier.ELITE, "centrifuging", "Centrifuging", true),
+    ELITE_LIQUIFYING_FACTORY(FactoryTier.ELITE, "liquifying", "Liquifying", true),
+    ELITE_PIGMENT_EXTRACTING_FACTORY(FactoryTier.ELITE, "pigment_extracting", "Pigment Extracting", true),
+    ELITE_PAINTING_FACTORY(FactoryTier.ELITE, "painting", "Painting", true),
+    ULTIMATE_OXIDIZING_FACTORY(FactoryTier.ULTIMATE, "oxidizing", "Oxidizing", true),
+    ULTIMATE_DISSOLVING_FACTORY(FactoryTier.ULTIMATE, "dissolving", "Dissolving", true),
+    ULTIMATE_WASHING_FACTORY(FactoryTier.ULTIMATE, "washing", "Washing", true),
+    ULTIMATE_CRYSTALLIZING_FACTORY(FactoryTier.ULTIMATE, "crystallizing", "Crystallizing", true),
+    ULTIMATE_PRESSURISED_REACTING_FACTORY(FactoryTier.ULTIMATE, "pressurised_reacting", "Pressurised Reacting", true),
+    ULTIMATE_CENTRIFUGING_FACTORY(FactoryTier.ULTIMATE, "centrifuging", "Centrifuging", true),
+    ULTIMATE_LIQUIFYING_FACTORY(FactoryTier.ULTIMATE, "liquifying", "Liquifying", true),
+    ULTIMATE_PIGMENT_EXTRACTING_FACTORY(FactoryTier.ULTIMATE, "pigment_extracting", "Pigment Extracting", true),
+    ULTIMATE_PAINTING_FACTORY(FactoryTier.ULTIMATE, "painting", "Painting", true),
+    ABSOLUTE_OXIDIZING_FACTORY("absolute", "oxidizing", "Oxidizing", true),
+    ABSOLUTE_DISSOLVING_FACTORY("absolute", "dissolving", "Dissolving", true),
+    ABSOLUTE_WASHING_FACTORY("absolute", "washing", "Washing", true),
+    ABSOLUTE_CRYSTALLIZING_FACTORY("absolute", "crystallizing", "Crystallizing", true),
+    ABSOLUTE_PRESSURISED_REACTING_FACTORY("absolute", "pressurised_reacting", "Pressurised Reacting", true),
+    ABSOLUTE_CENTRIFUGING_FACTORY("absolute", "centrifuging", "Centrifuging", true),
+    ABSOLUTE_LIQUIFYING_FACTORY("absolute", "liquifying", "Liquifying", true),
+    ABSOLUTE_PIGMENT_EXTRACTING_FACTORY("absolute", "pigment_extracting", "Pigment Extracting", true),
+    ABSOLUTE_PAINTING_FACTORY("absolute", "painting", "Painting", true),
+    SUPREME_OXIDIZING_FACTORY("supreme", "oxidizing", "Oxidizing", true),
+    SUPREME_DISSOLVING_FACTORY("supreme", "dissolving", "Dissolving", true),
+    SUPREME_WASHING_FACTORY("supreme", "washing", "Washing", true),
+    SUPREME_CRYSTALLIZING_FACTORY("supreme", "crystallizing", "Crystallizing", true),
+    SUPREME_PRESSURISED_REACTING_FACTORY("supreme", "pressurised_reacting", "Pressurised Reacting", true),
+    SUPREME_CENTRIFUGING_FACTORY("supreme", "centrifuging", "Centrifuging", true),
+    SUPREME_LIQUIFYING_FACTORY("supreme", "liquifying", "Liquifying", true),
+    SUPREME_PIGMENT_EXTRACTING_FACTORY("supreme", "pigment_extracting", "Pigment Extracting", true),
+    SUPREME_PAINTING_FACTORY("supreme", "painting", "Painting", true),
+    COSMIC_OXIDIZING_FACTORY("cosmic", "oxidizing", "Oxidizing", true),
+    COSMIC_DISSOLVING_FACTORY("cosmic", "dissolving", "Dissolving", true),
+    COSMIC_WASHING_FACTORY("cosmic", "washing", "Washing", true),
+    COSMIC_CRYSTALLIZING_FACTORY("cosmic", "crystallizing", "Crystallizing", true),
+    COSMIC_PRESSURISED_REACTING_FACTORY("cosmic", "pressurised_reacting", "Pressurised Reacting", true),
+    COSMIC_CENTRIFUGING_FACTORY("cosmic", "centrifuging", "Centrifuging", true),
+    COSMIC_LIQUIFYING_FACTORY("cosmic", "liquifying", "Liquifying", true),
+    COSMIC_PIGMENT_EXTRACTING_FACTORY("cosmic", "pigment_extracting", "Pigment Extracting", true),
+    COSMIC_PAINTING_FACTORY("cosmic", "painting", "Painting", true),
+    INFINITE_OXIDIZING_FACTORY("infinite", "oxidizing", "Oxidizing", true),
+    INFINITE_DISSOLVING_FACTORY("infinite", "dissolving", "Dissolving", true),
+    INFINITE_WASHING_FACTORY("infinite", "washing", "Washing", true),
+    INFINITE_CRYSTALLIZING_FACTORY("infinite", "crystallizing", "Crystallizing", true),
+    INFINITE_PRESSURISED_REACTING_FACTORY("infinite", "pressurised_reacting", "Pressurised Reacting", true),
+    INFINITE_CENTRIFUGING_FACTORY("infinite", "centrifuging", "Centrifuging", true),
+    INFINITE_LIQUIFYING_FACTORY("infinite", "liquifying", "Liquifying", true),
+    INFINITE_PIGMENT_EXTRACTING_FACTORY("infinite", "pigment_extracting", "Pigment Extracting", true),
+    INFINITE_PAINTING_FACTORY("infinite", "painting", "Painting", true);
 
     @Nullable
     private final FactoryType factoryType;
@@ -151,6 +251,10 @@ public enum MeMekanismMachine {
     @Nullable
     private final String moreMachineFactoryTypeName;
     @Nullable
+    private final String moreMachineAdvancedFactoryTypeName;
+    @Nullable
+    private final String moreMachineBaseTypeName;
+    @Nullable
     private final String requiredModId;
     private final String baseName;
     private final String englishName;
@@ -160,6 +264,8 @@ public enum MeMekanismMachine {
         this.factoryTier = null;
         this.extraFactoryTierName = null;
         this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
         this.requiredModId = null;
         this.baseName = baseName;
         this.englishName = englishName;
@@ -170,6 +276,8 @@ public enum MeMekanismMachine {
         this.factoryTier = factoryTier;
         this.extraFactoryTierName = null;
         this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
         this.requiredModId = null;
         this.baseName = factoryTier.name().toLowerCase(Locale.ROOT) + "_" + factoryType.getRegistryNameComponent() + "_factory";
         this.englishName = "ME " + capitalize(factoryTier.name()) + " " + factoryType.getRegistryNameComponentCapitalized() + " Factory";
@@ -180,6 +288,8 @@ public enum MeMekanismMachine {
         this.factoryTier = null;
         this.extraFactoryTierName = extraFactoryTierName;
         this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
         this.requiredModId = "mekanism_extras";
         this.baseName = extraFactoryTierName + "_" + factoryType.getRegistryNameComponent() + "_factory";
         this.englishName = "ME " + capitalize(extraFactoryTierName) + " " + factoryType.getRegistryNameComponentCapitalized() + " Factory";
@@ -190,9 +300,59 @@ public enum MeMekanismMachine {
         this.factoryTier = factoryTier;
         this.extraFactoryTierName = null;
         this.moreMachineFactoryTypeName = moreMachineFactoryTypeName;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
         this.requiredModId = "mekmm";
         this.baseName = factoryTier.name().toLowerCase(Locale.ROOT) + "_" + moreMachineFactoryTypeName + "_factory";
         this.englishName = "ME " + capitalize(factoryTier.name()) + " " + factoryEnglishName + " Factory";
+    }
+
+    MeMekanismMachine(String extraFactoryTierName, String moreMachineFactoryTypeName, String factoryEnglishName, boolean ignoredAdvancedFactory, boolean ignoredExtraFactory) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.extraFactoryTierName = extraFactoryTierName;
+        this.moreMachineFactoryTypeName = moreMachineFactoryTypeName;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "mekanism_extras";
+        this.baseName = extraFactoryTierName + "_" + moreMachineFactoryTypeName + "_factory";
+        this.englishName = "ME " + capitalize(extraFactoryTierName) + " " + factoryEnglishName + " Factory";
+    }
+
+    MeMekanismMachine(FactoryTier factoryTier, String moreMachineAdvancedFactoryTypeName, String factoryEnglishName, boolean advancedFactory) {
+        this.factoryType = null;
+        this.factoryTier = factoryTier;
+        this.extraFactoryTierName = null;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = moreMachineAdvancedFactoryTypeName;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "mekmm";
+        this.baseName = factoryTier.name().toLowerCase(Locale.ROOT) + "_" + moreMachineAdvancedFactoryTypeName + "_factory";
+        this.englishName = "ME " + capitalize(factoryTier.name()) + " " + factoryEnglishName + " Factory";
+    }
+
+    MeMekanismMachine(String extraFactoryTierName, String moreMachineAdvancedFactoryTypeName, String factoryEnglishName, boolean advancedFactory) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.extraFactoryTierName = extraFactoryTierName;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = moreMachineAdvancedFactoryTypeName;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "mekanism_extras";
+        this.baseName = extraFactoryTierName + "_" + moreMachineAdvancedFactoryTypeName + "_factory";
+        this.englishName = "ME " + capitalize(extraFactoryTierName) + " " + factoryEnglishName + " Factory";
+    }
+
+    MeMekanismMachine(String baseName, String moreMachineBaseTypeName, String englishName) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.extraFactoryTierName = null;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = moreMachineBaseTypeName;
+        this.requiredModId = "mekmm";
+        this.baseName = baseName;
+        this.englishName = englishName;
     }
 
     @Nullable
@@ -206,15 +366,27 @@ public enum MeMekanismMachine {
     }
 
     public boolean isFactory() {
-        return factoryTier != null || extraFactoryTierName != null || moreMachineFactoryTypeName != null;
+        return factoryTier != null || extraFactoryTierName != null || moreMachineFactoryTypeName != null || moreMachineAdvancedFactoryTypeName != null;
     }
 
     public boolean isMekanismExtrasFactory() {
         return extraFactoryTierName != null;
     }
 
+    public boolean isMekanismExtrasMekanismFactory() {
+        return extraFactoryTierName != null && factoryType != null;
+    }
+
     public boolean isMoreMachineFactory() {
         return moreMachineFactoryTypeName != null;
+    }
+
+    public boolean isMoreMachineAdvancedFactory() {
+        return moreMachineAdvancedFactoryTypeName != null;
+    }
+
+    public boolean isMoreMachineBaseMachine() {
+        return moreMachineBaseTypeName != null;
     }
 
     @Nullable
@@ -228,12 +400,26 @@ public enum MeMekanismMachine {
     }
 
     @Nullable
+    public String moreMachineAdvancedFactoryTypeName() {
+        return moreMachineAdvancedFactoryTypeName;
+    }
+
+    @Nullable
+    public String moreMachineBaseTypeName() {
+        return moreMachineBaseTypeName;
+    }
+
+    @Nullable
     public String requiredModId() {
         return requiredModId;
     }
 
     public boolean isAvailable() {
-        return requiredModId == null || ModList.get().isLoaded(requiredModId);
+        if (requiredModId != null && !ModList.get().isLoaded(requiredModId)) {
+            return false;
+        }
+        return extraFactoryTierName == null
+                || (factoryType != null || ModList.get().isLoaded("mekmm"));
     }
 
     @Nullable
@@ -262,7 +448,7 @@ public enum MeMekanismMachine {
     }
 
     public boolean hasSecondaryItemInput() {
-        return this.factoryType == FactoryType.COMBINING;
+        return this.factoryType == FactoryType.COMBINING || this == CNC_STAMPER;
     }
 
     public boolean hasChemicalInput() {
@@ -273,7 +459,7 @@ public enum MeMekanismMachine {
     }
 
     public boolean hasRecipeLogic() {
-        return this.factoryType != null || this.moreMachineFactoryTypeName != null;
+        return this.factoryType != null || this.moreMachineFactoryTypeName != null || this.moreMachineAdvancedFactoryTypeName != null || this.moreMachineBaseTypeName != null;
     }
 
     public boolean hasAdvancedChemicalInput() {
@@ -288,6 +474,9 @@ public enum MeMekanismMachine {
 
     public SlotLayout slotLayout() {
         if (hasSecondaryItemInput()) {
+            return SlotLayout.DOUBLE_ITEM;
+        }
+        if (this == CNC_STAMPER) {
             return SlotLayout.DOUBLE_ITEM;
         }
         if (hasChemicalInput()) {
@@ -338,20 +527,57 @@ public enum MeMekanismMachine {
     @Nullable
     public MeMekanismMachine getBasicFactory() {
         if (moreMachineFactoryTypeName != null) {
-            return getMoreMachineFactory(FactoryTier.BASIC, moreMachineFactoryTypeName);
+            return extraFactoryTierName == null
+                    ? getMoreMachineFactory(FactoryTier.BASIC, moreMachineFactoryTypeName)
+                    : getExtraMoreMachineFactory("absolute", moreMachineFactoryTypeName);
+        }
+        if (moreMachineAdvancedFactoryTypeName != null) {
+            return extraFactoryTierName == null
+                    ? getMoreMachineAdvancedFactory(FactoryTier.BASIC, moreMachineAdvancedFactoryTypeName)
+                    : getExtraMoreMachineAdvancedFactory("absolute", moreMachineAdvancedFactoryTypeName);
+        }
+        if (moreMachineBaseTypeName != null) {
+            return getMoreMachineFactory(FactoryTier.BASIC, moreMachineBaseTypeName);
         }
         return factoryType == null ? null : getFactory(FactoryTier.BASIC, factoryType);
     }
 
     @Nullable
     public MeMekanismMachine getNextFactory() {
-        if (factoryTier == null || factoryTier == FactoryTier.ULTIMATE) {
-            return null;
-        }
         if (moreMachineFactoryTypeName != null) {
+            if (factoryTier == FactoryTier.ULTIMATE) {
+                return getExtraMoreMachineFactory("absolute", moreMachineFactoryTypeName);
+            }
+            if (extraFactoryTierName != null) {
+                return getExtraMoreMachineFactory(getNextExtraFactoryTier(extraFactoryTierName), moreMachineFactoryTypeName);
+            }
+            if (factoryTier == null) {
+                return null;
+            }
             return getMoreMachineFactory(FactoryTier.values()[factoryTier.ordinal() + 1], moreMachineFactoryTypeName);
         }
+        if (moreMachineAdvancedFactoryTypeName != null) {
+            if (factoryTier == FactoryTier.ULTIMATE) {
+                return getExtraMoreMachineAdvancedFactory("absolute", moreMachineAdvancedFactoryTypeName);
+            }
+            if (extraFactoryTierName != null) {
+                return getExtraMoreMachineAdvancedFactory(getNextExtraFactoryTier(extraFactoryTierName), moreMachineAdvancedFactoryTypeName);
+            }
+            if (factoryTier == null) {
+                return null;
+            }
+            return getMoreMachineAdvancedFactory(FactoryTier.values()[factoryTier.ordinal() + 1], moreMachineAdvancedFactoryTypeName);
+        }
         if (factoryType == null) {
+            return null;
+        }
+        if (extraFactoryTierName != null) {
+            return getNextExtraFactory(extraFactoryTierName, factoryType);
+        }
+        if (factoryTier == FactoryTier.ULTIMATE) {
+            return getExtraFactory("absolute", factoryType);
+        }
+        if (factoryTier == null) {
             return null;
         }
         return getFactory(FactoryTier.values()[factoryTier.ordinal() + 1], factoryType);
@@ -385,6 +611,72 @@ public enum MeMekanismMachine {
             }
         }
         return null;
+    }
+
+    @Nullable
+    public static MeMekanismMachine getExtraMoreMachineFactory(String tierName, String typeName) {
+        for (MeMekanismMachine machine : values()) {
+            if (tierName.equals(machine.extraFactoryTierName) && typeName.equals(machine.moreMachineFactoryTypeName)) {
+                return machine;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static MeMekanismMachine getMoreMachineAdvancedFactory(FactoryTier tier, String typeName) {
+        for (MeMekanismMachine machine : values()) {
+            if (machine.factoryTier == tier && typeName.equals(machine.moreMachineAdvancedFactoryTypeName)) {
+                return machine;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static MeMekanismMachine getExtraMoreMachineAdvancedFactory(String tierName, String typeName) {
+        for (MeMekanismMachine machine : values()) {
+            if (tierName.equals(machine.extraFactoryTierName) && typeName.equals(machine.moreMachineAdvancedFactoryTypeName)) {
+                return machine;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static MeMekanismMachine getExtraFactory(String tierName, FactoryType type) {
+        for (MeMekanismMachine machine : values()) {
+            if (tierName.equals(machine.extraFactoryTierName) && machine.factoryType == type) {
+                return machine;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static MeMekanismMachine getByRegistryName(String registryName) {
+        for (MeMekanismMachine machine : values()) {
+            if (machine.registryName().equals(registryName) && machine.isAvailable()) {
+                return machine;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static MeMekanismMachine getNextExtraFactory(String tierName, FactoryType type) {
+        String next = getNextExtraFactoryTier(tierName);
+        return next == null ? null : getExtraFactory(next, type);
+    }
+
+    @Nullable
+    private static String getNextExtraFactoryTier(String tierName) {
+        return switch (tierName) {
+            case "absolute" -> "supreme";
+            case "supreme" -> "cosmic";
+            case "cosmic" -> "infinite";
+            default -> null;
+        };
     }
 
     private static String capitalize(String name) {

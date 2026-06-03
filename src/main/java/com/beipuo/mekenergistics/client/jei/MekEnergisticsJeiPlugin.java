@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.client.jei;
 
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.client.MePatternWindowOverlay;
+import com.beipuo.mekenergistics.client.overlay.MePatternWindowOverlay;
 import com.beipuo.mekenergistics.common.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModItems;
 import com.jerry.mekmm.client.recipe_viewer.MMRecipeViewerRecipeType;
