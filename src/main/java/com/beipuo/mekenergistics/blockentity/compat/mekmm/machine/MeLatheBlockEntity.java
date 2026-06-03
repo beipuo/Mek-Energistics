@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.compat.mekmm.machine;
 
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
+
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;
@@ -13,7 +15,7 @@ import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.mixin.TileEntityElectricMachineAccessor;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.jerry.mekmm.common.tile.machine.TileEntityLathe;
@@ -42,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeLatheBlockEntity extends TileEntityLathe implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeLatheBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
-    private MeMekanismMachineBlockEntity.AeOutputMode aeOutputMode = MeMekanismMachineBlockEntity.AeOutputMode.BOTH;
+    private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeLatheBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(pos, state);
@@ -100,12 +102,12 @@ public class MeLatheBlockEntity extends TileEntityLathe implements ICraftingProv
     @Override public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
     @Nullable @Override public IGridNode getGridNode(Direction dir) { return getMainNode().getNode(); }
     @Nullable @Override public IGridNode getActionableNode() { return getMainNode().getNode(); }
-    @Override public MeMekanismMachineBlockEntity.AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
+    @Override public AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
     @Override public void cycleAeOutputMode() { this.aeOutputMode = this.aeOutputMode.next(); setChanged(); }
     @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
-    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = MeMekanismMachineBlockEntity.AeOutputMode.byId(mode))); }
+    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); }
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); tag.putInt("AeOutputMode", this.aeOutputMode.ordinal()); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
-    @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = MeMekanismMachineBlockEntity.AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
+    @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
 }

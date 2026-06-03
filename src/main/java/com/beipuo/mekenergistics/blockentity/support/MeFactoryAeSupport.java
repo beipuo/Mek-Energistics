@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.support;
 
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
+
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
@@ -28,7 +30,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
@@ -313,8 +315,8 @@ public final class MeFactoryAeSupport {
 
     private final class PatternSlotOwner implements MeAeMachine {
         @Override
-        public MeMekanismMachineBlockEntity.AeOutputMode getAeOutputMode() {
-            return MeMekanismMachineBlockEntity.AeOutputMode.BOTH;
+        public AeOutputMode getAeOutputMode() {
+            return AeOutputMode.BOTH;
         }
 
         @Override

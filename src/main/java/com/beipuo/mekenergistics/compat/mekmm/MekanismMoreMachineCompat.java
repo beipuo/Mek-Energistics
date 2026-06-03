@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.compat.mekmm;
 
-import com.beipuo.mekenergistics.block.MeUpgradeableAttribute;
-import com.beipuo.mekenergistics.block.MeExtraUpgradeableAttribute;
+import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
+import com.beipuo.mekenergistics.block.attribute.MeExtraUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeMoreMachineFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeAdvancedCentrifugingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeAdvancedChemicalToItemFactoryBlockEntity;
@@ -29,8 +29,9 @@ import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MePlantingFact
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeRecyclingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeReplicatingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeStampingFactoryBlockEntity;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
+import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.jerry.mekaf.common.block.attribute.AttributeAdvancedFactoryType;
 import com.jerry.mekaf.common.content.blocktype.AdvancedFactory;
@@ -72,7 +73,7 @@ public final class MekanismMoreMachineCompat {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerFactoryMachine(
-            MeMekanismMachine machine, ModBlockEntities.MachineFactoryRegistrar registrar) {
+            MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
         if (machine.extraFactoryTierName() != null) {
             return registerExtraFactoryMachine(machine, registrar);
         }
@@ -88,7 +89,7 @@ public final class MekanismMoreMachineCompat {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerAdvancedFactoryMachine(
-            MeMekanismMachine machine, ModBlockEntities.MachineFactoryRegistrar registrar) {
+            MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
         if (machine.extraFactoryTierName() != null) {
             return registerExtraAdvancedFactoryMachine(machine, registrar);
         }
@@ -107,7 +108,7 @@ public final class MekanismMoreMachineCompat {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerExtraFactoryMachine(
-            MeMekanismMachine machine, ModBlockEntities.MachineFactoryRegistrar registrar) {
+            MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
         TileEntityTypeRegistryObject<?> registered = switch (moreMachineFactoryType(machine)) {
             case RECYCLING -> registrar.register(machine, MeExtraRecyclingFactoryBlockEntity::new);
             case PLANTING_STATION -> registrar.register(machine, MeExtraPlantingFactoryBlockEntity::new);
@@ -120,7 +121,7 @@ public final class MekanismMoreMachineCompat {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerExtraAdvancedFactoryMachine(
-            MeMekanismMachine machine, ModBlockEntities.MachineFactoryRegistrar registrar) {
+            MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
         TileEntityTypeRegistryObject<?> registered = switch (advancedFactoryType(machine)) {
             case OXIDIZING, PIGMENT_EXTRACTING -> registrar.register(machine, MeExtraAdvancedItemToChemicalFactoryBlockEntity::new);
             case DISSOLVING -> registrar.register(machine, MeExtraAdvancedDissolvingFactoryBlockEntity::new);

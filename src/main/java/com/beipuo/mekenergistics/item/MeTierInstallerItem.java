@@ -3,7 +3,7 @@ package com.beipuo.mekenergistics.item;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;

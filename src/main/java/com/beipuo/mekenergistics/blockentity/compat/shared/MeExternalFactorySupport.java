@@ -6,7 +6,7 @@ import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.Action;

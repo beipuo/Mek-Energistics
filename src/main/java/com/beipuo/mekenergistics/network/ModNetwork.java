@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.network;
 
+import com.beipuo.mekenergistics.network.packet.CycleAeOutputModePacket;
+import com.beipuo.mekenergistics.network.packet.CycleAeOutputTypePacket;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 

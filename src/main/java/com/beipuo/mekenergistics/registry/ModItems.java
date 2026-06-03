@@ -1,7 +1,7 @@
 package com.beipuo.mekenergistics.registry;
 
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import java.util.EnumMap;
 import java.util.Map;

@@ -1,13 +1,14 @@
 package com.beipuo.mekenergistics.compat.meke;
 
-import com.beipuo.mekenergistics.block.MeUpgradeableAttribute;
-import com.beipuo.mekenergistics.block.MeExtraUpgradeableAttribute;
+import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
+import com.beipuo.mekenergistics.block.attribute.MeExtraUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraCombiningFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraItemStackChemicalToItemStackFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraItemStackToItemStackFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraSawingFactoryBlockEntity;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
+import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.jerry.mekextras.common.block.attribute.ExtraAttribute;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeTier;
@@ -35,7 +36,7 @@ public final class MekanismExtrasCompat {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerFactoryMachine(
-            MeMekanismMachine machine, ModBlockEntities.MachineFactoryRegistrar registrar) {
+            MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
         TileEntityTypeRegistryObject<?> registered = switch (machine.factoryType()) {
             case SMELTING, ENRICHING, CRUSHING -> registrar.register(machine, MeExtraItemStackToItemStackFactoryBlockEntity::new);
             case COMPRESSING, INJECTING, PURIFYING, INFUSING -> registrar.register(machine, MeExtraItemStackChemicalToItemStackFactoryBlockEntity::new);

@@ -1,9 +1,11 @@
 package com.beipuo.mekenergistics.client.overlay;
 
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
+
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
-import com.beipuo.mekenergistics.network.CycleAeOutputTypePacket;
+import com.beipuo.mekenergistics.network.packet.CycleAeOutputTypePacket;
 import java.util.Map;
 import java.util.WeakHashMap;
 import mekanism.client.gui.GuiMekanism;
@@ -133,7 +135,7 @@ public final class AeOutputConfigOverlay {
         return type == TransmissionType.ITEM || type == TransmissionType.CHEMICAL;
     }
 
-    private static boolean isTypeEnabled(MeMekanismMachineBlockEntity.AeOutputMode mode, TransmissionType type) {
+    private static boolean isTypeEnabled(AeOutputMode mode, TransmissionType type) {
         return switch (type) {
             case ITEM -> mode.items();
             case CHEMICAL -> mode.chemicals();

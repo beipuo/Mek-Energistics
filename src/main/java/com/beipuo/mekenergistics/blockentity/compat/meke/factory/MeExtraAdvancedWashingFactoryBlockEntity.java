@@ -3,7 +3,7 @@ package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.jerry.mekextras.common.integration.mekaf.tile.factory.TileEntityExtraWashingFactory;
 import java.util.Collections;

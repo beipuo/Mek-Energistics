@@ -2,60 +2,58 @@ package com.beipuo.mekenergistics.registry;
 
 import appeng.api.AECapabilities;
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.blockentity.MeAdvancedElectricMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeAntiprotonicNucleosynthesizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalCrystallizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalDissolutionChamberBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalInfuserBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalOxidizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalWasherBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeAdvancedElectricMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeAntiprotonicNucleosynthesizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalCrystallizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalDissolutionChamberBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalInfuserBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalOxidizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalWasherBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeCombiningFactoryBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeCombinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeDigitalMinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeDimensionalStabilizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeElectricMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeElectricPumpBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeElectrolyticSeparatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeFluidicPlenisherBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeFormulaicAssemblicatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeIsotopicCentrifugeBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeCombinerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeDigitalMinerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeDimensionalStabilizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeElectricMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeElectricPumpBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeElectrolyticSeparatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeFluidicPlenisherBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeFormulaicAssemblicatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeIsotopicCentrifugeBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeItemStackToItemStackFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeItemStackChemicalToItemStackFactoryBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeLogisticalSorterBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeLogisticalSorterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeMetallurgicInfuserBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeModificationStationBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeNutritionalLiquifierBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeOredictionificatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePaintingMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePigmentExtractorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePigmentMixerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePrecisionSawmillBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePressurizedReactionChamberBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeResistiveHeaterBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeRotaryCondensentratorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeMetallurgicInfuserBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeModificationStationBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeNutritionalLiquifierBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeOredictionificatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MePaintingMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentExtractorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentMixerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MePrecisionSawmillBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MePressurizedReactionChamberBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeResistiveHeaterBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeRotaryCondensentratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeSawingFactoryBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeSeismicVibratorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeSolarNeutronActivatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeTeleporterBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeSeismicVibratorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActivatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeLatheBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRecyclerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRollingMillBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeStamperBlockEntity;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
+import com.beipuo.mekenergistics.registry.machine.MachineFactory;
 import java.util.EnumMap;
 import java.util.Map;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import mekanism.common.registration.impl.TileEntityTypeDeferredRegister;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
-import mekanism.common.content.blocktype.FactoryType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.minecraft.world.level.block.state.BlockState;
 
 public final class ModBlockEntities {
     private static final TileEntityTypeDeferredRegister BLOCK_ENTITIES = new TileEntityTypeDeferredRegister(MekEnergistics.MODID);
@@ -184,22 +182,6 @@ public final class ModBlockEntities {
             default -> registerMachine(machine, MeMekanismMachineBlockEntity::new);
         };
         return (TileEntityTypeRegistryObject) registered;
-    }
-
-    private static boolean isItemToItemFactory(MeMekanismMachine machine) {
-        return machine.factoryType() == FactoryType.SMELTING
-                || machine.factoryType() == FactoryType.ENRICHING
-                || machine.factoryType() == FactoryType.CRUSHING;
-    }
-
-    @FunctionalInterface
-    public interface MachineFactory<TILE extends TileEntityMekanism> {
-        TILE create(MeMekanismMachine machine, BlockPos pos, BlockState state);
-    }
-
-    @FunctionalInterface
-    public interface MachineFactoryRegistrar {
-        <TILE extends TileEntityMekanism> TileEntityTypeRegistryObject<TILE> register(MeMekanismMachine machine, MachineFactory<TILE> factory);
     }
 
     public static final TileEntityTypeRegistryObject<? extends TileEntityMekanism> ME_METALLURGIC_INFUSER =

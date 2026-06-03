@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.blockentity;
 
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
@@ -18,7 +19,7 @@ import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.KeyCounter;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.jerry.mekmm.api.recipes.RecyclerRecipe;
@@ -31,12 +32,12 @@ import mekanism.api.RelativeSide;
 import mekanism.api.SerializationConstants;
 import mekanism.api.Upgrade;
 import mekanism.api.chemical.BasicChemicalTank;
+import mekanism.api.functions.ConstantPredicates;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalTank;
-import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.CombinerRecipe;
 import mekanism.api.recipes.cache.CachedRecipe.OperationTracker.RecipeError;
@@ -44,7 +45,6 @@ import mekanism.api.recipes.ItemStackChemicalToItemStackRecipe;
 import mekanism.api.recipes.ItemStackToItemStackRecipe;
 import mekanism.api.recipes.SawmillRecipe;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
-import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.holder.chemical.ChemicalTankHelper;
 import mekanism.common.capabilities.holder.chemical.IChemicalTankHolder;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -165,7 +165,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Override
     protected IEnergyContainerHolder getInitialEnergyContainers(IContentsListener listener) {
         EnergyContainerHelper builder = EnergyContainerHelper.forSideWithConfig(this);
-        builder.addContainer(this.energyContainer = new AeBackedEnergyContainer(this, listener));
+        builder.addContainer(this.energyContainer = new MeAeBackedEnergyContainer(this, listener));
         return builder.build();
     }
 
@@ -333,7 +333,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
                 || extractAeAsFe(energyPerTick - this.energyContainer.getEnergy(), Action.SIMULATE) >= energyPerTick - this.energyContainer.getEnergy();
     }
 
-    private long extractAeAsFe(long requestedFe, Action action) {
+    long extractAeAsFe(long requestedFe, Action action) {
         if (requestedFe <= 0) {
             return 0;
         }
@@ -862,82 +862,5 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }));
     }
 
-    private record PatternInput(ItemStack item, ChemicalStack chemical) {
-    }
-
-    private static final class AeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismMachineBlockEntity> {
-        private final MeMekanismMachineBlockEntity owner;
-
-        private AeBackedEnergyContainer(MeMekanismMachineBlockEntity owner, IContentsListener listener) {
-            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
-                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
-            this.owner = owner;
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            long localExtracted = super.extract(amount, action, automationType);
-            long remaining = amount - localExtracted;
-            if (remaining <= 0 || automationType != AutomationType.INTERNAL) {
-                return localExtracted;
-            }
-            return localExtracted + this.owner.extractAeAsFe(remaining, action);
-        }
-    }
-
-    public enum AeOutputMode {
-        BOTH("AE: All", true, true),
-        ITEMS("AE: Item", true, false),
-        CHEMICALS("AE: Chem", false, true),
-        NONE("AE: Off", false, false);
-
-        private static final AeOutputMode[] VALUES = values();
-        private final String label;
-        private final boolean items;
-        private final boolean chemicals;
-
-        AeOutputMode(String label, boolean items, boolean chemicals) {
-            this.label = label;
-            this.items = items;
-            this.chemicals = chemicals;
-        }
-
-        public String label() {
-            return this.label;
-        }
-
-        public boolean items() {
-            return this.items;
-        }
-
-        public boolean chemicals() {
-            return this.chemicals;
-        }
-
-        public AeOutputMode next() {
-            return VALUES[(ordinal() + 1) % VALUES.length];
-        }
-
-        public AeOutputMode toggle(mekanism.common.lib.transmitter.TransmissionType type) {
-            return switch (type) {
-                case ITEM -> byFlags(!this.items, this.chemicals);
-                case CHEMICAL -> byFlags(this.items, !this.chemicals);
-                default -> this;
-            };
-        }
-
-        private static AeOutputMode byFlags(boolean items, boolean chemicals) {
-            for (AeOutputMode mode : VALUES) {
-                if (mode.items == items && mode.chemicals == chemicals) {
-                    return mode;
-                }
-            }
-            return BOTH;
-        }
-
-        public static AeOutputMode byId(int id) {
-            return id < 0 || id >= VALUES.length ? BOTH : VALUES[id];
-        }
-    }
 }
 

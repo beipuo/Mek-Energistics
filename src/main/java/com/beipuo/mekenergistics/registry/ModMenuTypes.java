@@ -1,47 +1,46 @@
 package com.beipuo.mekenergistics.registry;
 
 import com.beipuo.mekenergistics.MekEnergistics;
-import com.beipuo.mekenergistics.blockentity.MeAdvancedElectricMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeAntiprotonicNucleosynthesizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalCrystallizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalDissolutionChamberBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalInfuserBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalOxidizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeChemicalWasherBlockEntity;
-import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeAdvancedElectricMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeAntiprotonicNucleosynthesizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalCrystallizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalDissolutionChamberBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalInfuserBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalOxidizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalWasherBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
-import com.beipuo.mekenergistics.blockentity.MeCombinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeDigitalMinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeDimensionalStabilizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeElectricMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeElectricPumpBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeElectrolyticSeparatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeFluidicPlenisherBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeFormulaicAssemblicatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeCombinerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeDigitalMinerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeDimensionalStabilizerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeElectricMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeElectricPumpBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeElectrolyticSeparatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeFluidicPlenisherBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeFormulaicAssemblicatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeItemStackToItemStackFactoryBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeIsotopicCentrifugeBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeLogisticalSorterBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeIsotopicCentrifugeBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeLogisticalSorterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeMetallurgicInfuserBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeModificationStationBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeNutritionalLiquifierBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeOredictionificatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePaintingMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePigmentExtractorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePigmentMixerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePrecisionSawmillBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MePressurizedReactionChamberBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeResistiveHeaterBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeRotaryCondensentratorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeSeismicVibratorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeSolarNeutronActivatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.MeTeleporterBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeMetallurgicInfuserBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeModificationStationBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeNutritionalLiquifierBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeOredictionificatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MePaintingMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentExtractorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentMixerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MePrecisionSawmillBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MePressurizedReactionChamberBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeResistiveHeaterBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeRotaryCondensentratorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeSeismicVibratorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActivatorBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import mekanism.common.inventory.container.tile.FactoryContainer;
 import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.container.type.MekanismContainerType;
-import mekanism.common.content.blocktype.FactoryType;
 import mekanism.common.tile.factory.TileEntityFactory;
 import mekanism.common.registration.impl.ContainerTypeDeferredRegister;
 import mekanism.common.registration.impl.ContainerTypeRegistryObject;
@@ -148,70 +147,70 @@ public final class ModMenuTypes {
     }
 
     public static ContainerTypeRegistryObject<? extends MekanismTileContainer<? extends TileEntityMekanism>> getMachineContainer(
-            com.beipuo.mekenergistics.common.MeMekanismMachine machine) {
+            MeMekanismMachine machine) {
         if (machine.isFactory()) {
             return ME_FACTORY;
-        } else if (machine.slotLayout() == com.beipuo.mekenergistics.common.MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
+        } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
             return ME_ELECTRIC_MACHINE;
         } else if (machine.hasAdvancedChemicalInput()) {
             return ME_ADVANCED_ELECTRIC_MACHINE;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.METALLURGIC_INFUSER) {
+        } else if (machine == MeMekanismMachine.METALLURGIC_INFUSER) {
             return ME_METALLURGIC_INFUSER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.COMBINER) {
+        } else if (machine == MeMekanismMachine.COMBINER) {
             return ME_COMBINER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.PRECISION_SAWMILL) {
+        } else if (machine == MeMekanismMachine.PRECISION_SAWMILL) {
             return ME_PRECISION_SAWMILL;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.ELECTRIC_PUMP) {
+        } else if (machine == MeMekanismMachine.ELECTRIC_PUMP) {
             return ME_ELECTRIC_PUMP;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.FLUIDIC_PLENISHER) {
+        } else if (machine == MeMekanismMachine.FLUIDIC_PLENISHER) {
             return ME_FLUIDIC_PLENISHER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.RESISTIVE_HEATER) {
+        } else if (machine == MeMekanismMachine.RESISTIVE_HEATER) {
             return ME_RESISTIVE_HEATER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.SEISMIC_VIBRATOR) {
+        } else if (machine == MeMekanismMachine.SEISMIC_VIBRATOR) {
             return ME_SEISMIC_VIBRATOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.TELEPORTER) {
+        } else if (machine == MeMekanismMachine.TELEPORTER) {
             return ME_TELEPORTER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.OREDICTIONIFICATOR) {
+        } else if (machine == MeMekanismMachine.OREDICTIONIFICATOR) {
             return ME_OREDICTIONIFICATOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.MODIFICATION_STATION) {
+        } else if (machine == MeMekanismMachine.MODIFICATION_STATION) {
             return ME_MODIFICATION_STATION;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.DIGITAL_MINER) {
+        } else if (machine == MeMekanismMachine.DIGITAL_MINER) {
             return ME_DIGITAL_MINER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.LOGISTICAL_SORTER) {
+        } else if (machine == MeMekanismMachine.LOGISTICAL_SORTER) {
             return ME_LOGISTICAL_SORTER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.DIMENSIONAL_STABILIZER) {
+        } else if (machine == MeMekanismMachine.DIMENSIONAL_STABILIZER) {
             return ME_DIMENSIONAL_STABILIZER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.FORMULAIC_ASSEMBLICATOR) {
+        } else if (machine == MeMekanismMachine.FORMULAIC_ASSEMBLICATOR) {
             return ME_FORMULAIC_ASSEMBLICATOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER) {
+        } else if (machine == MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER) {
             return ME_PRESSURIZED_REACTION_CHAMBER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.CHEMICAL_CRYSTALLIZER) {
+        } else if (machine == MeMekanismMachine.CHEMICAL_CRYSTALLIZER) {
             return ME_CHEMICAL_CRYSTALLIZER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER) {
+        } else if (machine == MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER) {
             return ME_CHEMICAL_DISSOLUTION_CHAMBER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.CHEMICAL_INFUSER) {
+        } else if (machine == MeMekanismMachine.CHEMICAL_INFUSER) {
             return ME_CHEMICAL_INFUSER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.CHEMICAL_OXIDIZER) {
+        } else if (machine == MeMekanismMachine.CHEMICAL_OXIDIZER) {
             return ME_CHEMICAL_OXIDIZER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.CHEMICAL_WASHER) {
+        } else if (machine == MeMekanismMachine.CHEMICAL_WASHER) {
             return ME_CHEMICAL_WASHER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.ROTARY_CONDENSENTRATOR) {
+        } else if (machine == MeMekanismMachine.ROTARY_CONDENSENTRATOR) {
             return ME_ROTARY_CONDENSENTRATOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.ELECTROLYTIC_SEPARATOR) {
+        } else if (machine == MeMekanismMachine.ELECTROLYTIC_SEPARATOR) {
             return ME_ELECTROLYTIC_SEPARATOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR) {
+        } else if (machine == MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR) {
             return ME_SOLAR_NEUTRON_ACTIVATOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
+        } else if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
             return ME_ISOTOPIC_CENTRIFUGE;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.NUTRITIONAL_LIQUIFIER) {
+        } else if (machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER) {
             return ME_NUTRITIONAL_LIQUIFIER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.ANTIPROTONIC_NUCLEOSYNTHESIZER) {
+        } else if (machine == MeMekanismMachine.ANTIPROTONIC_NUCLEOSYNTHESIZER) {
             return ME_ANTIPROTONIC_NUCLEOSYNTHESIZER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.PIGMENT_EXTRACTOR) {
+        } else if (machine == MeMekanismMachine.PIGMENT_EXTRACTOR) {
             return ME_PIGMENT_EXTRACTOR;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.PIGMENT_MIXER) {
+        } else if (machine == MeMekanismMachine.PIGMENT_MIXER) {
             return ME_PIGMENT_MIXER;
-        } else if (machine == com.beipuo.mekenergistics.common.MeMekanismMachine.PAINTING_MACHINE) {
+        } else if (machine == MeMekanismMachine.PAINTING_MACHINE) {
             return ME_PAINTING_MACHINE;
         }
         return ME_GENERIC_MACHINE;

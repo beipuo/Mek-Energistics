@@ -9,7 +9,7 @@ import appeng.api.networking.security.IActionHost;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import net.minecraft.server.level.ServerPlayer;

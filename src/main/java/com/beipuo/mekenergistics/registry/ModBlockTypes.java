@@ -1,8 +1,8 @@
 package com.beipuo.mekenergistics.registry;
 
-import com.beipuo.mekenergistics.block.MeUpgradeableAttribute;
+import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
 import java.util.EnumMap;

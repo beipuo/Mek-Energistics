@@ -5,7 +5,7 @@ import appeng.api.networking.IGridNode;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.compat.shared.MeExternalFactorySupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;

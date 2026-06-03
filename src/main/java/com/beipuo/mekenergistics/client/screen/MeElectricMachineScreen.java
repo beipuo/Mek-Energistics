@@ -1,6 +1,6 @@
 package com.beipuo.mekenergistics.client.screen;
 
-import com.beipuo.mekenergistics.blockentity.MeElectricMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.machine.process.MeElectricMachineBlockEntity;
 import mekanism.client.gui.machine.GuiElectricMachine;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import net.minecraft.network.chat.Component;

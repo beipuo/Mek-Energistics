@@ -4,7 +4,7 @@ import com.beipuo.mekenergistics.blockentity.compat.shared.MeExternalFactorySupp
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.Collections;
 import java.util.List;
 import mekanism.api.IContentsListener;

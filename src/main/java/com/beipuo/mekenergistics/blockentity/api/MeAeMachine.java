@@ -7,7 +7,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.helpers.patternprovider.PatternContainer;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.lib.transmitter.TransmissionType;
@@ -16,13 +16,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 public interface MeAeMachine extends PatternContainer {
-    MeMekanismMachineBlockEntity.AeOutputMode getAeOutputMode();
+    AeOutputMode getAeOutputMode();
 
     void cycleAeOutputMode();
 
     default void cycleAeOutputMode(TransmissionType type) {
-        MeMekanismMachineBlockEntity.AeOutputMode target = getAeOutputMode().toggle(type);
-        for (int i = 0; i < MeMekanismMachineBlockEntity.AeOutputMode.values().length && getAeOutputMode() != target; i++) {
+        AeOutputMode target = getAeOutputMode().toggle(type);
+        for (int i = 0; i < AeOutputMode.values().length && getAeOutputMode() != target; i++) {
             cycleAeOutputMode();
         }
     }

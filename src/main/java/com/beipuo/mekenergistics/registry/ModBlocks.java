@@ -2,7 +2,7 @@ package com.beipuo.mekenergistics.registry;
 
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.block.MeMekanismMachineBlock;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.level.block.Block;

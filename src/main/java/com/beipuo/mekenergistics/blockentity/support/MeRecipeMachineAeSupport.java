@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.support;
 
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
+
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
@@ -25,7 +27,7 @@ import appeng.core.settings.TickRates;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
-import com.beipuo.mekenergistics.common.MeMekanismMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
@@ -107,12 +109,12 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         return node == null || !node.isActive() ? null : node.getGrid();
     }
 
-    public boolean insertOutputSlotIntoNetwork(OutputInventorySlot outputSlot, MeMekanismMachineBlockEntity.AeOutputMode mode) {
+    public boolean insertOutputSlotIntoNetwork(OutputInventorySlot outputSlot, AeOutputMode mode) {
         rememberOutputSlot(outputSlot);
         return mode.items() && insertOutputStackIntoNetwork(outputSlot);
     }
 
-    public boolean insertOutputSlotsIntoNetwork(MeMekanismMachineBlockEntity.AeOutputMode mode, OutputInventorySlot... outputSlots) {
+    public boolean insertOutputSlotsIntoNetwork(AeOutputMode mode, OutputInventorySlot... outputSlots) {
         boolean changed = false;
         for (OutputInventorySlot outputSlot : outputSlots) {
             rememberOutputSlot(outputSlot);
@@ -123,7 +125,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         return changed;
     }
 
-    public boolean insertChemicalTankIntoNetwork(IChemicalTank tank, MeMekanismMachineBlockEntity.AeOutputMode mode) {
+    public boolean insertChemicalTankIntoNetwork(IChemicalTank tank, AeOutputMode mode) {
         rememberChemicalTank(tank);
         if (!mode.chemicals() || tank == null || tank.isEmpty()) {
             return false;
@@ -142,7 +144,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         return true;
     }
 
-    public boolean insertFluidTankIntoNetwork(IExtendedFluidTank tank, MeMekanismMachineBlockEntity.AeOutputMode mode) {
+    public boolean insertFluidTankIntoNetwork(IExtendedFluidTank tank, AeOutputMode mode) {
         rememberFluidTank(tank);
         if (!mode.items() || tank == null || tank.isEmpty()) {
             return false;
@@ -180,7 +182,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     private boolean hasAeOutputWork() {
-        MeMekanismMachineBlockEntity.AeOutputMode mode = this.owner.getAeOutputMode();
+        AeOutputMode mode = this.owner.getAeOutputMode();
         if (mode.items()) {
             for (OutputInventorySlot slot : this.knownOutputSlots) {
                 if (slot != null && !slot.getStack().isEmpty()) {
@@ -205,7 +207,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     private boolean processAeOutputWork() {
         boolean hadWork = hasAeOutputWork();
-        MeMekanismMachineBlockEntity.AeOutputMode mode = this.owner.getAeOutputMode();
+        AeOutputMode mode = this.owner.getAeOutputMode();
         for (OutputInventorySlot slot : this.knownOutputSlots) {
             insertOutputSlotIntoNetwork(slot, mode);
         }
