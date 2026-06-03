@@ -68,6 +68,7 @@ public final class MeFactoryAeSupport {
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
     private int patternPriority;
+    private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeFactoryAeSupport(MeFactoryAeMachine owner) {
         this.owner = owner;
@@ -99,6 +100,24 @@ public final class MeFactoryAeSupport {
         return this.patternPriority;
     }
 
+    public AeOutputMode getAeOutputMode() {
+        return this.aeOutputMode;
+    }
+
+    public void cycleAeOutputMode() {
+        this.aeOutputMode = this.aeOutputMode.next();
+        this.owner.saveChanges();
+    }
+
+    public void cycleAeOutputMode(mekanism.common.lib.transmitter.TransmissionType type) {
+        this.aeOutputMode = this.aeOutputMode.toggle(type);
+        this.owner.saveChanges();
+    }
+
+    public void setAeOutputMode(AeOutputMode aeOutputMode) {
+        this.aeOutputMode = aeOutputMode;
+    }
+
     public InternalInventory getTerminalPatternInventory() {
         return this.terminalPatternInventory;
     }
@@ -116,6 +135,9 @@ public final class MeFactoryAeSupport {
 
     public boolean insertOutputSlotsIntoNetwork(List<IInventorySlot> outputSlots) {
         rememberOutputSlots(outputSlots);
+        if (!this.aeOutputMode.items()) {
+            return false;
+        }
         MEStorage storage = getNetworkStorage();
         if (storage == null) {
             return false;
@@ -154,6 +176,9 @@ public final class MeFactoryAeSupport {
 
     public boolean insertChemicalTankIntoNetwork(IChemicalTank tank) {
         rememberChemicalTank(tank);
+        if (!this.aeOutputMode.chemicals()) {
+            return false;
+        }
         if (tank == null || tank.isEmpty()) {
             return false;
         }
@@ -170,6 +195,9 @@ public final class MeFactoryAeSupport {
 
     public boolean insertFluidTankIntoNetwork(IExtendedFluidTank tank) {
         rememberFluidTank(tank);
+        if (!this.aeOutputMode.chemicals()) {
+            return false;
+        }
         if (tank == null || tank.isEmpty()) {
             return false;
         }
@@ -271,11 +299,13 @@ public final class MeFactoryAeSupport {
 
     public void save(CompoundTag tag) {
         tag.putInt("PatternPriority", this.patternPriority);
+        tag.putInt("AeOutputMode", this.aeOutputMode.ordinal());
         this.mainNode.saveToNBT(tag);
     }
 
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
+        this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }

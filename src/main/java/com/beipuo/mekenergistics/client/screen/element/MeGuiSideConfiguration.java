@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.client.screen.element;
 
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.network.packet.CycleAeOutputTypePacket;
 import mekanism.client.gui.GuiMekanism;
 import mekanism.client.gui.IGuiWrapper;
@@ -75,15 +76,22 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
     }
 
     private boolean isTypeEnabled(TransmissionType type) {
-        if (!(this.tile instanceof MeAeMachine machine)) {
-            return false;
-        }
-        AeOutputMode mode = machine.getAeOutputMode();
+        AeOutputMode mode = getAeOutputMode();
         return switch (type) {
             case ITEM -> mode.items();
             case CHEMICAL -> mode.chemicals();
             default -> false;
         };
+    }
+
+    private AeOutputMode getAeOutputMode() {
+        if (this.tile instanceof MeAeMachine machine) {
+            return machine.getAeOutputMode();
+        }
+        if (this.tile instanceof MeFactoryAeMachine machine) {
+            return machine.getAeOutputMode();
+        }
+        return AeOutputMode.NONE;
     }
 
     private void sendToggle() {

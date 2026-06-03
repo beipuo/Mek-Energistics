@@ -19,6 +19,7 @@ import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
+import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.tile.factory.TileEntityItemStackToItemStackFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -163,6 +164,12 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
     @Override
     public appeng.api.networking.IGridNode getGridNode(Direction dir) {
         return MeFactoryAeMachine.super.getGridNode(dir);
+    }
+
+    @Override
+    public void addContainerTrackers(MekanismContainer container) {
+        super.addContainerTrackers(container);
+        addAeOutputModeTracker(container);
     }
 
     @Override

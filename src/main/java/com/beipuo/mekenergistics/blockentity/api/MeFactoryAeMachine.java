@@ -7,11 +7,15 @@ import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.me.helpers.IGridConnectedBlockEntity;
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
+import mekanism.common.inventory.container.MekanismContainer;
+import mekanism.common.inventory.container.sync.SyncableInt;
 import mekanism.common.inventory.slot.BasicInventorySlot;
+import mekanism.common.lib.transmitter.TransmissionType;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
@@ -36,6 +40,23 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
 
     default List<BasicInventorySlot> getPatternSlots() {
         return getAeSupport().getPatternSlots();
+    }
+
+    default AeOutputMode getAeOutputMode() {
+        return getAeSupport().getAeOutputMode();
+    }
+
+    default void cycleAeOutputMode() {
+        getAeSupport().cycleAeOutputMode();
+    }
+
+    default void cycleAeOutputMode(TransmissionType type) {
+        getAeSupport().cycleAeOutputMode(type);
+    }
+
+    default void addAeOutputModeTracker(MekanismContainer container) {
+        container.track(SyncableInt.create(() -> getAeOutputMode().ordinal(),
+                mode -> getAeSupport().setAeOutputMode(AeOutputMode.byId(mode))));
     }
 
     default void setOwner(ServerPlayer player) {

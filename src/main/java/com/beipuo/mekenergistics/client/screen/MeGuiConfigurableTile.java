@@ -1,6 +1,5 @@
 package com.beipuo.mekenergistics.client.screen;
 
-import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.client.screen.element.MeGuiSideConfigurationTab;
 import java.util.function.Supplier;
 import mekanism.client.gui.GuiMekanismTile;
@@ -11,7 +10,7 @@ import mekanism.common.tile.interfaces.ISideConfiguration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public abstract class MeGuiConfigurableTile<TILE extends TileEntityMekanism & ISideConfiguration & MeAeMachine, CONTAINER extends MekanismTileContainer<TILE>>
+public abstract class MeGuiConfigurableTile<TILE extends TileEntityMekanism & ISideConfiguration, CONTAINER extends MekanismTileContainer<TILE>>
         extends GuiMekanismTile<TILE, CONTAINER> {
     private MeGuiSideConfigurationTab<TILE> sideConfigTab;
     private GuiTransporterConfigTab<TILE> transporterConfigTab;

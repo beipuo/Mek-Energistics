@@ -19,6 +19,7 @@ import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
+import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.slot.InputInventorySlot;
 import mekanism.common.tile.factory.TileEntityCombiningFactory;
 import net.minecraft.core.BlockPos;
@@ -104,6 +105,7 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
     @Nullable @Override public appeng.api.networking.IGridNode getGridNode(Direction dir) { return MeFactoryAeMachine.super.getGridNode(dir); }
+    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
     @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
 }

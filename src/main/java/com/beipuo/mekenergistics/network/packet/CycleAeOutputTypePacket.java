@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.network.packet;
 
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import mekanism.common.lib.transmitter.TransmissionType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -33,6 +34,8 @@ public record CycleAeOutputTypePacket(BlockPos pos, TransmissionType transmissio
             }
             BlockEntity blockEntity = player.level().getBlockEntity(this.pos);
             if (blockEntity instanceof MeAeMachine machine) {
+                machine.cycleAeOutputMode(this.transmissionType);
+            } else if (blockEntity instanceof MeFactoryAeMachine machine) {
                 machine.cycleAeOutputMode(this.transmissionType);
             }
         });
