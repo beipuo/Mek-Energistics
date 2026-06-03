@@ -549,7 +549,8 @@ public enum MeMekanismMachine {
                 return getExtraMoreMachineFactory("absolute", moreMachineFactoryTypeName);
             }
             if (extraFactoryTierName != null) {
-                return getExtraMoreMachineFactory(getNextExtraFactoryTier(extraFactoryTierName), moreMachineFactoryTypeName);
+                String nextTier = getNextExtraFactoryTier(extraFactoryTierName);
+                return nextTier == null ? null : getExtraMoreMachineFactory(nextTier, moreMachineFactoryTypeName);
             }
             if (factoryTier == null) {
                 return null;
@@ -561,7 +562,8 @@ public enum MeMekanismMachine {
                 return getExtraMoreMachineAdvancedFactory("absolute", moreMachineAdvancedFactoryTypeName);
             }
             if (extraFactoryTierName != null) {
-                return getExtraMoreMachineAdvancedFactory(getNextExtraFactoryTier(extraFactoryTierName), moreMachineAdvancedFactoryTypeName);
+                String nextTier = getNextExtraFactoryTier(extraFactoryTierName);
+                return nextTier == null ? null : getExtraMoreMachineAdvancedFactory(nextTier, moreMachineAdvancedFactoryTypeName);
             }
             if (factoryTier == null) {
                 return null;
@@ -605,6 +607,9 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getMoreMachineFactory(FactoryTier tier, String typeName) {
+        if (tier == null || typeName == null) {
+            return null;
+        }
         for (MeMekanismMachine machine : values()) {
             if (machine.factoryTier == tier && typeName.equals(machine.moreMachineFactoryTypeName)) {
                 return machine;
@@ -615,6 +620,9 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getExtraMoreMachineFactory(String tierName, String typeName) {
+        if (tierName == null || typeName == null) {
+            return null;
+        }
         for (MeMekanismMachine machine : values()) {
             if (tierName.equals(machine.extraFactoryTierName) && typeName.equals(machine.moreMachineFactoryTypeName)) {
                 return machine;
@@ -625,6 +633,9 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getMoreMachineAdvancedFactory(FactoryTier tier, String typeName) {
+        if (tier == null || typeName == null) {
+            return null;
+        }
         for (MeMekanismMachine machine : values()) {
             if (machine.factoryTier == tier && typeName.equals(machine.moreMachineAdvancedFactoryTypeName)) {
                 return machine;
@@ -635,6 +646,9 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getExtraMoreMachineAdvancedFactory(String tierName, String typeName) {
+        if (tierName == null || typeName == null) {
+            return null;
+        }
         for (MeMekanismMachine machine : values()) {
             if (tierName.equals(machine.extraFactoryTierName) && typeName.equals(machine.moreMachineAdvancedFactoryTypeName)) {
                 return machine;
@@ -645,6 +659,9 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getExtraFactory(String tierName, FactoryType type) {
+        if (tierName == null || type == null) {
+            return null;
+        }
         for (MeMekanismMachine machine : values()) {
             if (tierName.equals(machine.extraFactoryTierName) && machine.factoryType == type) {
                 return machine;
