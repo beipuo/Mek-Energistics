@@ -75,7 +75,11 @@ final class MeAdvancedFactorySupport {
     }
 
     static boolean updateServer(Owner owner, boolean sendUpdatePacket) {
-        return owner.getAeSupport().insertOutputSlotsIntoNetwork(owner.meOutputSlots()) || sendUpdatePacket;
+        return drainOutputs(owner) || sendUpdatePacket;
+    }
+
+    static boolean drainOutputs(Owner owner) {
+        return owner.getAeSupport().insertOutputSlotsIntoNetwork(owner.meOutputSlots());
     }
 
     static boolean updateServer(Owner owner, boolean sendUpdatePacket, java.util.List<mekanism.api.chemical.IChemicalTank> outputTanks) {

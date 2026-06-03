@@ -1,5 +1,10 @@
 package com.beipuo.mekenergistics.client.overlay;
 
+import appeng.api.client.AEKeyRendering;
+import appeng.api.crafting.PatternDetailsHelper;
+import appeng.api.stacks.AmountFormat;
+import appeng.api.stacks.GenericStack;
+import appeng.client.gui.me.common.StackSizeRenderer;
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
@@ -25,11 +30,14 @@ import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.MekanismUtils.ResourceType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -253,7 +261,39 @@ public final class MePatternWindowOverlay {
                 guiGraphics.blit(EMPTY_PATTERN_ICON, relativeX + 1, relativeY + 1, 0, 0, 16, 16, 16, 16);
                 return;
             }
+            ItemStack patternStack = virtualSlot.getStackToRender();
+            GenericStack output = getPatternOutput(patternStack);
+            if (output != null) {
+                int xPos = relativeX + 1;
+                int yPos = relativeY + 1;
+                if (virtualSlot.shouldDrawOverlay()) {
+                    guiGraphics.fill(RenderType.guiOverlay(), xPos, yPos, xPos + 16, yPos + 16, DEFAULT_HOVER_COLOR);
+                }
+                renderPatternOutput(guiGraphics, output, xPos, yPos);
+                return;
+            }
             super.drawContents(guiGraphics);
+        }
+
+        private static GenericStack getPatternOutput(ItemStack patternStack) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.level == null) {
+                return null;
+            }
+            var pattern = PatternDetailsHelper.decodePattern(patternStack, minecraft.level);
+            if (pattern == null || pattern.getOutputs().isEmpty()) {
+                return null;
+            }
+            return pattern.getPrimaryOutput();
+        }
+
+        private static void renderPatternOutput(GuiGraphics guiGraphics, GenericStack output, int xPos, int yPos) {
+            Minecraft minecraft = Minecraft.getInstance();
+            AEKeyRendering.drawInGui(minecraft, guiGraphics, xPos, yPos, output.what());
+            if (output.amount() > 0) {
+                String amountText = output.what().formatAmount(output.amount(), AmountFormat.SLOT);
+                StackSizeRenderer.renderSizeLabel(guiGraphics, minecraft.font, xPos, yPos, amountText, false);
+            }
         }
     }
 }

@@ -69,6 +69,10 @@ final class MeExtraFactoryBridge {
         return MeExternalFactorySupport.updateServer(adapt(owner), sendUpdatePacket);
     }
 
+    static boolean drainOutputs(Owner owner) {
+        return MeExternalFactorySupport.drainOutputs(adapt(owner));
+    }
+
     static boolean updateServer(Owner owner, boolean sendUpdatePacket, java.util.List<mekanism.api.chemical.IChemicalTank> outputTanks) {
         return updateServer(owner, sendUpdatePacket) || owner.getAeSupport().insertChemicalTanksIntoNetwork(outputTanks);
     }

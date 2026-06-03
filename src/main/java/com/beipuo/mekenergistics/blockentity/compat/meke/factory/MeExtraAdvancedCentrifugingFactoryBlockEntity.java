@@ -42,7 +42,7 @@ public class MeExtraAdvancedCentrifugingFactoryBlockEntity extends TileEntityExt
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExtraFactoryBridge.pushChemical(this, inputHolder, this.inputChemicalTanks); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
-    @Override protected boolean onUpdateServer() { return MeExtraFactoryBridge.updateServer(this, super.onUpdateServer(), this.outputChemicalTanks); }
+    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExtraFactoryBridge.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeExtraFactoryBridge.updateServer(this, sendUpdatePacket, this.outputChemicalTanks); }
     @Override public void clearRemoved() { super.clearRemoved(); MeExtraFactoryBridge.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { getAeSupport().destroy(); super.onChunkUnloaded(); }

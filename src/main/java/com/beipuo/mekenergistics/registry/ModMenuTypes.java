@@ -35,20 +35,21 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeRotaryCondensent
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeSeismicVibratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActivatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
+import com.beipuo.mekenergistics.menu.MePatternFormulaicAssemblicatorContainer;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
+import com.beipuo.mekenergistics.menu.MePatternMekanismTileContainer;
+import com.beipuo.mekenergistics.menu.compat.meke.MePatternExtraAdvancedFactoryContainer;
+import com.beipuo.mekenergistics.menu.compat.meke.MePatternExtraFactoryContainer;
+import com.beipuo.mekenergistics.menu.compat.meke.MePatternExtraMoreMachineFactoryContainer;
+import com.beipuo.mekenergistics.menu.compat.mekmm.MePatternAdvancedFactoryContainer;
+import com.beipuo.mekenergistics.menu.compat.mekmm.MePatternMoreMachineFactoryContainer;
+import com.beipuo.mekenergistics.menu.factory.MePatternFactoryContainer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
-import com.jerry.mekaf.common.inventory.container.tile.AdvancedFactoryContainer;
 import com.jerry.mekaf.common.tile.factory.base.TileEntityAdvancedFactoryBase;
-import com.jerry.mekextras.common.integration.mekaf.inventory.container.tile.ExtraAdvancedFactoryContainer;
 import com.jerry.mekextras.common.integration.mekaf.tile.factory.base.TileEntityExtraAdvancedFactoryBase;
-import com.jerry.mekextras.common.integration.mekmm.inventory.container.tile.ExtraMoreMachineFactoryContainer;
 import com.jerry.mekextras.common.integration.mekmm.tile.factory.TileEntityExtraMoreMachineFactory;
-import com.jerry.mekextras.common.inventory.container.tile.ExtraFactoryContainer;
 import com.jerry.mekextras.common.tile.factory.TileEntityExtraFactory;
-import com.jerry.mekmm.common.inventory.container.tile.MoreMachineFactoryContainer;
 import com.jerry.mekmm.common.tile.factory.TileEntityMoreMachineFactory;
-import mekanism.common.inventory.container.tile.FactoryContainer;
-import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.container.type.MekanismContainerType;
 import mekanism.common.tile.factory.TileEntityFactory;
@@ -74,126 +75,163 @@ public final class ModMenuTypes {
     public static final ContainerTypeRegistryObject<MePatternMachineContainer<MePrecisionSawmillBlockEntity>> ME_PRECISION_SAWMILL =
             registerPatternContainer("me_precision_sawmill", MePrecisionSawmillBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeElectricPumpBlockEntity>> ME_ELECTRIC_PUMP =
-            MENU_TYPES.register("me_electric_pump", MeElectricPumpBlockEntity.class);
+            registerPatternTileContainer("me_electric_pump", MeElectricPumpBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeFluidicPlenisherBlockEntity>> ME_FLUIDIC_PLENISHER =
-            MENU_TYPES.register("me_fluidic_plenisher", MeFluidicPlenisherBlockEntity.class);
+            registerPatternTileContainer("me_fluidic_plenisher", MeFluidicPlenisherBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeResistiveHeaterBlockEntity>> ME_RESISTIVE_HEATER =
-            MENU_TYPES.register("me_resistive_heater", MeResistiveHeaterBlockEntity.class);
+            registerPatternTileContainer("me_resistive_heater", MeResistiveHeaterBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeSeismicVibratorBlockEntity>> ME_SEISMIC_VIBRATOR =
-            MENU_TYPES.register("me_seismic_vibrator", MeSeismicVibratorBlockEntity.class);
+            registerPatternTileContainer("me_seismic_vibrator", MeSeismicVibratorBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeTeleporterBlockEntity>> ME_TELEPORTER =
-            MENU_TYPES.custom("me_teleporter", MeTeleporterBlockEntity.class).offset(0, 74).build();
+            registerPatternTileContainer("me_teleporter", MeTeleporterBlockEntity.class, 0, 74);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeOredictionificatorBlockEntity>> ME_OREDICTIONIFICATOR =
-            MENU_TYPES.custom("me_oredictionificator", MeOredictionificatorBlockEntity.class).offset(30, 64).build();
+            registerPatternTileContainer("me_oredictionificator", MeOredictionificatorBlockEntity.class, 30, 64);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeModificationStationBlockEntity>> ME_MODIFICATION_STATION =
-            MENU_TYPES.custom("me_modification_station", MeModificationStationBlockEntity.class).offset(0, 64).armorSideBar(8, 8, 8).build();
+            registerPatternTileContainer("me_modification_station", MeModificationStationBlockEntity.class, 0, 64, 8, 8, 8);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeDigitalMinerBlockEntity>> ME_DIGITAL_MINER =
-            MENU_TYPES.custom("me_digital_miner", MeDigitalMinerBlockEntity.class).offset(0, 76).build();
+            registerPatternTileContainer("me_digital_miner", MeDigitalMinerBlockEntity.class, 0, 76);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeLogisticalSorterBlockEntity>> ME_LOGISTICAL_SORTER =
-            MENU_TYPES.custom("me_logistical_sorter", MeLogisticalSorterBlockEntity.class).offset(50, 88).build();
+            registerPatternTileContainer("me_logistical_sorter", MeLogisticalSorterBlockEntity.class, 50, 88);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeDimensionalStabilizerBlockEntity>> ME_DIMENSIONAL_STABILIZER =
-            MENU_TYPES.register("me_dimensional_stabilizer", MeDimensionalStabilizerBlockEntity.class);
-    public static final ContainerTypeRegistryObject<FormulaicAssemblicatorContainer> ME_FORMULAIC_ASSEMBLICATOR =
+            registerPatternTileContainer("me_dimensional_stabilizer", MeDimensionalStabilizerBlockEntity.class);
+    public static final ContainerTypeRegistryObject<MePatternFormulaicAssemblicatorContainer> ME_FORMULAIC_ASSEMBLICATOR =
             registerFormulaicAssemblicatorContainer();
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MePressurizedReactionChamberBlockEntity>> ME_PRESSURIZED_REACTION_CHAMBER =
-            MENU_TYPES.custom("me_pressurized_reaction_chamber", MePressurizedReactionChamberBlockEntity.class).offset(0, 5).build();
+            registerPatternTileContainer("me_pressurized_reaction_chamber", MePressurizedReactionChamberBlockEntity.class, 0, 5);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeChemicalCrystallizerBlockEntity>> ME_CHEMICAL_CRYSTALLIZER =
-            MENU_TYPES.register("me_chemical_crystallizer", MeChemicalCrystallizerBlockEntity.class);
+            registerPatternTileContainer("me_chemical_crystallizer", MeChemicalCrystallizerBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeChemicalDissolutionChamberBlockEntity>> ME_CHEMICAL_DISSOLUTION_CHAMBER =
-            MENU_TYPES.register("me_chemical_dissolution_chamber", MeChemicalDissolutionChamberBlockEntity.class);
+            registerPatternTileContainer("me_chemical_dissolution_chamber", MeChemicalDissolutionChamberBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeChemicalInfuserBlockEntity>> ME_CHEMICAL_INFUSER =
-            MENU_TYPES.register("me_chemical_infuser", MeChemicalInfuserBlockEntity.class);
+            registerPatternTileContainer("me_chemical_infuser", MeChemicalInfuserBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeChemicalOxidizerBlockEntity>> ME_CHEMICAL_OXIDIZER =
-            MENU_TYPES.register("me_chemical_oxidizer", MeChemicalOxidizerBlockEntity.class);
+            registerPatternTileContainer("me_chemical_oxidizer", MeChemicalOxidizerBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeChemicalWasherBlockEntity>> ME_CHEMICAL_WASHER =
-            MENU_TYPES.register("me_chemical_washer", MeChemicalWasherBlockEntity.class);
+            registerPatternTileContainer("me_chemical_washer", MeChemicalWasherBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeRotaryCondensentratorBlockEntity>> ME_ROTARY_CONDENSENTRATOR =
-            MENU_TYPES.register("me_rotary_condensentrator", MeRotaryCondensentratorBlockEntity.class);
+            registerPatternTileContainer("me_rotary_condensentrator", MeRotaryCondensentratorBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeElectrolyticSeparatorBlockEntity>> ME_ELECTROLYTIC_SEPARATOR =
-            MENU_TYPES.register("me_electrolytic_separator", MeElectrolyticSeparatorBlockEntity.class);
+            registerPatternTileContainer("me_electrolytic_separator", MeElectrolyticSeparatorBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeSolarNeutronActivatorBlockEntity>> ME_SOLAR_NEUTRON_ACTIVATOR =
-            MENU_TYPES.register("me_solar_neutron_activator", MeSolarNeutronActivatorBlockEntity.class);
+            registerPatternTileContainer("me_solar_neutron_activator", MeSolarNeutronActivatorBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeIsotopicCentrifugeBlockEntity>> ME_ISOTOPIC_CENTRIFUGE =
-            MENU_TYPES.register("me_isotopic_centrifuge", MeIsotopicCentrifugeBlockEntity.class);
+            registerPatternTileContainer("me_isotopic_centrifuge", MeIsotopicCentrifugeBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeNutritionalLiquifierBlockEntity>> ME_NUTRITIONAL_LIQUIFIER =
-            MENU_TYPES.register("me_nutritional_liquifier", MeNutritionalLiquifierBlockEntity.class);
+            registerPatternTileContainer("me_nutritional_liquifier", MeNutritionalLiquifierBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeAntiprotonicNucleosynthesizerBlockEntity>> ME_ANTIPROTONIC_NUCLEOSYNTHESIZER =
-            MENU_TYPES.custom("me_antiprotonic_nucleosynthesizer", MeAntiprotonicNucleosynthesizerBlockEntity.class).offset(10, 27).build();
+            registerPatternTileContainer("me_antiprotonic_nucleosynthesizer", MeAntiprotonicNucleosynthesizerBlockEntity.class, 10, 27);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MePigmentExtractorBlockEntity>> ME_PIGMENT_EXTRACTOR =
-            MENU_TYPES.register("me_pigment_extractor", MePigmentExtractorBlockEntity.class);
+            registerPatternTileContainer("me_pigment_extractor", MePigmentExtractorBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MePigmentMixerBlockEntity>> ME_PIGMENT_MIXER =
-            MENU_TYPES.register("me_pigment_mixer", MePigmentMixerBlockEntity.class);
+            registerPatternTileContainer("me_pigment_mixer", MePigmentMixerBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MePaintingMachineBlockEntity>> ME_PAINTING_MACHINE =
-            MENU_TYPES.register("me_painting_machine", MePaintingMachineBlockEntity.class);
-    public static final ContainerTypeRegistryObject<FactoryContainer> ME_FACTORY =
+            registerPatternTileContainer("me_painting_machine", MePaintingMachineBlockEntity.class);
+    public static final ContainerTypeRegistryObject<MePatternFactoryContainer> ME_FACTORY =
             registerFactoryContainer();
-    public static final ContainerTypeRegistryObject<MoreMachineFactoryContainer> ME_MORE_MACHINE_FACTORY =
+    public static final ContainerTypeRegistryObject<MePatternMoreMachineFactoryContainer> ME_MORE_MACHINE_FACTORY =
             registerMoreMachineFactoryContainer();
-    public static final ContainerTypeRegistryObject<AdvancedFactoryContainer> ME_ADVANCED_FACTORY =
+    public static final ContainerTypeRegistryObject<MePatternAdvancedFactoryContainer> ME_ADVANCED_FACTORY =
             registerAdvancedFactoryContainer();
-    public static final ContainerTypeRegistryObject<ExtraFactoryContainer> ME_EXTRA_FACTORY =
+    public static final ContainerTypeRegistryObject<MePatternExtraFactoryContainer> ME_EXTRA_FACTORY =
             registerExtraFactoryContainer();
-    public static final ContainerTypeRegistryObject<ExtraMoreMachineFactoryContainer> ME_EXTRA_MORE_MACHINE_FACTORY =
+    public static final ContainerTypeRegistryObject<MePatternExtraMoreMachineFactoryContainer> ME_EXTRA_MORE_MACHINE_FACTORY =
             registerExtraMoreMachineFactoryContainer();
-    public static final ContainerTypeRegistryObject<ExtraAdvancedFactoryContainer> ME_EXTRA_ADVANCED_FACTORY =
+    public static final ContainerTypeRegistryObject<MePatternExtraAdvancedFactoryContainer> ME_EXTRA_ADVANCED_FACTORY =
             registerExtraAdvancedFactoryContainer();
 
     private ModMenuTypes() {
     }
 
-    private static ContainerTypeRegistryObject<FactoryContainer> registerFactoryContainer() {
-        ContainerTypeRegistryObject<FactoryContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternFactoryContainer> registerFactoryContainer() {
+        ContainerTypeRegistryObject<MePatternFactoryContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_factory"));
         MENU_TYPES.registerMenu("me_factory", () -> MekanismContainerType.tile(TileEntityFactory.class,
-                (id, inv, tile) -> new FactoryContainer(id, inv, (TileEntityFactory<?>) tile)));
+                (id, inv, tile) -> new MePatternFactoryContainer(id, inv, (TileEntityFactory<?>) tile)));
         return holder;
     }
 
-    private static ContainerTypeRegistryObject<MoreMachineFactoryContainer> registerMoreMachineFactoryContainer() {
-        ContainerTypeRegistryObject<MoreMachineFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternMoreMachineFactoryContainer> registerMoreMachineFactoryContainer() {
+        ContainerTypeRegistryObject<MePatternMoreMachineFactoryContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_more_machine_factory"));
         MENU_TYPES.registerMenu("me_more_machine_factory", () -> MekanismContainerType.tile(TileEntityMoreMachineFactory.class,
-                (id, inv, tile) -> new MoreMachineFactoryContainer(id, inv, (TileEntityMoreMachineFactory<?>) tile)));
+                (id, inv, tile) -> new MePatternMoreMachineFactoryContainer(id, inv, (TileEntityMoreMachineFactory<?>) tile)));
         return holder;
     }
 
-    private static ContainerTypeRegistryObject<AdvancedFactoryContainer> registerAdvancedFactoryContainer() {
-        ContainerTypeRegistryObject<AdvancedFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternAdvancedFactoryContainer> registerAdvancedFactoryContainer() {
+        ContainerTypeRegistryObject<MePatternAdvancedFactoryContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_advanced_factory"));
         MENU_TYPES.registerMenu("me_advanced_factory", () -> MekanismContainerType.tile(TileEntityAdvancedFactoryBase.class,
-                (id, inv, tile) -> new AdvancedFactoryContainer(id, inv, (TileEntityAdvancedFactoryBase<?>) tile)));
+                (id, inv, tile) -> new MePatternAdvancedFactoryContainer(id, inv, (TileEntityAdvancedFactoryBase<?>) tile)));
         return holder;
     }
 
-    private static ContainerTypeRegistryObject<ExtraFactoryContainer> registerExtraFactoryContainer() {
-        ContainerTypeRegistryObject<ExtraFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternExtraFactoryContainer> registerExtraFactoryContainer() {
+        ContainerTypeRegistryObject<MePatternExtraFactoryContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_extra_factory"));
         MENU_TYPES.registerMenu("me_extra_factory", () -> MekanismContainerType.tile(TileEntityExtraFactory.class,
-                (id, inv, tile) -> new ExtraFactoryContainer(id, inv, (TileEntityExtraFactory<?>) tile)));
+                (id, inv, tile) -> new MePatternExtraFactoryContainer(id, inv, (TileEntityExtraFactory<?>) tile)));
         return holder;
     }
 
-    private static ContainerTypeRegistryObject<ExtraMoreMachineFactoryContainer> registerExtraMoreMachineFactoryContainer() {
-        ContainerTypeRegistryObject<ExtraMoreMachineFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternExtraMoreMachineFactoryContainer> registerExtraMoreMachineFactoryContainer() {
+        ContainerTypeRegistryObject<MePatternExtraMoreMachineFactoryContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_extra_more_machine_factory"));
         MENU_TYPES.registerMenu("me_extra_more_machine_factory", () -> MekanismContainerType.tile(TileEntityExtraMoreMachineFactory.class,
-                (id, inv, tile) -> new ExtraMoreMachineFactoryContainer(id, inv, (TileEntityExtraMoreMachineFactory<?>) tile)));
+                (id, inv, tile) -> new MePatternExtraMoreMachineFactoryContainer(id, inv, (TileEntityExtraMoreMachineFactory<?>) tile)));
         return holder;
     }
 
-    private static ContainerTypeRegistryObject<ExtraAdvancedFactoryContainer> registerExtraAdvancedFactoryContainer() {
-        ContainerTypeRegistryObject<ExtraAdvancedFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternExtraAdvancedFactoryContainer> registerExtraAdvancedFactoryContainer() {
+        ContainerTypeRegistryObject<MePatternExtraAdvancedFactoryContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_extra_advanced_factory"));
         MENU_TYPES.registerMenu("me_extra_advanced_factory", () -> MekanismContainerType.tile(TileEntityExtraAdvancedFactoryBase.class,
-                (id, inv, tile) -> new ExtraAdvancedFactoryContainer(id, inv, (TileEntityExtraAdvancedFactoryBase<?>) tile)));
+                (id, inv, tile) -> new MePatternExtraAdvancedFactoryContainer(id, inv, (TileEntityExtraAdvancedFactoryBase<?>) tile)));
         return holder;
     }
 
-    private static ContainerTypeRegistryObject<FormulaicAssemblicatorContainer> registerFormulaicAssemblicatorContainer() {
-        ContainerTypeRegistryObject<FormulaicAssemblicatorContainer> holder = new ContainerTypeRegistryObject<>(
+    private static ContainerTypeRegistryObject<MePatternFormulaicAssemblicatorContainer> registerFormulaicAssemblicatorContainer() {
+        ContainerTypeRegistryObject<MePatternFormulaicAssemblicatorContainer> holder = new ContainerTypeRegistryObject<>(
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_formulaic_assemblicator"));
         MENU_TYPES.registerMenu("me_formulaic_assemblicator", () -> MekanismContainerType.tile(MeFormulaicAssemblicatorBlockEntity.class,
-                (id, inv, tile) -> new FormulaicAssemblicatorContainer(id, inv, tile)));
+                (id, inv, tile) -> new MePatternFormulaicAssemblicatorContainer(id, inv, tile)));
+        return holder;
+    }
+
+    private static <TILE extends TileEntityMekanism> ContainerTypeRegistryObject<MekanismTileContainer<TILE>> registerPatternTileContainer(
+            String name, Class<TILE> tileClass) {
+        return registerPatternTileContainer(name, tileClass, 0, 0);
+    }
+
+    private static <TILE extends TileEntityMekanism> ContainerTypeRegistryObject<MekanismTileContainer<TILE>> registerPatternTileContainer(
+            String name, Class<TILE> tileClass, int offsetX, int offsetY) {
+        return registerPatternTileContainer(name, tileClass, offsetX, offsetY, -1, -1, -1);
+    }
+
+    private static <TILE extends TileEntityMekanism> ContainerTypeRegistryObject<MekanismTileContainer<TILE>> registerPatternTileContainer(
+            String name, Class<TILE> tileClass, int offsetX, int offsetY, int armorSlotsX, int armorSlotsY, int offhandOffset) {
+        ContainerTypeRegistryObject<MekanismTileContainer<TILE>> holder = new ContainerTypeRegistryObject<>(
+                ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, name));
+        MENU_TYPES.registerMenu(name, () -> MekanismContainerType.tile(tileClass,
+                (id, inv, tile) -> new MePatternMekanismTileContainer<>(holder, id, inv, tile) {
+                    @Override
+                    protected int getInventoryXOffset() {
+                        return super.getInventoryXOffset() + offsetX;
+                    }
+
+                    @Override
+                    protected int getInventoryYOffset() {
+                        return super.getInventoryYOffset() + offsetY;
+                    }
+
+                    @Override
+                    protected void addInventorySlots(net.minecraft.world.entity.player.Inventory inv) {
+                        super.addInventorySlots(inv);
+                        if (armorSlotsX != -1 && armorSlotsY != -1) {
+                            addArmorSlots(inv, armorSlotsX, armorSlotsY, offhandOffset);
+                        }
+                    }
+                }));
         return holder;
     }
 

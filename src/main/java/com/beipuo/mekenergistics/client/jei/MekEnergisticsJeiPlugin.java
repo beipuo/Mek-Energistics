@@ -12,6 +12,7 @@ import mekanism.client.recipe_viewer.jei.MekanismJEI;
 import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
 import mekanism.client.recipe_viewer.type.RecipeViewerRecipeType;
 import mekanism.common.content.blocktype.FactoryType;
+import mekanism.common.tier.FactoryTier;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -81,22 +82,14 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRuntime(@NotNull IRuntimeRegistration registration) {
-        registration.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, List.of(hiddenStack(MeMekanismMachine.SEISMIC_VIBRATOR)));
+        registration.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, hiddenStacks());
     }
 
     private static void registerCatalysts(IRecipeCatalystRegistration registration, IRecipeViewerRecipeType<?> recipeType, FactoryType factoryType) {
-        List<ItemLike> catalysts = new ArrayList<>();
-        for (MeMekanismMachine machine : MeMekanismMachine.values()) {
-            if (!machine.isAvailable() || machine.factoryType() != factoryType) {
-                continue;
-            }
-            var item = ModItems.getMachineItem(machine);
-            if (item != null) {
-                catalysts.add(item.get());
-            }
-        }
-        if (!catalysts.isEmpty()) {
-            registration.addRecipeCatalysts(MekanismJEI.genericRecipeType(recipeType), catalysts.toArray(ItemLike[]::new));
+        MeMekanismMachine baseMachine = MeMekanismMachine.getBaseMachine(factoryType);
+        ItemLike[] catalysts = baseMachine == null ? new ItemLike[0] : catalysts(baseMachine);
+        if (catalysts.length > 0) {
+            registration.addRecipeCatalysts(MekanismJEI.genericRecipeType(recipeType), catalysts);
         }
     }
 
@@ -131,18 +124,10 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
     }
 
     private static void registerMoreMachineFactories(IRecipeCatalystRegistration registration, IRecipeViewerRecipeType<?> recipeType, String factoryTypeName) {
-        List<ItemLike> catalysts = new ArrayList<>();
-        for (MeMekanismMachine machine : MeMekanismMachine.values()) {
-            if (!machine.isAvailable() || !factoryTypeName.equals(machine.moreMachineFactoryTypeName())) {
-                continue;
-            }
-            var item = ModItems.getMachineItem(machine);
-            if (item != null) {
-                catalysts.add(item.get());
-            }
-        }
-        if (!catalysts.isEmpty()) {
-            registration.addRecipeCatalysts(MekanismJEI.genericRecipeType(recipeType), catalysts.toArray(ItemLike[]::new));
+        MeMekanismMachine basicFactory = MeMekanismMachine.getMoreMachineFactory(FactoryTier.BASIC, factoryTypeName);
+        ItemLike[] catalysts = basicFactory == null ? new ItemLike[0] : catalysts(basicFactory);
+        if (catalysts.length > 0) {
+            registration.addRecipeCatalysts(MekanismJEI.genericRecipeType(recipeType), catalysts);
         }
     }
 
@@ -160,8 +145,25 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
         return catalysts.toArray(ItemLike[]::new);
     }
 
-    private static ItemStack hiddenStack(MeMekanismMachine machine) {
-        return ModItems.getMachineItem(machine).get().getDefaultInstance();
+    private static List<ItemStack> hiddenStacks() {
+        List<ItemStack> stacks = new ArrayList<>();
+        addHiddenStack(stacks, MeMekanismMachine.SEISMIC_VIBRATOR);
+        for (MeMekanismMachine machine : MeMekanismMachine.values()) {
+            if (machine.isFactory()) {
+                addHiddenStack(stacks, machine);
+            }
+        }
+        return stacks;
+    }
+
+    private static void addHiddenStack(List<ItemStack> stacks, MeMekanismMachine machine) {
+        if (!machine.isAvailable()) {
+            return;
+        }
+        var item = ModItems.getMachineItem(machine);
+        if (item != null) {
+            stacks.add(item.get().getDefaultInstance());
+        }
     }
 
     private static final class PatternButtonExclusionHandler implements IGuiContainerHandler<GuiMekanism<?>> {

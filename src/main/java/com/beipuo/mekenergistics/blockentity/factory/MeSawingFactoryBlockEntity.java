@@ -109,7 +109,12 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
     }
 
     @Override public boolean isBusy() { return false; }
-    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = super.onUpdateServer(); return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket; }
+    @Override
+    protected boolean onUpdateServer() {
+        boolean sendUpdatePacket = this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        sendUpdatePacket |= super.onUpdateServer();
+        return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
+    }
     @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }

@@ -293,7 +293,11 @@ public final class MeExternalFactorySupport {
     }
 
     public static boolean updateServer(Owner owner, boolean sendUpdatePacket) {
-        return owner.getAeSupport().insertOutputSlotsIntoNetwork(owner.meOutputSlots()) || sendUpdatePacket;
+        return drainOutputs(owner) || sendUpdatePacket;
+    }
+
+    public static boolean drainOutputs(Owner owner) {
+        return owner.getAeSupport().insertOutputSlotsIntoNetwork(owner.meOutputSlots());
     }
 
     public static void createNodeOnFirstTick(TileEntityMekanism tile, MeFactoryAeSupport support, Level level, BlockPos pos) {

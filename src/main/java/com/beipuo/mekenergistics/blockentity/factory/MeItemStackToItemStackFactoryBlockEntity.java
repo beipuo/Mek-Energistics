@@ -141,7 +141,8 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
 
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = super.onUpdateServer();
+        boolean sendUpdatePacket = this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        sendUpdatePacket |= super.onUpdateServer();
         return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
     }
 

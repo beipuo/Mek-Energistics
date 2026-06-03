@@ -1,9 +1,6 @@
 package com.beipuo.mekenergistics.menu;
 
-import appeng.api.crafting.PatternDetailsHelper;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
-import mekanism.api.Action;
-import mekanism.api.AutomationType;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.container.slot.InventoryContainerSlot;
 import mekanism.common.inventory.container.slot.VirtualInventoryContainerSlot;
@@ -16,7 +13,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class MePatternMachineContainer<TILE extends TileEntityMekanism & MeAeMachine> extends MekanismTileContainer<TILE> {
+public class MePatternMachineContainer<TILE extends TileEntityMekanism & MeAeMachine> extends MekanismTileContainer<TILE> implements MePatternQuickMoveContainer {
     public MePatternMachineContainer(ContainerTypeRegistryObject<?> type, int id, Inventory inv, @NotNull TILE tile) {
         super(type, id, inv, tile);
     }
@@ -29,25 +26,11 @@ public class MePatternMachineContainer<TILE extends TileEntityMekanism & MeAeMac
             return ItemStack.EMPTY;
         }
         ItemStack slotStack = currentSlot.getItem();
-        if (!(currentSlot instanceof InventoryContainerSlot)
-                && PatternDetailsHelper.isEncodedPattern(slotStack)) {
-            ItemStack remaining = insertPattern(slotStack);
-            if (remaining.getCount() != slotStack.getCount()) {
-                return transferSuccess(currentSlot, player, slotStack, remaining);
-            }
+        ItemStack remaining = tryQuickMovePattern(currentSlot, tile, slotStack);
+        if (remaining.getCount() != slotStack.getCount()) {
+            return transferSuccess(currentSlot, player, slotStack, remaining);
         }
         return super.quickMoveStack(player, slotID);
-    }
-
-    private ItemStack insertPattern(ItemStack stack) {
-        ItemStack remaining = stack;
-        for (BasicInventorySlot patternSlot : this.tile.getPatternSlots()) {
-            remaining = patternSlot.insertItem(remaining, Action.EXECUTE, AutomationType.MANUAL);
-            if (remaining.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-        }
-        return remaining;
     }
 
     public VirtualInventoryContainerSlot getPatternContainerSlot(int index) {
