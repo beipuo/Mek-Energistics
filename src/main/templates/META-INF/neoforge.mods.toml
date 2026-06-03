@@ -42,6 +42,13 @@ config="${mod_id}.mixins.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="appmek"
+    type="required"
+    versionRange="[1.6.3,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="mekanism_extras"
     type="optional"
     versionRange="*"

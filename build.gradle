@@ -127,20 +127,27 @@ configurations {
 
 dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:19.2.16"
-    implementation "org.appliedenergistics:guideme:2.5.1"
     implementation "curse.maven:mekanism-268560:7904058"
-    implementation "curse.maven:mekanism-generators-268566:7904061"
-    implementation "curse.maven:jei-238222:7420587"
-    implementation "curse.maven:ae2-jei-integration-1074338:7727898"
-    implementation "curse.maven:applied-mekanistics-574300:7096962"
-    implementation "curse.maven:mekanism-extras-1026040:7921191"
-    implementation "curse.maven:mekanism-more-machine-1275257:7919872"
-    implementation "curse.maven:jade-324717:7545219"
-    implementation "curse.maven:building-gadgets-298187:6850515"
-    implementation "curse.maven:mekanism-unleashed-1072209:7801278"
-    implementation "curse.maven:advancedae-1084104:7849217"
-    implementation "curse.maven:omni-cells-1359517:8050965"
-    implementation "curse.maven:geckolib-388172:7707149"
+
+    compileOnly "curse.maven:jei-238222:7420587"
+    compileOnly "curse.maven:applied-mekanistics-574300:7096962"
+    compileOnly "curse.maven:mekanism-extras-1026040:7921191"
+    compileOnly "curse.maven:mekanism-more-machine-1275257:7919872"
+    compileOnly "curse.maven:jade-324717:7545219"
+
+    localRuntime "org.appliedenergistics:guideme:2.5.1"
+    localRuntime "curse.maven:mekanism-generators-268566:7904061"
+    localRuntime "curse.maven:jei-238222:7420587"
+    localRuntime "curse.maven:ae2-jei-integration-1074338:7727898"
+    localRuntime "curse.maven:applied-mekanistics-574300:7096962"
+    localRuntime "curse.maven:mekanism-extras-1026040:7921191"
+    localRuntime "curse.maven:mekanism-more-machine-1275257:7919872"
+    localRuntime "curse.maven:jade-324717:7545219"
+    localRuntime "curse.maven:building-gadgets-298187:6850515"
+    localRuntime "curse.maven:mekanism-unleashed-1072209:7801278"
+    localRuntime "curse.maven:advancedae-1084104:7849217"
+    localRuntime "curse.maven:omni-cells-1359517:8050965"
+    localRuntime "curse.maven:geckolib-388172:7707149"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
