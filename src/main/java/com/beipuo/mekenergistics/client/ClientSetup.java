@@ -6,6 +6,11 @@ import com.beipuo.mekenergistics.client.screen.MeGenericMachineScreen;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiAdvancedElectricMachine;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiChemicalInfuser;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiFactory;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiAdvancedFactory;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiExtraAdvancedFactory;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiExtraFactory;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiExtraMoreMachineFactory;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiMoreMachineFactory;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiMetallurgicInfuser;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiPRC;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiCombiner;
@@ -55,6 +60,11 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActi
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
+import com.jerry.mekaf.common.tile.factory.base.TileEntityAdvancedFactoryBase;
+import com.jerry.mekextras.common.integration.mekaf.tile.factory.base.TileEntityExtraAdvancedFactoryBase;
+import com.jerry.mekextras.common.integration.mekmm.tile.factory.TileEntityExtraMoreMachineFactory;
+import com.jerry.mekextras.common.tile.factory.TileEntityExtraFactory;
+import com.jerry.mekmm.common.tile.factory.TileEntityMoreMachineFactory;
 import mekanism.client.gui.GuiDimensionalStabilizer;
 import mekanism.client.gui.GuiLogisticalSorter;
 import mekanism.client.gui.GuiModificationStation;
@@ -204,5 +214,20 @@ public final class ClientSetup {
         event.register((MenuType) ModMenuTypes.ME_FACTORY.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
                         new MeGuiFactory((MekanismTileContainer<TileEntityFactory<?>>) (MekanismTileContainer<?>) menu, inv, title));
+        event.register((MenuType) ModMenuTypes.ME_MORE_MACHINE_FACTORY.get(),
+                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
+                        new MeGuiMoreMachineFactory((MekanismTileContainer<TileEntityMoreMachineFactory<?>>) (MekanismTileContainer<?>) menu, inv, title));
+        event.register((MenuType) ModMenuTypes.ME_ADVANCED_FACTORY.get(),
+                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
+                        new MeGuiAdvancedFactory((MekanismTileContainer<TileEntityAdvancedFactoryBase<?>>) (MekanismTileContainer<?>) menu, inv, title));
+        event.register((MenuType) ModMenuTypes.ME_EXTRA_FACTORY.get(),
+                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
+                        new MeGuiExtraFactory((MekanismTileContainer<TileEntityExtraFactory<?>>) (MekanismTileContainer<?>) menu, inv, title));
+        event.register((MenuType) ModMenuTypes.ME_EXTRA_MORE_MACHINE_FACTORY.get(),
+                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
+                        new MeGuiExtraMoreMachineFactory((MekanismTileContainer<TileEntityExtraMoreMachineFactory<?>>) (MekanismTileContainer<?>) menu, inv, title));
+        event.register((MenuType) ModMenuTypes.ME_EXTRA_ADVANCED_FACTORY.get(),
+                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
+                        new MeGuiExtraAdvancedFactory((MekanismTileContainer<TileEntityExtraAdvancedFactoryBase<?>>) (MekanismTileContainer<?>) menu, inv, title));
     }
 }

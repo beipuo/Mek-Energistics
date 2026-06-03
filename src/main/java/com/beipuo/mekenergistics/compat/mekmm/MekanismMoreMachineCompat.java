@@ -33,16 +33,14 @@ import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import com.beipuo.mekenergistics.registry.ModMenuTypes;
 import com.jerry.mekaf.common.block.attribute.AttributeAdvancedFactoryType;
 import com.jerry.mekaf.common.content.blocktype.AdvancedFactory;
 import com.jerry.mekaf.common.content.blocktype.AdvancedFactoryType;
-import com.jerry.mekaf.common.registries.AdvancedFactoryContainerTypes;
 import com.jerry.mekextras.common.block.attribute.ExtraAttribute;
 import com.jerry.mekextras.common.tier.ExtraFactoryTier;
 import com.jerry.mekextras.common.integration.mekaf.content.blocktype.ExtraAdvancedFactory;
-import com.jerry.mekextras.common.integration.mekaf.registries.ExtraAdvancedFactoryContainerTypes;
 import com.jerry.mekextras.common.integration.mekmm.content.blocktype.ExtraMoreMachineFactory;
-import com.jerry.mekextras.common.integration.mekmm.registries.ExtraMoreMachineContainerTypes;
 import com.jerry.mekmm.common.block.attribute.MoreMachineAttributeFactoryType;
 import com.jerry.mekmm.common.content.blocktype.MoreMachineFactory;
 import com.jerry.mekmm.common.content.blocktype.MoreMachineFactoryType;
@@ -142,6 +140,7 @@ public final class MekanismMoreMachineCompat {
         }
         MoreMachineFactory.MoreMachineFactoryBuilder<?, ?, ?> builder =
                 MoreMachineFactory.MoreMachineFactoryBuilder.createMoreMachineFactory(() -> tileType, moreMachineFactoryType(machine), machine.factoryTier());
+        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> ModMenuTypes.ME_MORE_MACHINE_FACTORY, null));
         MeMekanismMachine upgradeTarget = machine.getNextFactory();
         if (upgradeTarget != null) {
             builder.replace(new MeUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));
@@ -161,7 +160,7 @@ public final class MekanismMoreMachineCompat {
         }
         AdvancedFactory.AdvancedFactoryBuilder<?, ?, ?> builder =
                 AdvancedFactory.AdvancedFactoryBuilder.createAdvancedFactory(() -> tileType, advancedFactoryType(machine), machine.factoryTier());
-        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> AdvancedFactoryContainerTypes.ADVANCED_FACTORY, null));
+        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> ModMenuTypes.ME_ADVANCED_FACTORY, null));
         MeMekanismMachine upgradeTarget = machine.getNextFactory();
         if (upgradeTarget != null) {
             builder.replace(new MeUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));
@@ -179,7 +178,7 @@ public final class MekanismMoreMachineCompat {
             MeMekanismMachine machine, TileEntityTypeRegistryObject<TILE> tileType) {
         ExtraMoreMachineFactory.ExtraMoreMachineFactoryBuilder<?, ?, ?> builder =
                 ExtraMoreMachineFactory.ExtraMoreMachineFactoryBuilder.createMoreMachineFactory(() -> tileType, moreMachineFactoryType(machine), extraFactoryTier(machine));
-        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> ExtraMoreMachineContainerTypes.MORE_MACHINE_FACTORY, null));
+        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> ModMenuTypes.ME_EXTRA_MORE_MACHINE_FACTORY, null));
         MeMekanismMachine upgradeTarget = machine.getNextFactory();
         if (upgradeTarget != null) {
             builder.replace(new MeUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));
@@ -195,7 +194,7 @@ public final class MekanismMoreMachineCompat {
             MeMekanismMachine machine, TileEntityTypeRegistryObject<TILE> tileType) {
         ExtraAdvancedFactory.ExtraAdvancedFactoryBuilder<?, ?, ?> builder =
                 ExtraAdvancedFactory.ExtraAdvancedFactoryBuilder.createAdvancedFactory(() -> tileType, advancedFactoryType(machine), extraFactoryTier(machine));
-        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> ExtraAdvancedFactoryContainerTypes.ADVANCED_FACTORY, null));
+        builder.replace(new mekanism.common.block.attribute.AttributeGui(() -> ModMenuTypes.ME_EXTRA_ADVANCED_FACTORY, null));
         MeMekanismMachine upgradeTarget = machine.getNextFactory();
         if (upgradeTarget != null) {
             builder.replace(new MeUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));

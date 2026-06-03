@@ -10,9 +10,9 @@ import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import com.beipuo.mekenergistics.registry.ModMenuTypes;
 import com.jerry.mekextras.common.block.attribute.ExtraAttribute;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeTier;
-import com.jerry.mekextras.common.registries.ExtraContainerTypes;
 import com.jerry.mekextras.common.tier.ExtraFactoryTier;
 import java.util.Locale;
 import mekanism.api.Upgrade;
@@ -50,7 +50,7 @@ public final class MekanismExtrasCompat {
             MeMekanismMachine machine, TileEntityTypeRegistryObject<TILE> tileType) {
         var builder = BlockTypeTile.BlockTileBuilder
                 .createBlock(() -> tileType, machine::translationKey)
-                .withGui(() -> ExtraContainerTypes.FACTORY)
+                .withGui(() -> ModMenuTypes.ME_EXTRA_FACTORY)
                 .withEnergyConfig(machine.energyUsage(), machine.energyStorage())
                 .with(new AttributeStateFacing(), Attributes.ACTIVE_LIGHT, Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY, Attributes.COMPARATOR)
                 .withSideConfig(machine.hasChemicalInput()

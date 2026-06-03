@@ -37,6 +37,16 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActi
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.jerry.mekaf.common.inventory.container.tile.AdvancedFactoryContainer;
+import com.jerry.mekaf.common.tile.factory.base.TileEntityAdvancedFactoryBase;
+import com.jerry.mekextras.common.integration.mekaf.inventory.container.tile.ExtraAdvancedFactoryContainer;
+import com.jerry.mekextras.common.integration.mekaf.tile.factory.base.TileEntityExtraAdvancedFactoryBase;
+import com.jerry.mekextras.common.integration.mekmm.inventory.container.tile.ExtraMoreMachineFactoryContainer;
+import com.jerry.mekextras.common.integration.mekmm.tile.factory.TileEntityExtraMoreMachineFactory;
+import com.jerry.mekextras.common.inventory.container.tile.ExtraFactoryContainer;
+import com.jerry.mekextras.common.tile.factory.TileEntityExtraFactory;
+import com.jerry.mekmm.common.inventory.container.tile.MoreMachineFactoryContainer;
+import com.jerry.mekmm.common.tile.factory.TileEntityMoreMachineFactory;
 import mekanism.common.inventory.container.tile.FactoryContainer;
 import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
@@ -117,6 +127,16 @@ public final class ModMenuTypes {
             MENU_TYPES.register("me_painting_machine", MePaintingMachineBlockEntity.class);
     public static final ContainerTypeRegistryObject<FactoryContainer> ME_FACTORY =
             registerFactoryContainer();
+    public static final ContainerTypeRegistryObject<MoreMachineFactoryContainer> ME_MORE_MACHINE_FACTORY =
+            registerMoreMachineFactoryContainer();
+    public static final ContainerTypeRegistryObject<AdvancedFactoryContainer> ME_ADVANCED_FACTORY =
+            registerAdvancedFactoryContainer();
+    public static final ContainerTypeRegistryObject<ExtraFactoryContainer> ME_EXTRA_FACTORY =
+            registerExtraFactoryContainer();
+    public static final ContainerTypeRegistryObject<ExtraMoreMachineFactoryContainer> ME_EXTRA_MORE_MACHINE_FACTORY =
+            registerExtraMoreMachineFactoryContainer();
+    public static final ContainerTypeRegistryObject<ExtraAdvancedFactoryContainer> ME_EXTRA_ADVANCED_FACTORY =
+            registerExtraAdvancedFactoryContainer();
 
     private ModMenuTypes() {
     }
@@ -126,6 +146,46 @@ public final class ModMenuTypes {
                 ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_factory"));
         MENU_TYPES.registerMenu("me_factory", () -> MekanismContainerType.tile(TileEntityFactory.class,
                 (id, inv, tile) -> new FactoryContainer(id, inv, (TileEntityFactory<?>) tile)));
+        return holder;
+    }
+
+    private static ContainerTypeRegistryObject<MoreMachineFactoryContainer> registerMoreMachineFactoryContainer() {
+        ContainerTypeRegistryObject<MoreMachineFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+                ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_more_machine_factory"));
+        MENU_TYPES.registerMenu("me_more_machine_factory", () -> MekanismContainerType.tile(TileEntityMoreMachineFactory.class,
+                (id, inv, tile) -> new MoreMachineFactoryContainer(id, inv, (TileEntityMoreMachineFactory<?>) tile)));
+        return holder;
+    }
+
+    private static ContainerTypeRegistryObject<AdvancedFactoryContainer> registerAdvancedFactoryContainer() {
+        ContainerTypeRegistryObject<AdvancedFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+                ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_advanced_factory"));
+        MENU_TYPES.registerMenu("me_advanced_factory", () -> MekanismContainerType.tile(TileEntityAdvancedFactoryBase.class,
+                (id, inv, tile) -> new AdvancedFactoryContainer(id, inv, (TileEntityAdvancedFactoryBase<?>) tile)));
+        return holder;
+    }
+
+    private static ContainerTypeRegistryObject<ExtraFactoryContainer> registerExtraFactoryContainer() {
+        ContainerTypeRegistryObject<ExtraFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+                ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_extra_factory"));
+        MENU_TYPES.registerMenu("me_extra_factory", () -> MekanismContainerType.tile(TileEntityExtraFactory.class,
+                (id, inv, tile) -> new ExtraFactoryContainer(id, inv, (TileEntityExtraFactory<?>) tile)));
+        return holder;
+    }
+
+    private static ContainerTypeRegistryObject<ExtraMoreMachineFactoryContainer> registerExtraMoreMachineFactoryContainer() {
+        ContainerTypeRegistryObject<ExtraMoreMachineFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+                ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_extra_more_machine_factory"));
+        MENU_TYPES.registerMenu("me_extra_more_machine_factory", () -> MekanismContainerType.tile(TileEntityExtraMoreMachineFactory.class,
+                (id, inv, tile) -> new ExtraMoreMachineFactoryContainer(id, inv, (TileEntityExtraMoreMachineFactory<?>) tile)));
+        return holder;
+    }
+
+    private static ContainerTypeRegistryObject<ExtraAdvancedFactoryContainer> registerExtraAdvancedFactoryContainer() {
+        ContainerTypeRegistryObject<ExtraAdvancedFactoryContainer> holder = new ContainerTypeRegistryObject<>(
+                ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "me_extra_advanced_factory"));
+        MENU_TYPES.registerMenu("me_extra_advanced_factory", () -> MekanismContainerType.tile(TileEntityExtraAdvancedFactoryBase.class,
+                (id, inv, tile) -> new ExtraAdvancedFactoryContainer(id, inv, (TileEntityExtraAdvancedFactoryBase<?>) tile)));
         return holder;
     }
 
@@ -148,7 +208,13 @@ public final class ModMenuTypes {
 
     public static ContainerTypeRegistryObject<? extends MekanismTileContainer<? extends TileEntityMekanism>> getMachineContainer(
             MeMekanismMachine machine) {
-        if (machine.isFactory()) {
+        if (machine.isMoreMachineAdvancedFactory()) {
+            return machine.extraFactoryTierName() == null ? ME_ADVANCED_FACTORY : ME_EXTRA_ADVANCED_FACTORY;
+        } else if (machine.isMoreMachineFactory()) {
+            return machine.extraFactoryTierName() == null ? ME_MORE_MACHINE_FACTORY : ME_EXTRA_MORE_MACHINE_FACTORY;
+        } else if (machine.factoryType() != null && machine.extraFactoryTierName() != null) {
+            return ME_EXTRA_FACTORY;
+        } else if (machine.isFactory()) {
             return ME_FACTORY;
         } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
             return ME_ELECTRIC_MACHINE;
