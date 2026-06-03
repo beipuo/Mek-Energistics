@@ -9,10 +9,12 @@ import java.util.EnumMap;
 import java.util.Map;
 import mekanism.api.Upgrade;
 import mekanism.api.text.ILangEntry;
+import mekanism.common.block.attribute.AttributeHasBounding;
 import mekanism.common.block.attribute.AttributeFactoryType;
 import mekanism.common.block.attribute.AttributeStateFacing;
 import mekanism.common.block.attribute.AttributeTier;
 import mekanism.common.block.attribute.Attributes;
+import mekanism.common.content.blocktype.BlockShapes;
 import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -71,6 +73,10 @@ public final class ModBlockTypes {
         }
         if (machine.factoryTier() != null) {
             builder.with(new AttributeTier<>(machine.factoryTier()));
+        }
+        if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
+            builder.withCustomShape(BlockShapes.ISOTOPIC_CENTRIFUGE)
+                    .with(AttributeHasBounding.ABOVE_ONLY);
         }
         MeMekanismMachine upgradeTarget = machine.isFactory() ? machine.getNextFactory() : machine.getBasicFactory();
         if (upgradeTarget != null) {

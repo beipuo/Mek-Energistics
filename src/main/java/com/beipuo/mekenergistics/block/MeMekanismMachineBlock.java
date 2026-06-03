@@ -8,7 +8,9 @@ import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.common.block.attribute.Attribute;
+import mekanism.common.block.attribute.AttributeCustomShape;
 import mekanism.common.block.attribute.AttributeGui;
+import mekanism.common.block.attribute.AttributeHasBounding;
 import mekanism.common.block.attribute.AttributeState;
 import mekanism.common.block.attribute.AttributeStateFacing;
 import mekanism.common.block.attribute.Attributes;
@@ -27,13 +29,20 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<TileEntityMekanism> {
@@ -57,7 +66,11 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
                 attribute.adjustProperties(properties);
             }
         }
-        return machine.isFactory() || machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER ? properties.noOcclusion() : properties;
+        return machine.isFactory() || machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER || hasCustomShape(blockType) ? properties.noOcclusion() : properties;
+    }
+
+    private static boolean hasCustomShape(@Nullable BlockTypeTile<? extends TileEntityMekanism> blockType) {
+        return blockType != null && blockType.has(AttributeCustomShape.class);
     }
 
     public MeMekanismMachine getMachine() {
@@ -91,6 +104,36 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     }
 
     @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        AttributeCustomShape customShape = Attribute.get(state, AttributeCustomShape.class);
+        if (customShape != null) {
+            VoxelShape[] bounds = customShape.bounds();
+            if (bounds.length == 1) {
+                return bounds[0];
+            }
+            AttributeStateFacing attr = Attribute.get(state, AttributeStateFacing.class);
+            int index = attr == null ? 0 : attr.getDirection(state).ordinal() - (attr.getFacingProperty() == BlockStateProperties.FACING ? 0 : 2);
+            return bounds[index];
+        }
+        return super.getShape(state, level, pos, context);
+    }
+
+    @Override
+    public BlockState rotate(BlockState state, LevelAccessor level, BlockPos pos, Rotation rotation) {
+        return AttributeStateFacing.rotate(state, level, pos, rotation);
+    }
+
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return AttributeStateFacing.rotate(state, rotation);
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return AttributeStateFacing.mirror(state, mirror);
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.getBlockEntity(pos) instanceof TileEntityMekanism tile) {
             if (level.isClientSide) {
@@ -104,6 +147,10 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
+        AttributeHasBounding hasBounding = Attribute.get(state, AttributeHasBounding.class);
+        if (hasBounding != null) {
+            hasBounding.placeBoundingBlocks(level, pos, state);
+        }
         BlockEntity tile = level.getBlockEntity(pos);
         if (tile instanceof TileEntityUpdateable updateable) {
             updateable.onAdded();
@@ -117,5 +164,16 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
                 MeOwnerHelper.claimMekanismOwnerIfMissing(mekanismTile, player);
             }
         }
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            AttributeHasBounding hasBounding = Attribute.get(state, AttributeHasBounding.class);
+            if (hasBounding != null) {
+                hasBounding.removeBoundingBlocks(level, pos, state);
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 }
