@@ -8,6 +8,21 @@ import com.beipuo.mekenergistics.client.screen.machine.MeGuiChemicalInfuser;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiFactory;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiMetallurgicInfuser;
 import com.beipuo.mekenergistics.client.screen.machine.MeGuiPRC;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiCombiner;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiPrecisionSawmill;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiChemicalCrystallizer;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiChemicalDissolutionChamber;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiChemicalOxidizer;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiChemicalWasher;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiElectrolyticSeparator;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiRotaryCondensentrator;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiIsotopicCentrifuge;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiPaintingMachine;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiPigmentExtractor;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiPigmentMixer;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiSolarNeutronActivator;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiNutritionalLiquifier;
+import com.beipuo.mekenergistics.client.screen.machine.MeGuiAntiprotonicNucleosynthesizer;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeAdvancedElectricMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeAntiprotonicNucleosynthesizerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalCrystallizerBlockEntity;
@@ -44,28 +59,13 @@ import mekanism.client.gui.GuiDimensionalStabilizer;
 import mekanism.client.gui.GuiLogisticalSorter;
 import mekanism.client.gui.GuiModificationStation;
 import mekanism.client.gui.GuiTeleporter;
-import mekanism.client.gui.machine.GuiAntiprotonicNucleosynthesizer;
-import mekanism.client.gui.machine.GuiChemicalCrystallizer;
-import mekanism.client.gui.machine.GuiChemicalDissolutionChamber;
-import mekanism.client.gui.machine.GuiChemicalOxidizer;
-import mekanism.client.gui.machine.GuiChemicalWasher;
-import mekanism.client.gui.machine.GuiCombiner;
 import mekanism.client.gui.machine.GuiDigitalMiner;
 import mekanism.client.gui.machine.GuiElectricPump;
-import mekanism.client.gui.machine.GuiElectrolyticSeparator;
 import mekanism.client.gui.machine.GuiFluidicPlenisher;
 import mekanism.client.gui.machine.GuiFormulaicAssemblicator;
-import mekanism.client.gui.machine.GuiIsotopicCentrifuge;
-import mekanism.client.gui.machine.GuiNutritionalLiquifier;
 import mekanism.client.gui.machine.GuiOredictionificator;
-import mekanism.client.gui.machine.GuiPaintingMachine;
-import mekanism.client.gui.machine.GuiPigmentExtractor;
-import mekanism.client.gui.machine.GuiPigmentMixer;
-import mekanism.client.gui.machine.GuiPrecisionSawmill;
 import mekanism.client.gui.machine.GuiResistiveHeater;
-import mekanism.client.gui.machine.GuiRotaryCondensentrator;
 import mekanism.client.gui.machine.GuiSeismicVibrator;
-import mekanism.client.gui.machine.GuiSolarNeutronActivator;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
 import mekanism.common.tile.TileEntityLogisticalSorter;
@@ -121,10 +121,10 @@ public final class ClientSetup {
                         new MeGuiMetallurgicInfuser((MekanismTileContainer<MeMetallurgicInfuserBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_COMBINER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiCombiner((MekanismTileContainer<TileEntityCombiner>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiCombiner((MekanismTileContainer<MeCombinerBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_PRECISION_SAWMILL.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiPrecisionSawmill((MekanismTileContainer<TileEntityPrecisionSawmill>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiPrecisionSawmill((MekanismTileContainer<MePrecisionSawmillBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_ELECTRIC_PUMP.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
                         new GuiElectricPump((MekanismTileContainer<TileEntityElectricPump>) (MekanismTileContainer<?>) menu, inv, title));
@@ -161,46 +161,46 @@ public final class ClientSetup {
                         new MeGuiPRC((MekanismTileContainer<MePressurizedReactionChamberBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_CHEMICAL_CRYSTALLIZER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiChemicalCrystallizer((MekanismTileContainer<TileEntityChemicalCrystallizer>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiChemicalCrystallizer((MekanismTileContainer<MeChemicalCrystallizerBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_CHEMICAL_DISSOLUTION_CHAMBER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiChemicalDissolutionChamber((MekanismTileContainer<TileEntityChemicalDissolutionChamber>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiChemicalDissolutionChamber((MekanismTileContainer<MeChemicalDissolutionChamberBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_CHEMICAL_INFUSER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
                         new MeGuiChemicalInfuser((MekanismTileContainer<MeChemicalInfuserBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_CHEMICAL_OXIDIZER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiChemicalOxidizer((MekanismTileContainer<TileEntityChemicalOxidizer>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiChemicalOxidizer((MekanismTileContainer<MeChemicalOxidizerBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_CHEMICAL_WASHER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiChemicalWasher((MekanismTileContainer<TileEntityChemicalWasher>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiChemicalWasher((MekanismTileContainer<MeChemicalWasherBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_ROTARY_CONDENSENTRATOR.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiRotaryCondensentrator((MekanismTileContainer<TileEntityRotaryCondensentrator>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiRotaryCondensentrator((MekanismTileContainer<MeRotaryCondensentratorBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_ELECTROLYTIC_SEPARATOR.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiElectrolyticSeparator((MekanismTileContainer<TileEntityElectrolyticSeparator>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiElectrolyticSeparator((MekanismTileContainer<MeElectrolyticSeparatorBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_SOLAR_NEUTRON_ACTIVATOR.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiSolarNeutronActivator((MekanismTileContainer<TileEntitySolarNeutronActivator>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiSolarNeutronActivator((MekanismTileContainer<MeSolarNeutronActivatorBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_ISOTOPIC_CENTRIFUGE.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiIsotopicCentrifuge((MekanismTileContainer<TileEntityIsotopicCentrifuge>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiIsotopicCentrifuge((MekanismTileContainer<MeIsotopicCentrifugeBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_NUTRITIONAL_LIQUIFIER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiNutritionalLiquifier((MekanismTileContainer<TileEntityNutritionalLiquifier>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiNutritionalLiquifier((MekanismTileContainer<MeNutritionalLiquifierBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_ANTIPROTONIC_NUCLEOSYNTHESIZER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiAntiprotonicNucleosynthesizer((MekanismTileContainer<TileEntityAntiprotonicNucleosynthesizer>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiAntiprotonicNucleosynthesizer((MekanismTileContainer<MeAntiprotonicNucleosynthesizerBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_PIGMENT_EXTRACTOR.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiPigmentExtractor((MekanismTileContainer<TileEntityPigmentExtractor>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiPigmentExtractor((MekanismTileContainer<MePigmentExtractorBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_PIGMENT_MIXER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiPigmentMixer((MekanismTileContainer<TileEntityPigmentMixer>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiPigmentMixer((MekanismTileContainer<MePigmentMixerBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_PAINTING_MACHINE.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiPaintingMachine((MekanismTileContainer<TileEntityPaintingMachine>) (MekanismTileContainer<?>) menu, inv, title));
+                        new MeGuiPaintingMachine((MekanismTileContainer<MePaintingMachineBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_FACTORY.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
                         new MeGuiFactory((MekanismTileContainer<TileEntityFactory<?>>) (MekanismTileContainer<?>) menu, inv, title));
