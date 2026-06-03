@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.registry;
 
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.item.MeMachineBlockItem;
 import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import java.util.EnumMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public final class ModItems {
             if (machine.isAvailable()) {
                 MACHINES.put(machine, ITEMS.register(
                         machine.registryName(),
-                        () -> new BlockItem(ModBlocks.getMachineBlock(machine).get(), machineProperties(machine))
+                        () -> new MeMachineBlockItem(ModBlocks.getMachineBlock(machine).get(), machineProperties(machine))
                 ));
             }
         }

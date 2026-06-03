@@ -133,5 +133,10 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
         protected int getButtonTextColor(int mouseX, int mouseY) {
             return 0x232323;
         }
+
+        @Override
+        protected boolean displayButtonTextShadow() {
+            return false;
+        }
     }
 }

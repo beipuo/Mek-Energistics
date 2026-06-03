@@ -223,5 +223,10 @@ public final class AeOutputConfigOverlay {
         protected int getButtonTextColor(int mouseX, int mouseY) {
             return 0x232323;
         }
+
+        @Override
+        protected boolean displayButtonTextShadow() {
+            return false;
+        }
     }
 }
