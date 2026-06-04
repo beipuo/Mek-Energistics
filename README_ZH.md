@@ -24,7 +24,7 @@ Mek Energistics 为 Mekanism 机器添加可接入 Applied Energistics 2 自动�
 | 模组 | 说明 |
 | --- | --- |
 | Minecraft | 1.21.1 |
-| NeoForge | 21.1.233 或更高 |
+| NeoForge | 21.1.228 或更高 |
 | Applied Energistics 2 | AE 网络、频道、能源和样板供应能力 |
 | Mekanism | 原版机器、配方、GUI 和工厂体系 |
 | Applied Mekanistics | 化学品 AE Key 支持 |
@@ -56,4 +56,3 @@ Mek Energistics 为 Mekanism 机器添加可接入 Applied Energistics 2 自动�
 ```powershell
 .\gradlew.bat build --no-problems-report
 ```
-

@@ -25,7 +25,7 @@ Mek Energistics adds AE2-connected Mekanism machines that process encoded patter
 | Mod | Description |
 | --- | --- |
 | Minecraft | 1.21.1 |
-| NeoForge | 21.1.233 or newer |
+| NeoForge | 21.1.228 or newer |
 | Applied Energistics 2 | ME network, channels, power, and pattern provider behavior |
 | Mekanism | Base machines, recipes, GUIs, and factory system |
 | Applied Mekanistics | Chemical AE key support |
@@ -57,4 +57,3 @@ Mek Energistics adds AE2-connected Mekanism machines that process encoded patter
 ```powershell
 .\gradlew.bat build --no-problems-report
 ```
-
