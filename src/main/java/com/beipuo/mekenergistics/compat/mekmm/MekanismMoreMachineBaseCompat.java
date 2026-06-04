@@ -8,7 +8,9 @@ import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeRecyclingFac
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeReplicatingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeStampingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeLatheBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MePlantingStationBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRecyclerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeReplicatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRollingMillBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeStamperBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
@@ -48,9 +50,11 @@ public final class MekanismMoreMachineBaseCompat {
             MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
         TileEntityTypeRegistryObject<?> registered = switch (machine) {
             case RECYCLER -> registrar.register(machine, MeRecyclerBlockEntity::new);
+            case PLANTING_STATION -> registrar.register(machine, MePlantingStationBlockEntity::new);
             case CNC_STAMPER -> registrar.register(machine, MeStamperBlockEntity::new);
             case CNC_LATHE -> registrar.register(machine, MeLatheBlockEntity::new);
             case CNC_ROLLING_MILL -> registrar.register(machine, MeRollingMillBlockEntity::new);
+            case REPLICATOR -> registrar.register(machine, MeReplicatorBlockEntity::new);
             default -> throw new IllegalStateException("Unknown MEKMM base machine: " + machine);
         };
         return (TileEntityTypeRegistryObject) registered;
@@ -118,9 +122,11 @@ public final class MekanismMoreMachineBaseCompat {
     private static ContainerTypeRegistryObject<? extends MekanismTileContainer<?>> baseContainer(MeMekanismMachine machine) {
         return switch (machine) {
             case RECYCLER -> MoreMachineContainerTypes.RECYCLER;
+            case PLANTING_STATION -> MoreMachineContainerTypes.PLANTING_STATION;
             case CNC_STAMPER -> MoreMachineContainerTypes.CNC_STAMPER;
             case CNC_LATHE -> MoreMachineContainerTypes.CNC_LATHE;
             case CNC_ROLLING_MILL -> MoreMachineContainerTypes.CNC_ROLLING_MILL;
+            case REPLICATOR -> MoreMachineContainerTypes.REPLICATOR;
             default -> (ContainerTypeRegistryObject) ModMenuTypes.getMachineContainer(machine);
         };
     }
@@ -140,8 +146,7 @@ public final class MekanismMoreMachineBaseCompat {
         if (tier != null && tier.tier() instanceof FactoryTier factoryTier) {
             return MeMekanismMachine.getMoreMachineFactory(factoryTier, typeName);
         }
-        MeMekanismMachine baseTarget = getBaseTarget(typeName);
-        return baseTarget == null ? MeMekanismMachine.getMoreMachineFactory(FactoryTier.BASIC, typeName) : baseTarget;
+        return getBaseTarget(typeName);
     }
 
     @Nullable
@@ -208,9 +213,11 @@ public final class MekanismMoreMachineBaseCompat {
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
         switch (machine) {
             case RECYCLER -> ModBlockEntities.registerGridNodeHost(event, holder, MeRecyclerBlockEntity.class);
+            case PLANTING_STATION -> ModBlockEntities.registerGridNodeHost(event, holder, MePlantingStationBlockEntity.class);
             case CNC_STAMPER -> ModBlockEntities.registerGridNodeHost(event, holder, MeStamperBlockEntity.class);
             case CNC_LATHE -> ModBlockEntities.registerGridNodeHost(event, holder, MeLatheBlockEntity.class);
             case CNC_ROLLING_MILL -> ModBlockEntities.registerGridNodeHost(event, holder, MeRollingMillBlockEntity.class);
+            case REPLICATOR -> ModBlockEntities.registerGridNodeHost(event, holder, MeReplicatorBlockEntity.class);
             default -> throw new IllegalStateException("Unknown MEKMM base machine: " + machine);
         }
     }

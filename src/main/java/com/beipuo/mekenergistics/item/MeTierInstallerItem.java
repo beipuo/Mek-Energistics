@@ -4,33 +4,26 @@ import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
-import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
-import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import java.util.Optional;
 import mekanism.api.security.IBlockSecurityUtils;
+import mekanism.common.block.BlockBounding;
 import mekanism.common.block.attribute.Attribute;
-import mekanism.common.block.attribute.AttributeFactoryType;
-import mekanism.common.block.attribute.AttributeTier;
+import mekanism.common.block.attribute.AttributeHasBounding;
 import mekanism.common.block.states.BlockStateHelper;
-import mekanism.common.content.blocktype.FactoryType;
-import mekanism.common.tier.FactoryTier;
+import mekanism.common.registries.MekanismBlocks;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.interfaces.ITierUpgradable;
 import mekanism.common.tile.interfaces.ITileDirectional;
 import mekanism.common.upgrade.IUpgradeData;
 import mekanism.common.util.WorldUtils;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MeTierInstallerItem extends Item {
     public MeTierInstallerItem(Properties properties) {
@@ -46,16 +39,25 @@ public class MeTierInstallerItem extends Item {
         if (context.getLevel().isClientSide()) {
             return InteractionResult.PASS;
         }
-        BlockState state = context.getLevel().getBlockState(context.getClickedPos());
-        MeMekanismMachine target = getTargetMachine(state);
+        BlockPos pos = context.getClickedPos();
+        BlockState state = context.getLevel().getBlockState(pos);
+        if (state.is(MekanismBlocks.BOUNDING_BLOCK)) {
+            BlockPos mainPos = BlockBounding.getMainBlockPos(context.getLevel(), pos);
+            if (mainPos == null) {
+                return InteractionResult.FAIL;
+            }
+            pos = mainPos;
+            state = context.getLevel().getBlockState(pos);
+        }
+        MeMekanismMachine target = MeInstallerTargetResolver.resolve(state);
         if (target == null) {
             return InteractionResult.PASS;
         }
         if (ModBlocks.getMachineBlock(target).get() == state.getBlock()) {
             return InteractionResult.PASS;
         }
-        BlockEntity oldTile = WorldUtils.getTileEntity(context.getLevel(), context.getClickedPos());
-        if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(context.getPlayer(), context.getLevel(), context.getClickedPos(), oldTile)) {
+        BlockEntity oldTile = WorldUtils.getTileEntity(context.getLevel(), pos);
+        if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(context.getPlayer(), context.getLevel(), pos, oldTile)) {
             return InteractionResult.FAIL;
         }
         IUpgradeData upgradeData = null;
@@ -66,10 +68,17 @@ public class MeTierInstallerItem extends Item {
             }
         }
         BlockState upgradeState = BlockStateHelper.copyStateData(state, ModBlocks.getMachineBlock(target).get().defaultBlockState());
-        if (!context.getLevel().setBlockAndUpdate(context.getClickedPos(), upgradeState)) {
+        AttributeHasBounding upgradeBounding = Attribute.get(upgradeState, AttributeHasBounding.class);
+        if (upgradeBounding != null && !canPlaceBoundingBlocks(context.getLevel(), pos, upgradeState, upgradeBounding)) {
             return InteractionResult.FAIL;
         }
-        TileEntityMekanism upgradedTile = WorldUtils.getTileEntity(TileEntityMekanism.class, context.getLevel(), context.getClickedPos());
+        if (!context.getLevel().setBlockAndUpdate(pos, upgradeState)) {
+            return InteractionResult.FAIL;
+        }
+        if (upgradeBounding != null) {
+            upgradeBounding.placeBoundingBlocks(context.getLevel(), pos, upgradeState);
+        }
+        TileEntityMekanism upgradedTile = WorldUtils.getTileEntity(TileEntityMekanism.class, context.getLevel(), pos);
         if (upgradedTile != null) {
             if (oldTile instanceof ITileDirectional directional && directional.isDirectional()) {
                 upgradedTile.setFacing(directional.getDirection(), false);
@@ -97,46 +106,16 @@ public class MeTierInstallerItem extends Item {
         return InteractionResult.CONSUME;
     }
 
-    @Nullable
-    private static MeMekanismMachine getTargetMachine(BlockState state) {
-        if (ModList.get().isLoaded("mekmm")) {
-            MeMekanismMachine moreMachineTarget = MekanismMoreMachineBaseCompat.getFactoryTarget(state);
-            if (moreMachineTarget != null) {
-                return moreMachineTarget;
+    private static boolean canPlaceBoundingBlocks(net.minecraft.world.level.Level level, BlockPos pos, BlockState upgradeState, AttributeHasBounding upgradeBounding) {
+        return upgradeBounding.handle(level, pos, upgradeState, pos, (world, boundingPos, mainPos) -> {
+            Optional<BlockState> blockState = WorldUtils.getBlockState(world, boundingPos);
+            if (blockState.isEmpty()) {
+                return false;
             }
-        }
-        AttributeFactoryType attribute = Attribute.get(state, AttributeFactoryType.class);
-        if (attribute == null) {
-            return getTargetByRegistryName(state);
-        }
-        FactoryType factoryType = attribute.getFactoryType();
-        if (ModList.get().isLoaded("mekanism_extras")) {
-            MeMekanismMachine extraTarget = MekanismExtrasCompat.getFactoryTarget(state, factoryType);
-            if (extraTarget != null) {
-                return extraTarget;
-            }
-        }
-        AttributeTier<?> tier = Attribute.get(state, AttributeTier.class);
-        if (tier == null) {
-            return MeMekanismMachine.getBaseMachine(factoryType);
-        }
-        if (tier.tier() instanceof FactoryTier factoryTier) {
-            return MeMekanismMachine.getFactory(factoryTier, factoryType);
-        }
-        MeMekanismMachine directTarget = getTargetByRegistryName(state);
-        if (directTarget != null) {
-            return directTarget;
-        }
-        return null;
+            BlockState current = blockState.get();
+            return current.canBeReplaced()
+                    || current.is(MekanismBlocks.BOUNDING_BLOCK) && mainPos.equals(BlockBounding.getMainBlockPos(world, boundingPos));
+        });
     }
 
-    @Nullable
-    private static MeMekanismMachine getTargetByRegistryName(BlockState state) {
-        ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-        String path = id.getPath();
-        if (path.startsWith("me_")) {
-            return null;
-        }
-        return MeMekanismMachine.getByRegistryName("me_" + path);
-    }
 }

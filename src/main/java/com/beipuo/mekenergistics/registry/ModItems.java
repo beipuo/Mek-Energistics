@@ -83,6 +83,8 @@ public final class ModItems {
             };
         }
         return switch (machine) {
+            case PLANTING_STATION, REPLICATOR ->
+                    AttachedSideConfig.ADVANCED_MACHINE_INPUT_ONLY;
             case ENRICHMENT_CHAMBER, CRUSHER, ENERGIZED_SMELTER, PRECISION_SAWMILL ->
                     AttachedSideConfig.ELECTRIC_MACHINE;
             case OSMIUM_COMPRESSOR, METALLURGIC_INFUSER ->

@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.registry;
 
 import appeng.api.AECapabilities;
+import appeng.api.networking.IInWorldGridNodeHost;
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeAdvancedElectricMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeAntiprotonicNucleosynthesizerBlockEntity;
@@ -54,6 +55,7 @@ import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import org.jetbrains.annotations.Nullable;
 
 public final class ModBlockEntities {
     private static final TileEntityTypeDeferredRegister BLOCK_ENTITIES = new TileEntityTypeDeferredRegister(MekEnergistics.MODID);
@@ -95,82 +97,21 @@ public final class ModBlockEntities {
             registered = registerFactoryMachine(machine);
         } else if (machine.isMoreMachineBaseMachine()) {
             registered = MekanismMoreMachineBaseCompat.registerBaseMachine(machine, ModBlockEntities::registerMachine);
-        } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
-            registered = registerMachine(machine, MeElectricMachineBlockEntity::new);
-        } else if (machine.hasAdvancedChemicalInput()) {
-            registered = registerMachine(machine, MeAdvancedElectricMachineBlockEntity::new);
-        } else if (machine == MeMekanismMachine.METALLURGIC_INFUSER) {
-            registered = registerMachine(machine, MeMetallurgicInfuserBlockEntity::new);
-        } else if (machine == MeMekanismMachine.COMBINER) {
-            registered = registerMachine(machine, MeCombinerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.PRECISION_SAWMILL) {
-            registered = registerMachine(machine, MePrecisionSawmillBlockEntity::new);
-        } else if (machine == MeMekanismMachine.ELECTRIC_PUMP) {
-            registered = registerMachine(machine, MeElectricPumpBlockEntity::new);
-        } else if (machine == MeMekanismMachine.FLUIDIC_PLENISHER) {
-            registered = registerMachine(machine, MeFluidicPlenisherBlockEntity::new);
-        } else if (machine == MeMekanismMachine.RESISTIVE_HEATER) {
-            registered = registerMachine(machine, MeResistiveHeaterBlockEntity::new);
-        } else if (machine == MeMekanismMachine.SEISMIC_VIBRATOR) {
-            registered = registerMachine(machine, MeSeismicVibratorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.TELEPORTER) {
-            registered = registerMachine(machine, MeTeleporterBlockEntity::new);
-        } else if (machine == MeMekanismMachine.OREDICTIONIFICATOR) {
-            registered = registerMachine(machine, MeOredictionificatorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.MODIFICATION_STATION) {
-            registered = registerMachine(machine, MeModificationStationBlockEntity::new);
-        } else if (machine == MeMekanismMachine.DIGITAL_MINER) {
-            registered = registerMachine(machine, MeDigitalMinerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.LOGISTICAL_SORTER) {
-            registered = registerMachine(machine, MeLogisticalSorterBlockEntity::new);
-        } else if (machine == MeMekanismMachine.DIMENSIONAL_STABILIZER) {
-            registered = registerMachine(machine, MeDimensionalStabilizerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.FORMULAIC_ASSEMBLICATOR) {
-            registered = registerMachine(machine, MeFormulaicAssemblicatorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER) {
-            registered = registerMachine(machine, MePressurizedReactionChamberBlockEntity::new);
-        } else if (machine == MeMekanismMachine.CHEMICAL_CRYSTALLIZER) {
-            registered = registerMachine(machine, MeChemicalCrystallizerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER) {
-            registered = registerMachine(machine, MeChemicalDissolutionChamberBlockEntity::new);
-        } else if (machine == MeMekanismMachine.CHEMICAL_INFUSER) {
-            registered = registerMachine(machine, MeChemicalInfuserBlockEntity::new);
-        } else if (machine == MeMekanismMachine.CHEMICAL_OXIDIZER) {
-            registered = registerMachine(machine, MeChemicalOxidizerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.CHEMICAL_WASHER) {
-            registered = registerMachine(machine, MeChemicalWasherBlockEntity::new);
-        } else if (machine == MeMekanismMachine.ROTARY_CONDENSENTRATOR) {
-            registered = registerMachine(machine, MeRotaryCondensentratorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.ELECTROLYTIC_SEPARATOR) {
-            registered = registerMachine(machine, MeElectrolyticSeparatorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR) {
-            registered = registerMachine(machine, MeSolarNeutronActivatorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
-            registered = registerMachine(machine, MeIsotopicCentrifugeBlockEntity::new);
-        } else if (machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER) {
-            registered = registerMachine(machine, MeNutritionalLiquifierBlockEntity::new);
-        } else if (machine == MeMekanismMachine.ANTIPROTONIC_NUCLEOSYNTHESIZER) {
-            registered = registerMachine(machine, MeAntiprotonicNucleosynthesizerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.PIGMENT_EXTRACTOR) {
-            registered = registerMachine(machine, MePigmentExtractorBlockEntity::new);
-        } else if (machine == MeMekanismMachine.PIGMENT_MIXER) {
-            registered = registerMachine(machine, MePigmentMixerBlockEntity::new);
-        } else if (machine == MeMekanismMachine.PAINTING_MACHINE) {
-            registered = registerMachine(machine, MePaintingMachineBlockEntity::new);
         } else {
-            registered = registerMachine(machine, MeMekanismMachineBlockEntity::new);
+            registered = registerMekanismMachine(machine);
         }
         return (TileEntityTypeRegistryObject) registered;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerFactoryMachine(MeMekanismMachine machine) {
-        TileEntityTypeRegistryObject<?> registered = switch (machine.factoryType()) {
-            case SMELTING, ENRICHING, CRUSHING -> registerMachine(machine, MeItemStackToItemStackFactoryBlockEntity::new);
-            case COMPRESSING, INJECTING, PURIFYING, INFUSING -> registerMachine(machine, MeItemStackChemicalToItemStackFactoryBlockEntity::new);
-            case COMBINING -> registerMachine(machine, MeCombiningFactoryBlockEntity::new);
-            case SAWING -> registerMachine(machine, MeSawingFactoryBlockEntity::new);
-        };
+        TileEntityTypeRegistryObject<?> registered = registerMachine(machine, (MachineFactory) factoryRegistration(machine).factory());
+        return (TileEntityTypeRegistryObject) registered;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerMekanismMachine(MeMekanismMachine machine) {
+        TileEntityTypeRegistryObject<?> registered = registerMachine(machine, (MachineFactory) mekanismMachineRegistration(machine).factory());
         return (TileEntityTypeRegistryObject) registered;
     }
 
@@ -215,69 +156,124 @@ public final class ModBlockEntities {
                     MekanismExtrasMoreMachineCompat.registerGridNodeHost(event, holder);
                 }
             } else if (machine.isFactory()) {
-                switch (machine.factoryType()) {
-                    case SMELTING, ENRICHING, CRUSHING ->
-                            registerGridNodeHost(event, holder, MeItemStackToItemStackFactoryBlockEntity.class);
-                    case COMPRESSING, INJECTING, PURIFYING, INFUSING ->
-                            registerGridNodeHost(event, holder, MeItemStackChemicalToItemStackFactoryBlockEntity.class);
-                    case COMBINING ->
-                            registerGridNodeHost(event, holder, MeCombiningFactoryBlockEntity.class);
-                    case SAWING ->
-                            registerGridNodeHost(event, holder, MeSawingFactoryBlockEntity.class);
-                }
+                registerFactoryGridNodeHost(event, machine, holder);
             } else if (machine.isMoreMachineBaseMachine()) {
                 MekanismMoreMachineBaseCompat.registerBaseGridNodeHost(event, machine, holder);
-            } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
-                registerGridNodeHost(event, holder, MeElectricMachineBlockEntity.class);
-            } else if (machine.hasAdvancedChemicalInput()) {
-                registerGridNodeHost(event, holder, MeAdvancedElectricMachineBlockEntity.class);
-            } else if (machine == MeMekanismMachine.CHEMICAL_CRYSTALLIZER) {
-                registerGridNodeHost(event, holder, MeChemicalCrystallizerBlockEntity.class);
-            } else if (machine == MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER) {
-                registerGridNodeHost(event, holder, MeChemicalDissolutionChamberBlockEntity.class);
-            } else if (machine == MeMekanismMachine.CHEMICAL_INFUSER) {
-                registerGridNodeHost(event, holder, MeChemicalInfuserBlockEntity.class);
-            } else if (machine == MeMekanismMachine.CHEMICAL_OXIDIZER) {
-                registerGridNodeHost(event, holder, MeChemicalOxidizerBlockEntity.class);
-            } else if (machine == MeMekanismMachine.CHEMICAL_WASHER) {
-                registerGridNodeHost(event, holder, MeChemicalWasherBlockEntity.class);
-            } else if (machine == MeMekanismMachine.ELECTROLYTIC_SEPARATOR) {
-                registerGridNodeHost(event, holder, MeElectrolyticSeparatorBlockEntity.class);
-            } else if (machine == MeMekanismMachine.ROTARY_CONDENSENTRATOR) {
-                registerGridNodeHost(event, holder, MeRotaryCondensentratorBlockEntity.class);
-            } else if (machine == MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR) {
-                registerGridNodeHost(event, holder, MeSolarNeutronActivatorBlockEntity.class);
-            } else if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
-                registerGridNodeHost(event, holder, MeIsotopicCentrifugeBlockEntity.class);
-            } else if (machine == MeMekanismMachine.PIGMENT_EXTRACTOR) {
-                registerGridNodeHost(event, holder, MePigmentExtractorBlockEntity.class);
-            } else if (machine == MeMekanismMachine.PIGMENT_MIXER) {
-                registerGridNodeHost(event, holder, MePigmentMixerBlockEntity.class);
-            } else if (machine == MeMekanismMachine.PAINTING_MACHINE) {
-                registerGridNodeHost(event, holder, MePaintingMachineBlockEntity.class);
-            } else if (machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER) {
-                registerGridNodeHost(event, holder, MeNutritionalLiquifierBlockEntity.class);
-            } else if (machine == MeMekanismMachine.ANTIPROTONIC_NUCLEOSYNTHESIZER) {
-                registerGridNodeHost(event, holder, MeAntiprotonicNucleosynthesizerBlockEntity.class);
-            } else if (machine == MeMekanismMachine.FORMULAIC_ASSEMBLICATOR) {
-                registerGridNodeHost(event, holder, MeFormulaicAssemblicatorBlockEntity.class);
-            } else if (machine == MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER) {
-                registerGridNodeHost(event, holder, MePressurizedReactionChamberBlockEntity.class);
             } else {
-                registerGridNodeHost(event, holder, MeMekanismMachineBlockEntity.class);
+                registerMekanismMachineGridNodeHost(event, machine, holder);
             }
         }
+    }
+
+    private static void registerFactoryGridNodeHost(
+            RegisterCapabilitiesEvent event,
+            MeMekanismMachine machine,
+            TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
+        Class<? extends IInWorldGridNodeHost> gridHost = factoryRegistration(machine).gridHost();
+        if (gridHost != null) {
+            registerGridNodeHost(event, holder, gridHost);
+        }
+    }
+
+    private static void registerMekanismMachineGridNodeHost(
+            RegisterCapabilitiesEvent event,
+            MeMekanismMachine machine,
+            TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
+        Class<? extends IInWorldGridNodeHost> gridHost = mekanismMachineRegistration(machine).gridHost();
+        if (gridHost != null) {
+            registerGridNodeHost(event, holder, gridHost);
+        }
+    }
+
+    private static MekanismMachineRegistration mekanismMachineRegistration(MeMekanismMachine machine) {
+        return switch (machine) {
+            case METALLURGIC_INFUSER -> ae(MeMetallurgicInfuserBlockEntity::new, MeMetallurgicInfuserBlockEntity.class);
+            case COMBINER -> ae(MeCombinerBlockEntity::new, MeCombinerBlockEntity.class);
+            case PRECISION_SAWMILL -> ae(MePrecisionSawmillBlockEntity::new, MePrecisionSawmillBlockEntity.class);
+            case ELECTRIC_PUMP -> noAe(MeElectricPumpBlockEntity::new);
+            case FLUIDIC_PLENISHER -> noAe(MeFluidicPlenisherBlockEntity::new);
+            case RESISTIVE_HEATER -> noAe(MeResistiveHeaterBlockEntity::new);
+            case SEISMIC_VIBRATOR -> noAe(MeSeismicVibratorBlockEntity::new);
+            case TELEPORTER -> noAe(MeTeleporterBlockEntity::new);
+            case OREDICTIONIFICATOR -> noAe(MeOredictionificatorBlockEntity::new);
+            case MODIFICATION_STATION -> noAe(MeModificationStationBlockEntity::new);
+            case DIGITAL_MINER -> noAe(MeDigitalMinerBlockEntity::new);
+            case LOGISTICAL_SORTER -> noAe(MeLogisticalSorterBlockEntity::new);
+            case DIMENSIONAL_STABILIZER -> noAe(MeDimensionalStabilizerBlockEntity::new);
+            case FORMULAIC_ASSEMBLICATOR -> ae(MeFormulaicAssemblicatorBlockEntity::new, MeFormulaicAssemblicatorBlockEntity.class);
+            case PRESSURIZED_REACTION_CHAMBER -> ae(MePressurizedReactionChamberBlockEntity::new, MePressurizedReactionChamberBlockEntity.class);
+            case CHEMICAL_CRYSTALLIZER -> ae(MeChemicalCrystallizerBlockEntity::new, MeChemicalCrystallizerBlockEntity.class);
+            case CHEMICAL_DISSOLUTION_CHAMBER -> ae(MeChemicalDissolutionChamberBlockEntity::new, MeChemicalDissolutionChamberBlockEntity.class);
+            case CHEMICAL_INFUSER -> ae(MeChemicalInfuserBlockEntity::new, MeChemicalInfuserBlockEntity.class);
+            case CHEMICAL_OXIDIZER -> ae(MeChemicalOxidizerBlockEntity::new, MeChemicalOxidizerBlockEntity.class);
+            case CHEMICAL_WASHER -> ae(MeChemicalWasherBlockEntity::new, MeChemicalWasherBlockEntity.class);
+            case ROTARY_CONDENSENTRATOR -> ae(MeRotaryCondensentratorBlockEntity::new, MeRotaryCondensentratorBlockEntity.class);
+            case ELECTROLYTIC_SEPARATOR -> ae(MeElectrolyticSeparatorBlockEntity::new, MeElectrolyticSeparatorBlockEntity.class);
+            case SOLAR_NEUTRON_ACTIVATOR -> ae(MeSolarNeutronActivatorBlockEntity::new, MeSolarNeutronActivatorBlockEntity.class);
+            case ISOTOPIC_CENTRIFUGE -> ae(MeIsotopicCentrifugeBlockEntity::new, MeIsotopicCentrifugeBlockEntity.class);
+            case NUTRITIONAL_LIQUIFIER -> ae(MeNutritionalLiquifierBlockEntity::new, MeNutritionalLiquifierBlockEntity.class);
+            case ANTIPROTONIC_NUCLEOSYNTHESIZER -> ae(MeAntiprotonicNucleosynthesizerBlockEntity::new, MeAntiprotonicNucleosynthesizerBlockEntity.class);
+            case PIGMENT_EXTRACTOR -> ae(MePigmentExtractorBlockEntity::new, MePigmentExtractorBlockEntity.class);
+            case PIGMENT_MIXER -> ae(MePigmentMixerBlockEntity::new, MePigmentMixerBlockEntity.class);
+            case PAINTING_MACHINE -> ae(MePaintingMachineBlockEntity::new, MePaintingMachineBlockEntity.class);
+            default -> defaultMekanismMachineRegistration(machine);
+        };
+    }
+
+    private static MekanismMachineRegistration defaultMekanismMachineRegistration(MeMekanismMachine machine) {
+        if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
+            return ae(MeElectricMachineBlockEntity::new, MeElectricMachineBlockEntity.class);
+        }
+        if (machine.hasAdvancedChemicalInput()) {
+            return ae(MeAdvancedElectricMachineBlockEntity::new, MeAdvancedElectricMachineBlockEntity.class);
+        }
+        return noAe(MeMekanismMachineBlockEntity::new);
+    }
+
+    private static <TILE extends TileEntityMekanism & IInWorldGridNodeHost> MekanismMachineRegistration ae(
+            MachineFactory<TILE> factory,
+            Class<TILE> gridHost) {
+        return new MekanismMachineRegistration(factory, gridHost);
+    }
+
+    private static <TILE extends TileEntityMekanism> MekanismMachineRegistration noAe(MachineFactory<TILE> factory) {
+        return new MekanismMachineRegistration(factory, null);
+    }
+
+    private static FactoryRegistration factoryRegistration(MeMekanismMachine machine) {
+        return switch (machine.factoryType()) {
+            case SMELTING, ENRICHING, CRUSHING -> factory(MeItemStackToItemStackFactoryBlockEntity::new, MeItemStackToItemStackFactoryBlockEntity.class);
+            case COMPRESSING, INJECTING, PURIFYING, INFUSING -> factory(MeItemStackChemicalToItemStackFactoryBlockEntity::new, MeItemStackChemicalToItemStackFactoryBlockEntity.class);
+            case COMBINING -> factory(MeCombiningFactoryBlockEntity::new, MeCombiningFactoryBlockEntity.class);
+            case SAWING -> factory(MeSawingFactoryBlockEntity::new, MeSawingFactoryBlockEntity.class);
+        };
+    }
+
+    private static <TILE extends TileEntityMekanism & IInWorldGridNodeHost> FactoryRegistration factory(
+            MachineFactory<TILE> factory,
+            Class<TILE> gridHost) {
+        return new FactoryRegistration(factory, gridHost);
+    }
+
+    private record MekanismMachineRegistration(
+            MachineFactory<? extends TileEntityMekanism> factory,
+            @Nullable Class<? extends IInWorldGridNodeHost> gridHost) {
+    }
+
+    private record FactoryRegistration(
+            MachineFactory<? extends TileEntityMekanism> factory,
+            Class<? extends IInWorldGridNodeHost> gridHost) {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void registerGridNodeHost(
             RegisterCapabilitiesEvent event,
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder,
-            Class<? extends appeng.api.networking.IInWorldGridNodeHost> tileClass) {
+            Class<? extends IInWorldGridNodeHost> tileClass) {
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 (net.minecraft.world.level.block.entity.BlockEntityType) holder.get(),
-                (blockEntity, context) -> tileClass.isInstance(blockEntity) ? (appeng.api.networking.IInWorldGridNodeHost) tileClass.cast(blockEntity) : null
+                (blockEntity, context) -> tileClass.isInstance(blockEntity) ? (IInWorldGridNodeHost) tileClass.cast(blockEntity) : null
         );
     }
 
