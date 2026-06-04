@@ -4,6 +4,7 @@ import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.functions.ConstantPredicates;
+import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 
@@ -18,11 +19,6 @@ final class MeAeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismM
 
     @Override
     public long extract(long amount, Action action, AutomationType automationType) {
-        long localExtracted = super.extract(amount, action, automationType);
-        long remaining = amount - localExtracted;
-        if (remaining <= 0 || automationType != AutomationType.INTERNAL) {
-            return localExtracted;
-        }
-        return localExtracted + this.owner.extractAeAsFe(remaining, action);
+        return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.owner.getGrid(), this.owner.getActionSource(), amount, action, automationType);
     }
 }

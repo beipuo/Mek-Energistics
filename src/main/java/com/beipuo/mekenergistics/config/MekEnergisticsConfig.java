@@ -15,6 +15,8 @@ public final class MekEnergisticsConfig {
 
     private static ModConfigSpec.IntValue patternPages;
     private static ModConfigSpec.BooleanValue hideJeiMachineVariants;
+    private static ModConfigSpec.BooleanValue preferAppliedFluxNetworkFe;
+    private static ModConfigSpec.BooleanValue preferLocalFe;
     private static ModConfigSpec spec;
 
     private MekEnergisticsConfig() {
@@ -31,6 +33,16 @@ public final class MekEnergisticsConfig {
                 .comment("Hide redundant ME machine variants from JEI.",
                         "When enabled, JEI keeps the basic ME machine as the recipe catalyst and hides ME factory variants from the item list.")
                 .define("hideJeiMachineVariants", true);
+        preferAppliedFluxNetworkFe = builder
+                .comment("Prefer FE stored in Applied Flux cells when an ME machine is connected to an AE network.",
+                        "When enabled, Applied Flux FE is drained before AE network energy.",
+                        "When disabled, AE network energy is drained before Applied Flux FE.")
+                .define("preferAppliedFluxNetworkFe", false);
+        preferLocalFe = builder
+                .comment("Prefer the machine's local FE buffer when it is connected to an AE network.",
+                        "When enabled, local FE is drained before network energy.",
+                        "When disabled, network energy is drained before local FE.")
+                .define("preferLocalFe", true);
         spec = builder.build();
         container.registerConfig(ModConfig.Type.COMMON, spec);
     }
@@ -45,5 +57,13 @@ public final class MekEnergisticsConfig {
 
     public static boolean hideJeiMachineVariants() {
         return hideJeiMachineVariants == null || hideJeiMachineVariants.get();
+    }
+
+    public static boolean preferAppliedFluxNetworkFe() {
+        return preferAppliedFluxNetworkFe != null && preferAppliedFluxNetworkFe.get();
+    }
+
+    public static boolean preferLocalFe() {
+        return preferLocalFe == null || preferLocalFe.get();
     }
 }

@@ -3,7 +3,6 @@ package com.beipuo.mekenergistics.blockentity.support;
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 
 import appeng.api.config.Actionable;
-import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.implementations.blockentities.PatternContainerGroup;
@@ -479,12 +478,11 @@ public final class MeFactoryAeSupport {
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            long localExtracted = super.extract(amount, action, automationType);
-            long remaining = amount - localExtracted;
-            if (remaining <= 0 || automationType != AutomationType.INTERNAL || !(this.owner instanceof MeFactoryAeMachine aeMachine)) {
-                return localExtracted;
+            if (!(this.owner instanceof MeFactoryAeMachine aeMachine)) {
+                return super.extract(amount, action, automationType);
             }
-            return localExtracted + extractAeAsFe(aeMachine, remaining, action);
+            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, aeMachine.getAeSupport().getGrid(), aeMachine.getAeSupport().actionSource,
+                    amount, action, automationType);
         }
 
         private long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {
@@ -503,12 +501,10 @@ public final class MeFactoryAeSupport {
 
         @Override
         public long getEnergy() {
-            long local = this.energyContainer.getEnergy();
-            long needed = this.energyContainer.getMaxEnergy() - local;
-            if (needed <= 0 || this.owner == null) {
-                return local;
+            if (this.owner == null) {
+                return this.energyContainer.getEnergy();
             }
-            return Math.min(this.energyContainer.getMaxEnergy(), local + extractAeAsFe(this.owner, needed, Action.SIMULATE));
+            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.owner.getAeSupport().getGrid(), this.owner.getAeSupport().actionSource);
         }
 
         @Override
@@ -518,12 +514,11 @@ public final class MeFactoryAeSupport {
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            long localExtracted = this.energyContainer.extract(amount, action, automationType);
-            long remaining = amount - localExtracted;
-            if (remaining <= 0 || automationType != AutomationType.INTERNAL || this.owner == null) {
-                return localExtracted;
+            if (this.owner == null) {
+                return this.energyContainer.extract(amount, action, automationType);
             }
-            return localExtracted + extractAeAsFe(this.owner, remaining, action);
+            return MeNetworkEnergyHelper.extractWithLocalBuffer(this.energyContainer, this.owner.getAeSupport().getGrid(),
+                    this.owner.getAeSupport().actionSource, amount, action, automationType);
         }
 
         @Override
@@ -552,10 +547,6 @@ public final class MeFactoryAeSupport {
         if (grid == null) {
             return 0;
         }
-        double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
-        double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
-                action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
-                appeng.api.config.PowerMultiplier.ONE);
-        return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
+        return MeNetworkEnergyHelper.extractNetworkFe(grid, aeMachine.getAeSupport().actionSource, requestedFe, action);
     }
 }

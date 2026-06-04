@@ -134,6 +134,8 @@ dependencies {
     compileOnly "curse.maven:mekanism-extras-1026040:7921191"
     compileOnly "curse.maven:mekanism-more-machine-1275257:7919872"
     compileOnly "curse.maven:jade-324717:7545219"
+    compileOnly "curse.maven:glodium-957920:5821676"
+    compileOnly "curse.maven:applied-flux-965012:7429565"
 
     localRuntime "org.appliedenergistics:guideme:2.5.1"
     localRuntime "curse.maven:mekanism-generators-268566:7904061"
@@ -148,6 +150,8 @@ dependencies {
     localRuntime "curse.maven:advancedae-1084104:7849217"
     localRuntime "curse.maven:omni-cells-1359517:8050965"
     localRuntime "curse.maven:geckolib-388172:7707149"
+    localRuntime "curse.maven:glodium-957920:5821676"
+    localRuntime "curse.maven:applied-flux-965012:7429565"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

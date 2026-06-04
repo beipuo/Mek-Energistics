@@ -3,10 +3,10 @@ package com.beipuo.mekenergistics.blockentity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
-import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.GridFlags;
@@ -341,19 +341,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         if (requestedFe <= 0) {
             return 0;
         }
-        IGridNode node = this.mainNode == null ? null : this.mainNode.getNode();
-        if (node == null || !node.isActive()) {
-            return 0;
-        }
-        IGrid grid = node.getGrid();
-        if (grid == null) {
-            return 0;
-        }
-        double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
-        double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
-                action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
-                appeng.api.config.PowerMultiplier.ONE);
-        return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
+        return MeNetworkEnergyHelper.extractNetworkFe(getGrid(), this.actionSource, requestedFe, action);
     }
 
     private boolean canProcessSingleItemRecipe() {
@@ -718,7 +706,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         return this.mainNode;
     }
 
-    IActionSource getActionSource() {
+    public IActionSource getActionSource() {
         return this.actionSource;
     }
 

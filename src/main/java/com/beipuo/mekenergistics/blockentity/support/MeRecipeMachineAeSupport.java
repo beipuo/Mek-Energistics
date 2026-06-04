@@ -3,7 +3,6 @@ package com.beipuo.mekenergistics.blockentity.support;
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 
 import appeng.api.config.Actionable;
-import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.GridFlags;
@@ -344,24 +343,11 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            long localExtracted = super.extract(amount, action, automationType);
-            long remaining = amount - localExtracted;
-            if (remaining <= 0 || automationType != AutomationType.INTERNAL) {
-                return localExtracted;
-            }
-            return localExtracted + extractAeAsFe(remaining, action);
+            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.support.getGrid(), this.support.actionSource, amount, action, automationType);
         }
 
         private long extractAeAsFe(long requestedFe, Action action) {
-            IGrid grid = this.support.getGrid();
-            if (grid == null) {
-                return 0;
-            }
-            double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
-            double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
-                    action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
-                    appeng.api.config.PowerMultiplier.ONE);
-            return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
+            return MeNetworkEnergyHelper.extractNetworkFe(this.support.getGrid(), this.support.actionSource, requestedFe, action);
         }
     }
 
@@ -374,12 +360,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
         @Override
         public long getEnergy() {
-            long local = this.energyContainer.getEnergy();
-            long needed = this.energyContainer.getMaxEnergy() - local;
-            if (needed <= 0) {
-                return local;
-            }
-            return Math.min(this.energyContainer.getMaxEnergy(), local + this.energyContainer.extractAeAsFe(needed, Action.SIMULATE));
+            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.energyContainer.support.getGrid(), this.energyContainer.support.actionSource);
         }
 
         @Override

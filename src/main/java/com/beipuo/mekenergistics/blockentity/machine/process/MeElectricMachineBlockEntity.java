@@ -6,10 +6,10 @@ import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
-import appeng.api.config.PowerUnit;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.networking.GridFlags;
@@ -404,28 +404,11 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            long localExtracted = super.extract(amount, action, automationType);
-            long remaining = amount - localExtracted;
-            if (remaining <= 0 || automationType != AutomationType.INTERNAL) {
-                return localExtracted;
-            }
-            return localExtracted + extractAeAsFe(remaining, action);
+            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.owner.getGrid(), this.owner.actionSource, amount, action, automationType);
         }
 
         private long extractAeAsFe(long requestedFe, Action action) {
-            IGridNode node = this.owner.mainNode == null ? null : this.owner.mainNode.getNode();
-            if (node == null || !node.isActive()) {
-                return 0;
-            }
-            IGrid grid = node.getGrid();
-            if (grid == null) {
-                return 0;
-            }
-            double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
-            double extractedAe = grid.getEnergyService().extractAEPower(requestedAe,
-                    action.execute() ? Actionable.MODULATE : Actionable.SIMULATE,
-                    appeng.api.config.PowerMultiplier.ONE);
-            return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
+            return MeNetworkEnergyHelper.extractNetworkFe(this.owner.getGrid(), this.owner.actionSource, requestedFe, action);
         }
     }
 
@@ -438,12 +421,8 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
 
         @Override
         public long getEnergy() {
-            long local = this.energyContainer.getEnergy();
-            long needed = this.energyContainer.getMaxEnergy() - local;
-            if (needed <= 0) {
-                return local;
-            }
-            return Math.min(this.energyContainer.getMaxEnergy(), local + this.energyContainer.extractAeAsFe(needed, Action.SIMULATE));
+            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.energyContainer.owner.getGrid(),
+                    this.energyContainer.owner.actionSource);
         }
 
         @Override

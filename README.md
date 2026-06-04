@@ -20,6 +20,17 @@ Mek Energistics adds AE2-connected Mekanism machines that process encoded patter
 - Supports JEI recipe viewing and hides duplicate ME factory variants from JEI displays.
 - Supports Jade integration for displaying AE network status.
 
+## Configuration
+
+Mek Energistics uses NeoForge's built-in mod configuration screen. Open the Mods list, select Mek Energistics, and press Config.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| Pattern Pages | 2 | Sets the number of pages in each machine's built-in pattern provider assembly. Each page has 36 encoded pattern slots. |
+| Hide JEI Machine Variants | Enabled | Hides duplicate ME factory variants from JEI by default. Recipe pages keep the basic ME machine as the visible catalyst, while factory variants remain craftable and usable in game. |
+| Prefer Applied Flux FE | Disabled | When Applied Flux is installed and the machine is connected to an AE network, drains FE stored by Applied Flux before AE network energy. |
+| Prefer Local FE | Enabled | When the machine is connected to an AE network, drains the machine's local FE buffer before network energy. Disable this to prefer network energy first. |
+
 ## Required Dependencies
 
 | Mod | Description |
@@ -42,6 +53,7 @@ Mek Energistics adds AE2-connected Mekanism machines that process encoded patter
 | AE2 JEI Integration | Works alongside AE2 and JEI recipe viewing |
 | Advanced AE | Compatible with AE network extensions |
 | Omni Cells | Compatible with AE storage extensions |
+| Applied Flux | Optional network FE storage support |
 | Mekanism Unleashed | Can be loaded alongside this mod |
 
 ## Usage
