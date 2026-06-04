@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.block;
 
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.support.MeMemoryCardSettings;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
@@ -154,6 +155,10 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         BlockEntity tile = level.getBlockEntity(pos);
         if (!(tile instanceof TileEntityMekanism mekanismTile)) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        ItemInteractionResult memoryCardResult = MeMemoryCardSettings.use(stack, level, player, tile);
+        if (memoryCardResult.consumesAction()) {
+            return memoryCardResult;
         }
         if (level.isClientSide) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;

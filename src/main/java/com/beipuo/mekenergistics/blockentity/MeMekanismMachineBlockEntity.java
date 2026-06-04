@@ -70,8 +70,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -783,6 +785,25 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         this.operatingTicks = tag.getInt(SerializationConstants.PROGRESS);
         this.mainNode.loadFromNBT(tag);
         this.updatePatterns();
+    }
+
+    @Override
+    public CompoundTag getConfigurationData(HolderLookup.Provider provider, Player player) {
+        CompoundTag data = super.getConfigurationData(provider, player);
+        data.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
+        return data;
+    }
+
+    @Override
+    public void setConfigurationData(HolderLookup.Provider provider, Player player, CompoundTag data) {
+        super.setConfigurationData(provider, player, data);
+        this.aeOutputMode = AeOutputMode.byId(data.getInt(TAG_AE_OUTPUT_MODE));
+    }
+
+    @Override
+    public boolean isConfigurationDataCompatible(Block blockType) {
+        MeMekanismMachine sourceMachine = ModBlocks.getMachine(blockType);
+        return sourceMachine != null && sourceMachine == this.machine || super.isConfigurationDataCompatible(blockType);
     }
 
     @Override

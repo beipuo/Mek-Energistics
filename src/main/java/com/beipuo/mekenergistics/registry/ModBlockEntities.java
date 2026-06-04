@@ -49,6 +49,7 @@ import com.beipuo.mekenergistics.registry.machine.MachineFactory;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import mekanism.common.capabilities.Capabilities;
 import mekanism.common.registration.impl.TileEntityTypeDeferredRegister;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -77,7 +78,7 @@ public final class ModBlockEntities {
                 TileEntityMekanism.tickServer(level, pos, state, tile);
             }).clientTicker((level, pos, state, tile) -> {
                 TileEntityMekanism.tickClient(level, pos, state, tile);
-            }).build();
+            }).withSimple(Capabilities.CONFIG_CARD).build();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
