@@ -30,6 +30,10 @@ import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MePlantingFact
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeRecyclingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeReplicatingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeStampingFactoryBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeLatheBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRecyclerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRollingMillBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeStamperBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
@@ -68,6 +72,19 @@ import org.jetbrains.annotations.Nullable;
 
 public final class MekanismMoreMachineCompat {
     private MekanismMoreMachineCompat() {
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerBaseMachine(
+            MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
+        TileEntityTypeRegistryObject<?> registered = switch (machine) {
+            case RECYCLER -> registrar.register(machine, MeRecyclerBlockEntity::new);
+            case CNC_STAMPER -> registrar.register(machine, MeStamperBlockEntity::new);
+            case CNC_LATHE -> registrar.register(machine, MeLatheBlockEntity::new);
+            case CNC_ROLLING_MILL -> registrar.register(machine, MeRollingMillBlockEntity::new);
+            default -> throw new IllegalStateException("Unknown MEKMM base machine: " + machine);
+        };
+        return (TileEntityTypeRegistryObject) registered;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -406,5 +423,18 @@ public final class MekanismMoreMachineCompat {
             RegisterCapabilitiesEvent event,
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
         ModBlockEntities.registerGridNodeHost(event, holder, MeFactoryAeMachine.class);
+    }
+
+    public static void registerBaseGridNodeHost(
+            RegisterCapabilitiesEvent event,
+            MeMekanismMachine machine,
+            TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
+        switch (machine) {
+            case RECYCLER -> ModBlockEntities.registerGridNodeHost(event, holder, MeRecyclerBlockEntity.class);
+            case CNC_STAMPER -> ModBlockEntities.registerGridNodeHost(event, holder, MeStamperBlockEntity.class);
+            case CNC_LATHE -> ModBlockEntities.registerGridNodeHost(event, holder, MeLatheBlockEntity.class);
+            case CNC_ROLLING_MILL -> ModBlockEntities.registerGridNodeHost(event, holder, MeRollingMillBlockEntity.class);
+            default -> throw new IllegalStateException("Unknown MEKMM base machine: " + machine);
+        }
     }
 }

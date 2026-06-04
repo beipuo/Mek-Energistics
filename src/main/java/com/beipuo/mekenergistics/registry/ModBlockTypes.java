@@ -4,7 +4,9 @@ import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
-import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
+import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMoreMachineCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import java.util.EnumMap;
 import java.util.Map;
 import mekanism.api.Upgrade;
@@ -51,13 +53,15 @@ public final class ModBlockTypes {
             return MekanismExtrasCompat.createFactoryBlockType(machine, tileType);
         }
         if (machine.isMoreMachineAdvancedFactory()) {
-            return MekanismMoreMachineCompat.createAdvancedFactoryBlockType(machine, tileType);
+            return MekanismMoreMachineAdvancedCompat.createAdvancedFactoryBlockType(machine, tileType);
         }
         if (machine.isMoreMachineFactory()) {
-            return MekanismMoreMachineCompat.createFactoryBlockType(machine, tileType);
+            return machine.extraFactoryTierName() == null
+                    ? MekanismMoreMachineBaseCompat.createFactoryBlockType(machine, tileType)
+                    : MekanismExtrasMoreMachineCompat.createFactoryBlockType(machine, tileType);
         }
         if (machine.isMoreMachineBaseMachine()) {
-            return MekanismMoreMachineCompat.createBaseBlockType(machine, tileType);
+            return MekanismMoreMachineBaseCompat.createBaseBlockType(machine, tileType);
         }
         var builder = BlockTypeTile.BlockTileBuilder
                 .createBlock(() -> tileType, lang(machine))

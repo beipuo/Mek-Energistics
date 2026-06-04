@@ -5,7 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
-import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import mekanism.api.security.IBlockSecurityUtils;
 import mekanism.common.block.attribute.Attribute;
@@ -100,7 +100,7 @@ public class MeTierInstallerItem extends Item {
     @Nullable
     private static MeMekanismMachine getTargetMachine(BlockState state) {
         if (ModList.get().isLoaded("mekmm")) {
-            MeMekanismMachine moreMachineTarget = MekanismMoreMachineCompat.getFactoryTarget(state);
+            MeMekanismMachine moreMachineTarget = MekanismMoreMachineBaseCompat.getFactoryTarget(state);
             if (moreMachineTarget != null) {
                 return moreMachineTarget;
             }

@@ -1,11 +1,11 @@
 package com.beipuo.mekenergistics.client.jei;
 
 import com.beipuo.mekenergistics.MekEnergistics;
+import com.beipuo.mekenergistics.client.jei.compat.MekanismMoreMachineJeiCompat;
 import com.beipuo.mekenergistics.client.overlay.MePatternWindowOverlay;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModItems;
-import com.jerry.mekmm.client.recipe_viewer.MMRecipeViewerRecipeType;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.client.gui.GuiMekanism;
@@ -119,12 +119,7 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
         if (!ModList.get().isLoaded("mekmm")) {
             return;
         }
-        registerMoreMachineFactories(registration, MMRecipeViewerRecipeType.RECYCLER, "recycling");
-        registerMoreMachineFactories(registration, MMRecipeViewerRecipeType.PLANTING_STATION, "planting");
-        registerMoreMachineFactories(registration, MMRecipeViewerRecipeType.STAMPING, "stamping");
-        registerMoreMachineFactories(registration, MMRecipeViewerRecipeType.LATHE, "lathing");
-        registerMoreMachineFactories(registration, MMRecipeViewerRecipeType.ROLLING_MILL, "rolling_mill");
-        registerMoreMachineFactories(registration, MMRecipeViewerRecipeType.REPLICATOR, "replicating");
+        MekanismMoreMachineJeiCompat.registerCatalysts(registration, MekEnergisticsJeiPlugin::registerMoreMachineFactories);
     }
 
     private static void registerMoreMachineFactories(IRecipeCatalystRegistration registration, IRecipeViewerRecipeType<?> recipeType, String factoryTypeName) {

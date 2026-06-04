@@ -3,11 +3,11 @@ package com.beipuo.mekenergistics.common.machine;
 import java.util.Locale;
 import java.util.function.LongSupplier;
 import org.jetbrains.annotations.Nullable;
+import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
 import mekanism.api.tier.BaseTier;
 import mekanism.common.config.MekanismConfig;
 import mekanism.common.content.blocktype.FactoryType;
 import mekanism.common.tier.FactoryTier;
-import net.neoforged.fml.ModList;
 
 public enum MeMekanismMachine {
     ENRICHMENT_CHAMBER(FactoryType.ENRICHING, "enrichment_chamber", "ME Enrichment Chamber"),
@@ -415,11 +415,21 @@ public enum MeMekanismMachine {
     }
 
     public boolean isAvailable() {
-        if (requiredModId != null && !ModList.get().isLoaded(requiredModId)) {
+        if ("mekmm".equals(requiredModId) && !OptionalCompatClasses.hasMekmm()) {
             return false;
         }
-        return extraFactoryTierName == null
-                || (factoryType != null || ModList.get().isLoaded("mekmm"));
+        if ("mekanism_extras".equals(requiredModId) && !OptionalCompatClasses.hasMekanismExtras()) {
+            return false;
+        }
+        if (moreMachineAdvancedFactoryTypeName != null) {
+            return extraFactoryTierName == null
+                    ? OptionalCompatClasses.hasMekmmAdvancedFactories()
+                    : OptionalCompatClasses.hasMekanismExtrasAdvancedFactories();
+        }
+        if (extraFactoryTierName != null && moreMachineFactoryTypeName != null) {
+            return OptionalCompatClasses.hasMekanismExtrasMoreMachineFactories();
+        }
+        return true;
     }
 
     @Nullable

@@ -38,13 +38,12 @@ import com.beipuo.mekenergistics.blockentity.factory.MeSawingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeSeismicVibratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActivatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
-import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeLatheBlockEntity;
-import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRecyclerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeRollingMillBlockEntity;
-import com.beipuo.mekenergistics.blockentity.compat.mekmm.machine.MeStamperBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
-import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineCompat;
+import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMoreMachineCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import com.beipuo.mekenergistics.registry.machine.MachineFactory;
 import java.util.EnumMap;
 import java.util.Map;
@@ -87,13 +86,15 @@ public final class ModBlockEntities {
         if (machine.isMekanismExtrasMekanismFactory()) {
             registered = MekanismExtrasCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
         } else if (machine.isMoreMachineAdvancedFactory()) {
-            registered = MekanismMoreMachineCompat.registerAdvancedFactoryMachine(machine, ModBlockEntities::registerMachine);
+            registered = MekanismMoreMachineAdvancedCompat.registerAdvancedFactoryMachine(machine, ModBlockEntities::registerMachine);
         } else if (machine.isMoreMachineFactory()) {
-            registered = MekanismMoreMachineCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
+            registered = machine.extraFactoryTierName() == null
+                    ? MekanismMoreMachineBaseCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine)
+                    : MekanismExtrasMoreMachineCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
         } else if (machine.isFactory()) {
             registered = registerFactoryMachine(machine);
         } else if (machine.isMoreMachineBaseMachine()) {
-            registered = registerMoreMachineBaseMachine(machine);
+            registered = MekanismMoreMachineBaseCompat.registerBaseMachine(machine, ModBlockEntities::registerMachine);
         } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
             registered = registerMachine(machine, MeElectricMachineBlockEntity::new);
         } else if (machine.hasAdvancedChemicalInput()) {
@@ -173,18 +174,6 @@ public final class ModBlockEntities {
         return (TileEntityTypeRegistryObject) registered;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerMoreMachineBaseMachine(MeMekanismMachine machine) {
-        TileEntityTypeRegistryObject<?> registered = switch (machine) {
-            case RECYCLER -> registerMachine(machine, MeRecyclerBlockEntity::new);
-            case CNC_STAMPER -> registerMachine(machine, MeStamperBlockEntity::new);
-            case CNC_LATHE -> registerMachine(machine, MeLatheBlockEntity::new);
-            case CNC_ROLLING_MILL -> registerMachine(machine, MeRollingMillBlockEntity::new);
-            default -> registerMachine(machine, MeMekanismMachineBlockEntity::new);
-        };
-        return (TileEntityTypeRegistryObject) registered;
-    }
-
     public static final TileEntityTypeRegistryObject<? extends TileEntityMekanism> ME_METALLURGIC_INFUSER =
             getMachineBlockEntity(MeMekanismMachine.METALLURGIC_INFUSER);
 
@@ -218,9 +207,13 @@ public final class ModBlockEntities {
             if (machine.isMekanismExtrasMekanismFactory()) {
                 MekanismExtrasCompat.registerGridNodeHost(event, holder);
             } else if (machine.isMoreMachineAdvancedFactory()) {
-                MekanismMoreMachineCompat.registerGridNodeHost(event, holder);
+                MekanismMoreMachineAdvancedCompat.registerGridNodeHost(event, holder);
             } else if (machine.isMoreMachineFactory()) {
-                MekanismMoreMachineCompat.registerGridNodeHost(event, holder);
+                if (machine.extraFactoryTierName() == null || !OptionalCompatClasses.hasMekanismExtrasMoreMachineFactories()) {
+                    MekanismMoreMachineBaseCompat.registerGridNodeHost(event, holder);
+                } else {
+                    MekanismExtrasMoreMachineCompat.registerGridNodeHost(event, holder);
+                }
             } else if (machine.isFactory()) {
                 switch (machine.factoryType()) {
                     case SMELTING, ENRICHING, CRUSHING ->
@@ -233,7 +226,7 @@ public final class ModBlockEntities {
                             registerGridNodeHost(event, holder, MeSawingFactoryBlockEntity.class);
                 }
             } else if (machine.isMoreMachineBaseMachine()) {
-                registerMoreMachineBaseGridNodeHost(event, machine, holder);
+                MekanismMoreMachineBaseCompat.registerBaseGridNodeHost(event, machine, holder);
             } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {
                 registerGridNodeHost(event, holder, MeElectricMachineBlockEntity.class);
             } else if (machine.hasAdvancedChemicalInput()) {
@@ -288,16 +281,4 @@ public final class ModBlockEntities {
         );
     }
 
-    private static void registerMoreMachineBaseGridNodeHost(
-            RegisterCapabilitiesEvent event,
-            MeMekanismMachine machine,
-            TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
-        switch (machine) {
-            case RECYCLER -> registerGridNodeHost(event, holder, MeRecyclerBlockEntity.class);
-            case CNC_STAMPER -> registerGridNodeHost(event, holder, MeStamperBlockEntity.class);
-            case CNC_LATHE -> registerGridNodeHost(event, holder, MeLatheBlockEntity.class);
-            case CNC_ROLLING_MILL -> registerGridNodeHost(event, holder, MeRollingMillBlockEntity.class);
-            default -> registerGridNodeHost(event, holder, MeMekanismMachineBlockEntity.class);
-        }
-    }
 }

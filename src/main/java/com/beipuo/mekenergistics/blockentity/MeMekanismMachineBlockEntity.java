@@ -21,10 +21,8 @@ import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineRecipeHelper;
 import com.beipuo.mekenergistics.registry.ModBlocks;
-import com.jerry.mekmm.api.recipes.RecyclerRecipe;
-import com.jerry.mekmm.api.recipes.StamperRecipe;
-import com.jerry.mekmm.common.recipe.MoreMachineRecipeType;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
@@ -350,13 +348,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return false;
         }
         if (this.machine == MeMekanismMachine.RECYCLER) {
-            RecyclerRecipe recipe = MoreMachineRecipeType.RECYCLING.getInputCache().findFirstRecipe(this.level, input);
-            if (recipe == null) {
+            MekanismMoreMachineRecipeHelper.ItemResult result = MekanismMoreMachineRecipeHelper.findRecycler(this.level, input, true);
+            if (result == null) {
                 return false;
             }
-            int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
-            ItemStack output = recipe.getOutput(input).getMaxChanceOutput();
-            return needed > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
+            return result.needed() > 0 && !result.output().isEmpty() && canFitOutput(OUTPUT_SLOT, result.output());
         }
         ItemStackToItemStackRecipe recipe = getSingleItemRecipe(input);
         if (recipe == null) {
@@ -370,10 +366,10 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Nullable
     private ItemStackToItemStackRecipe getSingleItemRecipe(ItemStack input) {
         if (this.machine == MeMekanismMachine.CNC_LATHE) {
-            return MoreMachineRecipeType.LATHING.getInputCache().findFirstRecipe(this.level, input);
+            return MekanismMoreMachineRecipeHelper.findSingleItemRecipe(this.level, this.machine, input);
         }
         if (this.machine == MeMekanismMachine.CNC_ROLLING_MILL) {
-            return MoreMachineRecipeType.ROLLING_MILL.getInputCache().findFirstRecipe(this.level, input);
+            return MekanismMoreMachineRecipeHelper.findSingleItemRecipe(this.level, this.machine, input);
         }
         return switch (this.machine.factoryType()) {
             case ENRICHING -> MekanismRecipeType.ENRICHING.getInputCache().findFirstRecipe(this.level, input);
@@ -390,14 +386,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return false;
         }
         if (this.machine == MeMekanismMachine.CNC_STAMPER) {
-            StamperRecipe recipe = MoreMachineRecipeType.STAMPING.getInputCache().findFirstRecipe(this.level, input, secondary);
-            if (recipe == null) {
+            MekanismMoreMachineRecipeHelper.StamperResult result = MekanismMoreMachineRecipeHelper.findStamper(this.level, input, secondary);
+            if (result == null) {
                 return false;
             }
-            int neededInput = clampNeeded(recipe.getInput().getNeededAmount(input));
-            int neededSecondary = clampNeeded(recipe.getMold().getNeededAmount(secondary));
-            ItemStack output = recipe.getOutput(input, secondary);
-            return neededInput > 0 && neededSecondary > 0 && !output.isEmpty() && canFitOutput(OUTPUT_SLOT, output);
+            return result.neededInput() > 0 && result.neededMold() > 0 && !result.output().isEmpty() && canFitOutput(OUTPUT_SLOT, result.output());
         }
         CombinerRecipe recipe = MekanismRecipeType.COMBINING.getInputCache().findFirstRecipe(this.level, input, secondary);
         if (recipe == null) {
@@ -456,12 +449,12 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return;
         }
         if (this.machine == MeMekanismMachine.RECYCLER) {
-            RecyclerRecipe recipe = MoreMachineRecipeType.RECYCLING.getInputCache().findFirstRecipe(this.level, input);
-            if (recipe == null) {
+            MekanismMoreMachineRecipeHelper.ItemResult result = MekanismMoreMachineRecipeHelper.findRecycler(this.level, input, false);
+            if (result == null) {
                 return;
             }
-            int needed = clampNeeded(recipe.getInput().getNeededAmount(input));
-            ItemStack output = recipe.getOutput(input).getChanceOutput();
+            int needed = result.needed();
+            ItemStack output = result.output();
             if (needed <= 0 || output.isEmpty() || !canFitOutput(OUTPUT_SLOT, output)) {
                 return;
             }
@@ -495,13 +488,13 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             return;
         }
         if (this.machine == MeMekanismMachine.CNC_STAMPER) {
-            StamperRecipe recipe = MoreMachineRecipeType.STAMPING.getInputCache().findFirstRecipe(this.level, input, secondary);
-            if (recipe == null) {
+            MekanismMoreMachineRecipeHelper.StamperResult result = MekanismMoreMachineRecipeHelper.findStamper(this.level, input, secondary);
+            if (result == null) {
                 return;
             }
-            int neededInput = clampNeeded(recipe.getInput().getNeededAmount(input));
-            int neededSecondary = clampNeeded(recipe.getMold().getNeededAmount(secondary));
-            ItemStack output = recipe.getOutput(input, secondary);
+            int neededInput = result.neededInput();
+            int neededSecondary = result.neededMold();
+            ItemStack output = result.output();
             if (neededInput <= 0 || neededSecondary <= 0 || output.isEmpty() || !canFitOutput(OUTPUT_SLOT, output)) {
                 return;
             }
