@@ -55,6 +55,13 @@ Mek Energistics 使用 NeoForge 原生模组配置页面。可在 Mods 列表中
 | Applied Flux | 可选支持网络 FE 存储 |
 | Mekanism Unleashed | 可共同加载 |
 
+## 更新说明
+
+### 0.0.7 Beta
+
+- 改进 Mekanism More Machine 与 Mekanism Extras 的可选兼容加载，缺少高级工厂类时不再导致启动崩溃。
+- 添加俄语本地化，并按当前语言文件排列方式与配置项补齐整理。
+
 ## 使用说明
 
 1. 放置 ME 机器并连接到 AE 网络。
