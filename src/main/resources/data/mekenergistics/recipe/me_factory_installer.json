@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "ae2:annihilation_core"
+    },
+    {
+      "item": "ae2:formation_core"
+    },
+    {
+      "item": "mekanism:basic_tier_installer"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mekenergistics:me_factory_installer"
+  }
+}

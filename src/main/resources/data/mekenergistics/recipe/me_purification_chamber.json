@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "mekanism:purification_chamber"
+    },
+    {
+      "item": "ae2:pattern_provider"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mekenergistics:me_purification_chamber"
+  }
+}

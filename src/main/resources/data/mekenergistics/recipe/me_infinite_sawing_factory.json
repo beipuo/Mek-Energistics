@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism_extras"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "mekanism_extras:infinite_sawing_factory"
+    },
+    {
+      "item": "ae2:pattern_provider"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mekenergistics:me_infinite_sawing_factory"
+  }
+}
