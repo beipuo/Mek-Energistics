@@ -3,6 +3,7 @@ package com.beipuo.mekenergistics.item;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
+import com.beipuo.mekenergistics.registry.ModBlocks;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeFactoryType;
 import mekanism.common.block.attribute.AttributeTier;
@@ -20,6 +21,9 @@ final class MeInstallerTargetResolver {
 
     @Nullable
     static MeMekanismMachine resolve(BlockState state) {
+        if (ModBlocks.getMachine(state.getBlock()) != null) {
+            return null;
+        }
         MeMekanismMachine directTarget = getTargetByRegistryName(state);
         if (directTarget != null) {
             return directTarget;
