@@ -60,6 +60,8 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class MeFactoryAeSupport {
+    private static final String TAG_PATTERN_TERMINAL_NAME = "PatternTerminalName";
+
     private final MeFactoryAeMachine owner;
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
@@ -71,6 +73,7 @@ public final class MeFactoryAeSupport {
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
     private int patternPriority;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
+    private String patternTerminalName = "";
 
     public MeFactoryAeSupport(MeFactoryAeMachine owner) {
         this.owner = owner;
@@ -102,6 +105,22 @@ public final class MeFactoryAeSupport {
         return this.patternPriority;
     }
 
+    public String getPatternTerminalName() {
+        return this.patternTerminalName;
+    }
+
+    public void setPatternTerminalName(String name) {
+        String sanitized = MeAeMachine.sanitizePatternTerminalName(name);
+        if (this.patternTerminalName.equals(sanitized)) {
+            return;
+        }
+        this.patternTerminalName = sanitized;
+        if (this.mainNode.getNode() != null) {
+            ICraftingProvider.requestUpdate(this.mainNode);
+        }
+        this.owner.saveChanges();
+    }
+
     public AeOutputMode getAeOutputMode() {
         return this.aeOutputMode;
     }
@@ -127,7 +146,10 @@ public final class MeFactoryAeSupport {
     public PatternContainerGroup getTerminalGroup() {
         ItemStack iconStack = new ItemStack(ModBlocks.getMachineBlock(this.owner.getMachine()).get());
         AEItemKey icon = iconStack.isEmpty() ? null : AEItemKey.of(iconStack);
-        return new PatternContainerGroup(icon, Component.translatable(this.owner.getMachine().translationKey()), List.of());
+        Component name = this.patternTerminalName.isBlank()
+                ? Component.translatable(this.owner.getMachine().translationKey())
+                : Component.literal(this.patternTerminalName);
+        return new PatternContainerGroup(icon, name, List.of());
     }
 
     public IGrid getGrid() {
@@ -322,12 +344,18 @@ public final class MeFactoryAeSupport {
     public void save(CompoundTag tag) {
         tag.putInt("PatternPriority", this.patternPriority);
         tag.putInt("AeOutputMode", this.aeOutputMode.ordinal());
+        if (this.patternTerminalName.isEmpty()) {
+            tag.remove(TAG_PATTERN_TERMINAL_NAME);
+        } else {
+            tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
+        }
         this.mainNode.saveToNBT(tag);
     }
 
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
         this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
+        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }
@@ -398,6 +426,16 @@ public final class MeFactoryAeSupport {
         @Override
         public IGrid getGrid() {
             return MeFactoryAeSupport.this.getGrid();
+        }
+
+        @Override
+        public String getCustomPatternTerminalName() {
+            return MeFactoryAeSupport.this.getPatternTerminalName();
+        }
+
+        @Override
+        public void setCustomPatternTerminalName(String name) {
+            MeFactoryAeSupport.this.setPatternTerminalName(name);
         }
     }
 

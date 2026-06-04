@@ -92,6 +92,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     private static final String TAG_PATTERN_PRIORITY = "PatternPriority";
     private static final String TAG_CHEMICAL = "Chemical";
     private static final String TAG_AE_OUTPUT_MODE = "AeOutputMode";
+    private static final String TAG_PATTERN_TERMINAL_NAME = "PatternTerminalName";
 
     private IInventorySlot[] inventorySlots;
     private final IManagedGridNode mainNode;
@@ -105,6 +106,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     private int ticksRequired = BASE_TICKS_REQUIRED;
     private int patternPriority = 0;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
+    private String patternTerminalName = "";
 
     public MeMekanismMachineBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state);
@@ -736,6 +738,24 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     @Override
+    public String getCustomPatternTerminalName() {
+        return this.patternTerminalName;
+    }
+
+    @Override
+    public void setCustomPatternTerminalName(String name) {
+        String sanitized = MeAeMachine.sanitizePatternTerminalName(name);
+        if (this.patternTerminalName.equals(sanitized)) {
+            return;
+        }
+        this.patternTerminalName = sanitized;
+        if (this.mainNode.getNode() != null) {
+            ICraftingProvider.requestUpdate(this.mainNode);
+        }
+        setChanged();
+    }
+
+    @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!this.mainNode.isActive() || !this.patterns.contains(patternDetails)) {
             return false;
@@ -770,6 +790,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
         tag.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
+        if (this.patternTerminalName.isEmpty()) {
+            tag.remove(TAG_PATTERN_TERMINAL_NAME);
+        } else {
+            tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
+        }
         tag.putInt(SerializationConstants.PROGRESS, this.operatingTicks);
         this.mainNode.saveToNBT(tag);
     }
@@ -782,6 +807,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
         this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
+        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.operatingTicks = tag.getInt(SerializationConstants.PROGRESS);
         this.mainNode.loadFromNBT(tag);
         this.updatePatterns();

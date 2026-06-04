@@ -14,6 +14,7 @@ import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.PlayerInternalInventory;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.chat.Component;
@@ -149,9 +150,8 @@ public final class MeMemoryCardSettings {
             return Component.translatable(factoryAeMachine.getMachine().translationKey());
         }
         if (patternContainer instanceof BlockEntity blockEntity) {
-            return ModBlocks.getMachine(blockEntity.getBlockState().getBlock()) == null
-                    ? blockEntity.getBlockState().getBlock().asItem().getDescription()
-                    : Component.translatable(ModBlocks.getMachine(blockEntity.getBlockState().getBlock()).translationKey());
+            MeMekanismMachine machine = ModBlocks.getMachine(blockEntity.getBlockState().getBlock());
+            return machine == null ? blockEntity.getBlockState().getBlock().asItem().getDescription() : Component.translatable(machine.translationKey());
         }
         return Component.empty();
     }

@@ -9,8 +9,11 @@ import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
+import com.beipuo.mekenergistics.network.packet.SetPatternTerminalNamePacket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import mekanism.client.SpecialColors;
 import mekanism.client.gui.GuiMekanism;
 import mekanism.client.gui.IGuiWrapper;
@@ -18,6 +21,7 @@ import mekanism.client.gui.GuiUtils;
 import mekanism.client.gui.element.button.MekanismImageButton;
 import mekanism.client.gui.element.slot.GuiVirtualSlot;
 import mekanism.client.gui.element.slot.SlotType;
+import mekanism.client.gui.element.text.GuiTextField;
 import mekanism.client.gui.element.window.GuiWindow;
 import mekanism.client.render.IFancyFontRenderer.TextAlignment;
 import mekanism.client.render.MekanismRenderer;
@@ -32,12 +36,14 @@ import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.MekanismUtils.ResourceType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -48,6 +54,7 @@ import org.lwjgl.glfw.GLFW;
 public final class MePatternWindowOverlay {
     private static final Component PATTERN_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.button");
     private static final Component PATTERN_WINDOW_TITLE = Component.translatable("gui.mekenergistics.me_patterns.title");
+    private static final Component RENAME_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.rename");
     private static final int TAB_X = 0;
     private static final int TAB_Y = 62;
     private static final int TAB_SIZE = 26;
@@ -58,10 +65,13 @@ public final class MePatternWindowOverlay {
     private static final ResourceLocation BUTTON = MekanismUtils.getResource(ResourceType.GUI, "button.png");
     private static final ResourceLocation LEFT_BUTTON = MekanismUtils.getResource(ResourceType.GUI_BUTTON, "left.png");
     private static final ResourceLocation RIGHT_BUTTON = MekanismUtils.getResource(ResourceType.GUI_BUTTON, "right.png");
+    private static final ResourceLocation CHECK_BUTTON = MekanismUtils.getResource(ResourceType.GUI_BUTTON, "checkmark.png");
     private static final ResourceLocation PATTERN_BUTTON_ICON = ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "textures/gui/button/pattern_button.png");
     private static final ResourceLocation EMPTY_PATTERN_ICON = ResourceLocation.fromNamespaceAndPath(MekEnergistics.MODID, "textures/gui/slot/pattern_empty.png");
     private static final int WINDOW_WIDTH = 178;
     private static final int WINDOW_HEIGHT = 116;
+    private static final int NAME_FIELD_WIDTH = 24;
+    private static final int NAME_FIELD_HEIGHT = 12;
     private static final int SLOT_COLUMNS = MekEnergisticsConfig.PATTERN_SLOT_COLUMNS;
     private static final int SLOT_ROWS = MekEnergisticsConfig.PATTERN_SLOT_ROWS;
     private static final int SLOTS_PER_PAGE = MekEnergisticsConfig.PATTERN_SLOTS_PER_PAGE;
@@ -101,6 +111,13 @@ public final class MePatternWindowOverlay {
         }
     }
 
+    @SubscribeEvent
+    public static void screenOpening(ScreenEvent.Opening event) {
+        if (event.getCurrentScreen() instanceof GuiMekanism<?> gui) {
+            saveOpenPatternWindows(gui);
+        }
+    }
+
     public static boolean hasPatternTarget(Screen screen) {
         return findTarget(screen) != null;
     }
@@ -115,10 +132,10 @@ public final class MePatternWindowOverlay {
             return null;
         }
         if (container.getTileEntity() instanceof MeAeMachine machine) {
-            return new Target(gui, container, machine.getPatternSlots());
+            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName));
         }
         if (container.getTileEntity() instanceof MeFactoryAeMachine machine) {
-            return new Target(gui, container, machine.getPatternSlots());
+            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName));
         }
         return null;
     }
@@ -147,7 +164,25 @@ public final class MePatternWindowOverlay {
         return false;
     }
 
-    private record Target(GuiMekanism<?> gui, MekanismTileContainer<?> container, List<BasicInventorySlot> patternSlots) {
+    private static void saveOpenPatternWindows(GuiMekanism<?> gui) {
+        for (GuiWindow window : gui.getWindows()) {
+            if (window instanceof MePatternWindow patternWindow) {
+                patternWindow.saveNameIfDirty();
+            }
+        }
+    }
+
+    private record Target(GuiMekanism<?> gui, MekanismTileContainer<?> container, List<BasicInventorySlot> patternSlots, NameAccess nameAccess) {
+    }
+
+    private record NameAccess(Supplier<String> getter, Consumer<String> setter) {
+        private String get() {
+            return this.getter.get();
+        }
+
+        private void set(String name) {
+            this.setter.accept(name);
+        }
     }
 
     private record ButtonBounds(int x, int y) {
@@ -175,7 +210,10 @@ public final class MePatternWindowOverlay {
     private static final class MePatternWindow extends GuiWindow {
         private final Target target;
         private final List<PatternGuiVirtualSlot> slots = new ArrayList<>(SLOTS_PER_PAGE);
+        private final GuiTextField nameField;
         private int currentPage;
+        private boolean nameEditorOpen;
+        private String lastSavedName;
 
         private MePatternWindow(IGuiWrapper gui, int x, int y, Target target) {
             super(gui, x, y, WINDOW_WIDTH, WINDOW_HEIGHT, SelectedWindowData.UNSPECIFIED);
@@ -188,8 +226,58 @@ public final class MePatternWindowOverlay {
                             getPatternContainerSlot(index))));
                 }
             }
+            addChild(new MekanismImageButton(gui, relativeX + 158, relativeY + 4, 12, CHECK_BUTTON, (element, mouseX, mouseY) -> toggleNameEditor()))
+                    .setTooltip(Tooltip.create(RENAME_BUTTON_TOOLTIP));
+            this.lastSavedName = this.target.nameAccess().get();
+            this.nameField = addChild(new GuiTextField(gui, this, relativeX + 132, relativeY + 4, NAME_FIELD_WIDTH, NAME_FIELD_HEIGHT));
+            this.nameField.setMaxLength(MeAeMachine.MAX_PATTERN_TERMINAL_NAME_LENGTH);
+            this.nameField.setEnterHandler(this::saveName);
+            this.nameField.setText(this.lastSavedName);
+            setNameFieldVisible(false);
             addChild(new MekanismImageButton(gui, relativeX + 8, relativeY + 94, 12, LEFT_BUTTON, (element, mouseX, mouseY) -> previousPage()));
             addChild(new MekanismImageButton(gui, relativeX + width - 20, relativeY + 94, 12, RIGHT_BUTTON, (element, mouseX, mouseY) -> nextPage()));
+        }
+
+        private boolean toggleNameEditor() {
+            this.nameEditorOpen = !this.nameEditorOpen;
+            setNameFieldVisible(this.nameEditorOpen);
+            if (this.nameEditorOpen) {
+                setFocused(this.nameField);
+            } else {
+                saveNameIfDirty();
+            }
+            return true;
+        }
+
+        private boolean saveName() {
+            saveNameIfDirty();
+            this.nameEditorOpen = false;
+            setNameFieldVisible(false);
+            return true;
+        }
+
+        private void setNameFieldVisible(boolean visible) {
+            this.nameField.visible = visible;
+            this.nameField.setVisible(visible);
+            if (!visible && getFocused() == this.nameField) {
+                setFocused(null);
+            }
+        }
+
+        private void saveNameIfDirty() {
+            String name = MeAeMachine.sanitizePatternTerminalName(this.nameField.getText());
+            if (name.equals(this.lastSavedName)) {
+                return;
+            }
+            this.target.nameAccess().set(name);
+            PacketDistributor.sendToServer(new SetPatternTerminalNamePacket(this.target.container().getTileEntity().getBlockPos(), name));
+            this.lastSavedName = name;
+        }
+
+        @Override
+        public void close() {
+            saveNameIfDirty();
+            super.close();
         }
 
         private VirtualInventoryContainerSlot getPatternContainerSlot(int index) {

@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.Nullable;
 
 public final class ModBlocks {
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MekEnergistics.MODID);
@@ -39,13 +40,14 @@ public final class ModBlocks {
         return MACHINES.values().stream().map(DeferredBlock::get).toArray(Block[]::new);
     }
 
+    @Nullable
     public static MeMekanismMachine getMachine(Block block) {
         for (Map.Entry<MeMekanismMachine, DeferredBlock<MeMekanismMachineBlock>> entry : MACHINES.entrySet()) {
             if (entry.getValue().get() == block) {
                 return entry.getKey();
             }
         }
-        return MeMekanismMachine.METALLURGIC_INFUSER;
+        return null;
     }
 
     public static void register(IEventBus eventBus) {

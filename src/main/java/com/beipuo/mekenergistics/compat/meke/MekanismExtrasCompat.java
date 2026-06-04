@@ -11,9 +11,11 @@ import com.beipuo.mekenergistics.registry.ModBlockEntities;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
+import com.jerry.mekextras.api.tier.AdvancedTier;
 import com.jerry.mekextras.common.block.attribute.ExtraAttribute;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeTier;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeUpgradeSupport;
+import com.jerry.mekextras.common.item.ItemExtraTierInstaller;
 import com.jerry.mekextras.common.tier.ExtraFactoryTier;
 import java.util.Locale;
 import mekanism.common.block.attribute.AttributeFactoryType;
@@ -27,6 +29,7 @@ import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
@@ -90,6 +93,27 @@ public final class MekanismExtrasCompat {
     public static MeMekanismMachine getFactoryTarget(BlockState state, FactoryType factoryType) {
         ExtraFactoryTier tier = ExtraAttribute.getAdvancedTier(state.getBlock(), ExtraFactoryTier.class);
         return tier == null ? null : MeMekanismMachine.getExtraFactory(tier.name().toLowerCase(Locale.ROOT), factoryType);
+    }
+
+    @Nullable
+    public static MeMekanismMachine getInstallerTarget(MeMekanismMachine current, ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemExtraTierInstaller installer)) {
+            return null;
+        }
+        AdvancedTier currentTier = current.extraFactoryTierName() == null
+                ? null
+                : AdvancedTier.valueOf(current.extraFactoryTierName().toUpperCase(Locale.ROOT));
+        AdvancedTier fromTier = installer.getFromTier();
+        AdvancedTier toTier = installer.getToTier();
+        if (currentTier != fromTier || currentTier == toTier) {
+            return null;
+        }
+        MeMekanismMachine target = current.getNextFactory();
+        if (target == null || target.extraFactoryTierName() == null) {
+            return null;
+        }
+        AdvancedTier targetTier = AdvancedTier.valueOf(target.extraFactoryTierName().toUpperCase(Locale.ROOT));
+        return targetTier == toTier ? target : null;
     }
 
     public static void registerGridNodeHost(

@@ -99,6 +99,8 @@ public class MeChemicalOxidizerBlockEntity extends TileEntityChemicalOxidizer im
     @Override public boolean isBusy() { return false; }
     @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
     @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
+    @Override public String getCustomPatternTerminalName() { return this.aeSupport.getPatternTerminalName(); }
+    @Override public void setCustomPatternTerminalName(String name) { this.aeSupport.setPatternTerminalName(name); }
     @Override public List<BasicInventorySlot> getPatternSlots() { return this.aeSupport.getPatternSlots(); }
     @Override public MeMekanismMachine getMachine() { return MeMekanismMachine.CHEMICAL_OXIDIZER; }
     @Override public ItemStack getTerminalIconStack() { return new ItemStack(ModBlocks.getMachineBlock(getMachine()).get()); }

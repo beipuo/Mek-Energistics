@@ -54,6 +54,8 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & MeAeMachine & ICraftingProvider & IActionHost> {
+    private static final String TAG_PATTERN_TERMINAL_NAME = "PatternTerminalName";
+
     private final TILE owner;
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
@@ -63,6 +65,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
     private int patternPriority;
+    private String patternTerminalName = "";
 
     public MeRecipeMachineAeSupport(TILE owner) {
         this.owner = owner;
@@ -92,6 +95,22 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public int getPatternPriority() {
         return this.patternPriority;
+    }
+
+    public String getPatternTerminalName() {
+        return this.patternTerminalName;
+    }
+
+    public void setPatternTerminalName(String name) {
+        String sanitized = MeAeMachine.sanitizePatternTerminalName(name);
+        if (this.patternTerminalName.equals(sanitized)) {
+            return;
+        }
+        this.patternTerminalName = sanitized;
+        if (this.mainNode.getNode() != null) {
+            ICraftingProvider.requestUpdate(this.mainNode);
+        }
+        this.owner.setChanged();
     }
 
     public void create(Level level, BlockPos pos) {
@@ -284,11 +303,17 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public void save(CompoundTag tag) {
         tag.putInt("PatternPriority", this.patternPriority);
+        if (this.patternTerminalName.isEmpty()) {
+            tag.remove(TAG_PATTERN_TERMINAL_NAME);
+        } else {
+            tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
+        }
         this.mainNode.saveToNBT(tag);
     }
 
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
+        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }

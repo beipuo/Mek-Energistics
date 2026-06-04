@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeMemoryCardSettings;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.item.MeInstallerUpgradeHandler;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,6 +160,10 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         ItemInteractionResult memoryCardResult = MeMemoryCardSettings.use(stack, level, player, tile);
         if (memoryCardResult.consumesAction()) {
             return memoryCardResult;
+        }
+        ItemInteractionResult installerResult = MeInstallerUpgradeHandler.tryUpgrade(stack, state, level, pos, player);
+        if (installerResult.consumesAction()) {
+            return installerResult;
         }
         if (level.isClientSide) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;

@@ -46,6 +46,14 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
         return getAeSupport().getAeOutputMode();
     }
 
+    default String getCustomPatternTerminalName() {
+        return getAeSupport().getPatternTerminalName();
+    }
+
+    default void setCustomPatternTerminalName(String name) {
+        getAeSupport().setPatternTerminalName(name);
+    }
+
     default void cycleAeOutputMode() {
         getAeSupport().cycleAeOutputMode();
     }

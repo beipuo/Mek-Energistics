@@ -16,6 +16,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 public interface MeAeMachine extends PatternContainer {
+    int MAX_PATTERN_TERMINAL_NAME_LENGTH = 64;
+
     AeOutputMode getAeOutputMode();
 
     void cycleAeOutputMode();
@@ -35,6 +37,18 @@ public interface MeAeMachine extends PatternContainer {
 
     ItemStack getTerminalIconStack();
 
+    default String getCustomPatternTerminalName() {
+        return "";
+    }
+
+    default void setCustomPatternTerminalName(String name) {
+    }
+
+    default Component getPatternTerminalDisplayName() {
+        String customName = getCustomPatternTerminalName();
+        return customName.isBlank() ? Component.translatable(getMachine().translationKey()) : Component.literal(customName);
+    }
+
     @Override
     IGrid getGrid();
 
@@ -52,7 +66,14 @@ public interface MeAeMachine extends PatternContainer {
     default PatternContainerGroup getTerminalGroup() {
         ItemStack iconStack = getTerminalIconStack();
         AEItemKey icon = iconStack.isEmpty() ? null : AEItemKey.of(iconStack);
-        Component name = Component.translatable(getMachine().translationKey());
-        return new PatternContainerGroup(icon, name, List.of());
+        return new PatternContainerGroup(icon, getPatternTerminalDisplayName(), List.of());
+    }
+
+    static String sanitizePatternTerminalName(String name) {
+        if (name == null) {
+            return "";
+        }
+        String sanitized = name.trim();
+        return sanitized.length() > MAX_PATTERN_TERMINAL_NAME_LENGTH ? sanitized.substring(0, MAX_PATTERN_TERMINAL_NAME_LENGTH) : sanitized;
     }
 }
