@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.compat.mekmm;
 
 import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.block.attribute.MeExtraUpgradeableAttribute;
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeMoreMachineFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeAdvancedCentrifugingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.mekmm.factory.MeAdvancedChemicalToItemFactoryBlockEntity;
@@ -404,6 +405,6 @@ public final class MekanismMoreMachineCompat {
     public static void registerGridNodeHost(
             RegisterCapabilitiesEvent event,
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
-        ModBlockEntities.registerGridNodeHost(event, holder, MeMoreMachineFactoryAeMachine.class);
+        ModBlockEntities.registerGridNodeHost(event, holder, MeFactoryAeMachine.class);
     }
 }
