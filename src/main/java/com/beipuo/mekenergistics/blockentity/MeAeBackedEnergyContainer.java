@@ -8,7 +8,7 @@ import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 
-final class MeAeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismMachineBlockEntity> {
+final class MeAeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismMachineBlockEntity> implements MeNetworkEnergyHelper.LocalEnergyBuffer {
     private final MeMekanismMachineBlockEntity owner;
 
     MeAeBackedEnergyContainer(MeMekanismMachineBlockEntity owner, IContentsListener listener) {
@@ -20,5 +20,10 @@ final class MeAeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismM
     @Override
     public long extract(long amount, Action action, AutomationType automationType) {
         return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.owner.getGrid(), this.owner.getActionSource(), amount, action, automationType);
+    }
+
+    @Override
+    public long extractLocal(long amount, Action action, AutomationType automationType) {
+        return super.extract(amount, action, automationType);
     }
 }

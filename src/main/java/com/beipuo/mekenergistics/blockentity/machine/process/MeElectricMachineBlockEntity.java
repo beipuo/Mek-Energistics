@@ -393,7 +393,8 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
         return new ItemStack(ModBlocks.getMachineBlock(this.machine).get());
     }
 
-    private static final class AeBackedEnergyContainer extends MachineEnergyContainer<TileEntityElectricMachine> {
+    private static final class AeBackedEnergyContainer extends MachineEnergyContainer<TileEntityElectricMachine>
+            implements MeNetworkEnergyHelper.LocalEnergyBuffer {
         private final MeElectricMachineBlockEntity owner;
 
         private AeBackedEnergyContainer(MeElectricMachineBlockEntity owner, IContentsListener listener) {
@@ -405,6 +406,11 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
             return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.owner.getGrid(), this.owner.actionSource, amount, action, automationType);
+        }
+
+        @Override
+        public long extractLocal(long amount, Action action, AutomationType automationType) {
+            return super.extract(amount, action, automationType);
         }
 
         private long extractAeAsFe(long requestedFe, Action action) {

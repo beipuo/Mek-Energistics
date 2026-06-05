@@ -467,7 +467,8 @@ public final class MeFactoryAeSupport {
         }
     }
 
-    public static final class AeBackedFactoryEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE> {
+    public static final class AeBackedFactoryEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
+            implements MeNetworkEnergyHelper.LocalEnergyBuffer {
         private final TILE owner;
 
         public AeBackedFactoryEnergyContainer(TILE owner, IContentsListener listener) {
@@ -483,6 +484,11 @@ public final class MeFactoryAeSupport {
             }
             return MeNetworkEnergyHelper.extractWithLocalBuffer(this, aeMachine.getAeSupport().getGrid(), aeMachine.getAeSupport().actionSource,
                     amount, action, automationType);
+        }
+
+        @Override
+        public long extractLocal(long amount, Action action, AutomationType automationType) {
+            return super.extract(amount, action, automationType);
         }
 
         private long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {

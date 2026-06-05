@@ -17,20 +17,32 @@ public final class MeNetworkEnergyHelper {
     private MeNetworkEnergyHelper() {
     }
 
+    public interface LocalEnergyBuffer {
+        long extractLocal(long amount, Action action, AutomationType automationType);
+    }
+
     public static long extractWithLocalBuffer(MachineEnergyContainer<?> localEnergy, IGrid grid, IActionSource source, long amount,
             Action action, AutomationType automationType) {
         if (amount <= 0) {
             return 0;
         }
         if (automationType != AutomationType.INTERNAL || grid == null) {
-            return localEnergy.extract(amount, action, automationType);
+            return extractLocal(localEnergy, amount, action, automationType);
         }
         if (MekEnergisticsConfig.preferLocalFe()) {
-            long localExtracted = localEnergy.extract(amount, action, automationType);
+            long localExtracted = extractLocal(localEnergy, amount, action, automationType);
             return localExtracted + extractNetworkFe(grid, source, amount - localExtracted, action);
         }
         long networkExtracted = extractNetworkFe(grid, source, amount, action);
-        return networkExtracted + localEnergy.extract(amount - networkExtracted, action, automationType);
+        return networkExtracted + extractLocal(localEnergy, amount - networkExtracted, action, automationType);
+    }
+
+    private static long extractLocal(MachineEnergyContainer<?> localEnergy, long amount, Action action, AutomationType automationType) {
+        if (amount <= 0) {
+            return 0;
+        }
+        return localEnergy instanceof LocalEnergyBuffer buffer ? buffer.extractLocal(amount, action, automationType)
+                : localEnergy.extract(amount, action, automationType);
     }
 
     public static long availableWithLocalBuffer(MachineEnergyContainer<?> localEnergy, IGrid grid, IActionSource source) {

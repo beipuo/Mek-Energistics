@@ -332,22 +332,30 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         updatePatterns();
     }
 
-    public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE> {
-        private final MeRecipeMachineAeSupport<?> support;
+    public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
+            implements MeNetworkEnergyHelper.LocalEnergyBuffer {
+        private final MeAeMachine aeMachine;
+        private final IActionSource actionSource;
 
         public AeBackedEnergyContainer(TILE owner, MeRecipeMachineAeSupport<?> support, IContentsListener listener) {
             super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
                     BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
-            this.support = support;
+            this.aeMachine = (MeAeMachine) owner;
+            this.actionSource = IActionSource.ofMachine((IActionHost) owner);
         }
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.support.getGrid(), this.support.actionSource, amount, action, automationType);
+            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.aeMachine.getGrid(), this.actionSource, amount, action, automationType);
+        }
+
+        @Override
+        public long extractLocal(long amount, Action action, AutomationType automationType) {
+            return super.extract(amount, action, automationType);
         }
 
         private long extractAeAsFe(long requestedFe, Action action) {
-            return MeNetworkEnergyHelper.extractNetworkFe(this.support.getGrid(), this.support.actionSource, requestedFe, action);
+            return MeNetworkEnergyHelper.extractNetworkFe(this.aeMachine.getGrid(), this.actionSource, requestedFe, action);
         }
     }
 
@@ -360,7 +368,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
         @Override
         public long getEnergy() {
-            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.energyContainer.support.getGrid(), this.energyContainer.support.actionSource);
+            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.energyContainer.aeMachine.getGrid(), this.energyContainer.actionSource);
         }
 
         @Override
