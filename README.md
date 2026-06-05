@@ -56,12 +56,6 @@ Mek Energistics uses NeoForge's built-in mod configuration screen. Open the Mods
 | Applied Flux | Optional network FE storage support |
 | Mekanism Unleashed | Can be loaded alongside this mod |
 
-## Changelog
-
-### 0.0.7 Beta
-
-- Improved optional Mekanism More Machine and Mekanism Extras compatibility so missing advanced factory classes no longer crash startup.
-- Added Russian localization, aligned with the current language-file ordering and configuration keys.
 
 ## Usage
 
