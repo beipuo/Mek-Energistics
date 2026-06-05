@@ -20,7 +20,9 @@ import mekanism.common.content.blocktype.BlockShapes;
 import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.base.TileEntityMekanism;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.fml.ModList;
+import org.jetbrains.annotations.Nullable;
 
 public final class ModBlockTypes {
     private static final Map<MeMekanismMachine, BlockTypeTile<? extends TileEntityMekanism>> MACHINES =
@@ -76,9 +78,12 @@ public final class ModBlockTypes {
         if (machine.factoryTier() != null) {
             builder.with(new AttributeTier<>(machine.factoryTier()));
         }
+        VoxelShape[] customShape = customShapeFor(machine);
+        if (customShape != null) {
+            builder.withCustomShape(customShape);
+        }
         if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
-            builder.withCustomShape(BlockShapes.ISOTOPIC_CENTRIFUGE)
-                    .with(AttributeHasBounding.ABOVE_ONLY);
+            builder.with(AttributeHasBounding.ABOVE_ONLY);
         }
         MeMekanismMachine upgradeTarget = machine.isFactory() ? machine.getNextFactory() : machine.getBasicFactory();
         if (upgradeTarget != null) {
@@ -88,6 +93,36 @@ public final class ModBlockTypes {
             }
         }
         return builder.build();
+    }
+
+    @Nullable
+    private static VoxelShape[] customShapeFor(MeMekanismMachine machine) {
+        if (machine.factoryType() != null && machine.factoryTier() != null) {
+            return BlockShapes.getShape(machine.factoryTier(), machine.factoryType());
+        }
+        return switch (machine) {
+            case METALLURGIC_INFUSER -> BlockShapes.METALLURGIC_INFUSER;
+            case PRESSURIZED_REACTION_CHAMBER -> BlockShapes.PRESSURIZED_REACTION_CHAMBER;
+            case CHEMICAL_CRYSTALLIZER -> BlockShapes.CHEMICAL_CRYSTALLIZER;
+            case CHEMICAL_DISSOLUTION_CHAMBER -> BlockShapes.CHEMICAL_DISSOLUTION_CHAMBER;
+            case CHEMICAL_INFUSER -> BlockShapes.CHEMICAL_INFUSER;
+            case CHEMICAL_OXIDIZER -> BlockShapes.CHEMICAL_OXIDIZER;
+            case CHEMICAL_WASHER -> BlockShapes.CHEMICAL_WASHER;
+            case ROTARY_CONDENSENTRATOR -> BlockShapes.ROTARY_CONDENSENTRATOR;
+            case ELECTROLYTIC_SEPARATOR -> BlockShapes.ELECTROLYTIC_SEPARATOR;
+            case DIGITAL_MINER -> BlockShapes.DIGITAL_MINER;
+            case ELECTRIC_PUMP -> BlockShapes.ELECTRIC_PUMP;
+            case FLUIDIC_PLENISHER -> BlockShapes.FLUIDIC_PLENISHER;
+            case SOLAR_NEUTRON_ACTIVATOR -> BlockShapes.SOLAR_NEUTRON_ACTIVATOR;
+            case RESISTIVE_HEATER -> BlockShapes.RESISTIVE_HEATER;
+            case SEISMIC_VIBRATOR -> BlockShapes.SEISMIC_VIBRATOR;
+            case LOGISTICAL_SORTER -> BlockShapes.LOGISTICAL_SORTER;
+            case ISOTOPIC_CENTRIFUGE -> BlockShapes.ISOTOPIC_CENTRIFUGE;
+            case ANTIPROTONIC_NUCLEOSYNTHESIZER -> BlockShapes.ANTIPROTONIC_NUCLEOSYNTHESIZER;
+            case PIGMENT_MIXER -> BlockShapes.PIGMENT_MIXER;
+            case MODIFICATION_STATION -> BlockShapes.MODIFICATION_STATION;
+            default -> null;
+        };
     }
 
     private static ILangEntry lang(MeMekanismMachine machine) {

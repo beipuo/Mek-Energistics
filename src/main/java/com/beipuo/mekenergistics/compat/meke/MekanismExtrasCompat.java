@@ -22,6 +22,7 @@ import mekanism.common.block.attribute.AttributeFactoryType;
 import mekanism.common.block.attribute.AttributeUpgradeSupport;
 import mekanism.common.block.attribute.AttributeStateFacing;
 import mekanism.common.block.attribute.Attributes;
+import mekanism.common.content.blocktype.BlockShapes;
 import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.content.blocktype.FactoryType;
 import mekanism.common.lib.transmitter.TransmissionType;
@@ -63,6 +64,7 @@ public final class MekanismExtrasCompat {
                 .with(extraUpgradeSupport(machine.factoryType()));
         if (machine.factoryType() != null) {
             builder.with(new AttributeFactoryType(machine.factoryType()));
+            builder.withCustomShape(BlockShapes.getShape(null, machine.factoryType()));
         }
         builder.with(new ExtraAttributeTier<>(extraTier(machine)));
         MeMekanismMachine upgradeTarget = machine.getNextFactory();
