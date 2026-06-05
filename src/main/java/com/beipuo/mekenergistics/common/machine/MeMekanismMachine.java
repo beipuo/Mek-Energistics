@@ -538,6 +538,9 @@ public enum MeMekanismMachine {
 
     @Nullable
     public MeMekanismMachine getBasicFactory() {
+        if (this == ISOTOPIC_CENTRIFUGE) {
+            return getMoreMachineAdvancedFactory(FactoryTier.BASIC, "centrifuging");
+        }
         if (moreMachineFactoryTypeName != null) {
             return extraFactoryTierName == null
                     ? getMoreMachineFactory(FactoryTier.BASIC, moreMachineFactoryTypeName)

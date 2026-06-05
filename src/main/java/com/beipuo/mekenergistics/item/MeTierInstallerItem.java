@@ -22,7 +22,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,28 +42,32 @@ public class MeTierInstallerItem extends Item {
         if (context.getPlayer() == null) {
             return InteractionResult.PASS;
         }
-        if (context.getLevel().isClientSide()) {
-            return InteractionResult.PASS;
-        }
-        BlockPos pos = context.getClickedPos();
-        BlockState state = context.getLevel().getBlockState(pos);
+        return tryInstall(context.getItemInHand(), context.getLevel(), context.getClickedPos(), context.getPlayer());
+    }
+
+    public static InteractionResult tryInstall(ItemStack stack, Level level, BlockPos pos, Player player) {
+        BlockState state = level.getBlockState(pos);
         if (state.is(MekanismBlocks.BOUNDING_BLOCK)) {
-            BlockPos mainPos = BlockBounding.getMainBlockPos(context.getLevel(), pos);
+            BlockPos mainPos = BlockBounding.getMainBlockPos(level, pos);
             if (mainPos == null) {
                 return InteractionResult.FAIL;
             }
             pos = mainPos;
-            state = context.getLevel().getBlockState(pos);
+            state = level.getBlockState(pos);
         }
-        MeMekanismMachine target = MeInstallerTargetResolver.resolve(state);
+        MeMekanismMachine current = ModBlocks.getMachine(state.getBlock());
+        MeMekanismMachine target = current == null ? MeInstallerTargetResolver.resolve(state) : current.getBasicFactory();
         if (target == null) {
             return InteractionResult.PASS;
         }
         if (ModBlocks.getMachineBlock(target).get() == state.getBlock()) {
             return InteractionResult.PASS;
         }
-        BlockEntity oldTile = WorldUtils.getTileEntity(context.getLevel(), pos);
-        if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(context.getPlayer(), context.getLevel(), pos, oldTile)) {
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        BlockEntity oldTile = WorldUtils.getTileEntity(level, pos);
+        if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(player, level, pos, oldTile)) {
             return InteractionResult.FAIL;
         }
         if (oldTile instanceof TileEntityMekanism tileMek && !tileMek.playersUsing.isEmpty()) {
@@ -69,7 +76,7 @@ public class MeTierInstallerItem extends Item {
         IUpgradeData upgradeData = null;
         boolean copyComponents = oldTile instanceof TileEntityMekanism;
         if (oldTile instanceof ITierUpgradable tierUpgradable) {
-            upgradeData = tierUpgradable.getUpgradeData(context.getLevel().registryAccess());
+            upgradeData = tierUpgradable.getUpgradeData(level.registryAccess());
             if (upgradeData == null && tierUpgradable.canBeUpgraded()) {
                 return InteractionResult.FAIL;
             }
@@ -77,20 +84,20 @@ public class MeTierInstallerItem extends Item {
         } else if (!copyComponents) {
             return InteractionResult.PASS;
         }
-        CompoundTag mePatternSlots = MePatternSlotTransfer.save(oldTile, context.getLevel().registryAccess());
+        CompoundTag mePatternSlots = MePatternSlotTransfer.save(oldTile, level.registryAccess());
         Block targetBlock = ModBlocks.getMachineBlock(target).get();
         BlockState upgradeState = BlockStateHelper.copyStateData(state, targetBlock.defaultBlockState());
         AttributeHasBounding upgradeBounding = Attribute.get(upgradeState, AttributeHasBounding.class);
-        if (upgradeBounding != null && !canPlaceBoundingBlocks(context.getLevel(), pos, upgradeState, upgradeBounding)) {
+        if (upgradeBounding != null && !canPlaceBoundingBlocks(level, pos, upgradeState, upgradeBounding)) {
             return InteractionResult.FAIL;
         }
-        if (!context.getLevel().setBlockAndUpdate(pos, upgradeState)) {
+        if (!level.setBlockAndUpdate(pos, upgradeState)) {
             return InteractionResult.FAIL;
         }
         if (upgradeBounding != null) {
-            upgradeBounding.placeBoundingBlocks(context.getLevel(), pos, upgradeState);
+            upgradeBounding.placeBoundingBlocks(level, pos, upgradeState);
         }
-        TileEntityMekanism upgradedTile = WorldUtils.getTileEntity(TileEntityMekanism.class, context.getLevel(), pos);
+        TileEntityMekanism upgradedTile = WorldUtils.getTileEntity(TileEntityMekanism.class, level, pos);
         if (upgradedTile == null) {
             return InteractionResult.FAIL;
         }
@@ -98,26 +105,26 @@ public class MeTierInstallerItem extends Item {
             upgradedTile.setFacing(directional.getDirection(), false);
         }
         if (upgradeData != null) {
-            upgradedTile.parseUpgradeData(context.getLevel().registryAccess(), upgradeData);
+            upgradedTile.parseUpgradeData(level.registryAccess(), upgradeData);
         } else if (copyComponents) {
             MePatternSlotTransfer.copyMekanismComponents(oldTile, upgradedTile, targetBlock);
         }
-        MePatternSlotTransfer.load(upgradedTile, context.getLevel().registryAccess(), mePatternSlots);
-        if (context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player) {
+        MePatternSlotTransfer.load(upgradedTile, level.registryAccess(), mePatternSlots);
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             if (upgradedTile instanceof MeAeMachine machine) {
-                machine.setOwner(player);
+                machine.setOwner(serverPlayer);
             } else if (upgradedTile instanceof MeFactoryAeMachine machine) {
-                machine.setOwner(player);
+                machine.setOwner(serverPlayer);
             } else {
-                MeOwnerHelper.claimMekanismOwnerIfMissing(upgradedTile, player);
+                MeOwnerHelper.claimMekanismOwnerIfMissing(upgradedTile, serverPlayer);
             }
         }
         upgradedTile.resyncMasterToBounding();
         upgradedTile.sendUpdatePacket();
         upgradedTile.setChanged();
         upgradedTile.invalidateCapabilitiesFull();
-        if (!context.getPlayer().isCreative()) {
-            context.getItemInHand().shrink(1);
+        if (!player.isCreative()) {
+            stack.shrink(1);
         }
         return InteractionResult.CONSUME;
     }

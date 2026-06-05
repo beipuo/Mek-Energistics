@@ -30,6 +30,7 @@ import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
@@ -102,20 +103,22 @@ public final class MeInstallerUpgradeHandler {
         if (oldTile instanceof TileEntityMekanism tileMek && !tileMek.playersUsing.isEmpty()) {
             return InteractionResult.FAIL;
         }
-        if (!(oldTile instanceof ITierUpgradable tierUpgradable)) {
-            MekEnergistics.LOGGER.debug("ME installer target {} at {} is not tier upgradable", target.registryName(), pos);
-            return InteractionResult.PASS;
-        }
-        IUpgradeData upgradeData = tierUpgradable.getUpgradeData(level.registryAccess());
-        if (upgradeData == null) {
-            if (tierUpgradable.canBeUpgraded()) {
+        IUpgradeData upgradeData = null;
+        boolean copyComponents = oldTile instanceof TileEntityMekanism;
+        if (oldTile instanceof ITierUpgradable tierUpgradable) {
+            upgradeData = tierUpgradable.getUpgradeData(level.registryAccess());
+            if (upgradeData == null && tierUpgradable.canBeUpgraded()) {
                 MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: no upgrade data at {}", target.registryName(), pos);
                 return InteractionResult.FAIL;
             }
+            copyComponents = upgradeData == null && copyComponents;
+        } else if (!copyComponents) {
+            MekEnergistics.LOGGER.debug("ME installer target {} at {} is not a Mekanism tile", target.registryName(), pos);
             return InteractionResult.PASS;
         }
         CompoundTag mePatternSlots = MePatternSlotTransfer.save(oldTile, level.registryAccess());
-        BlockState upgradeState = BlockStateHelper.copyStateData(state, ModBlocks.getMachineBlock(target).get().defaultBlockState());
+        Block targetBlock = ModBlocks.getMachineBlock(target).get();
+        BlockState upgradeState = BlockStateHelper.copyStateData(state, targetBlock.defaultBlockState());
         AttributeHasBounding upgradeBounding = Attribute.get(upgradeState, AttributeHasBounding.class);
         if (upgradeBounding != null && !canPlaceBoundingBlocks(level, pos, upgradeState, upgradeBounding)) {
             MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: bounding blocks cannot be placed at {}",
@@ -139,7 +142,11 @@ public final class MeInstallerUpgradeHandler {
         if (oldTile instanceof ITileDirectional directional && directional.isDirectional()) {
             upgradedTile.setFacing(directional.getDirection(), false);
         }
-        upgradedTile.parseUpgradeData(level.registryAccess(), upgradeData);
+        if (upgradeData != null) {
+            upgradedTile.parseUpgradeData(level.registryAccess(), upgradeData);
+        } else if (copyComponents) {
+            MePatternSlotTransfer.copyMekanismComponents(oldTile, upgradedTile, targetBlock);
+        }
         MePatternSlotTransfer.load(upgradedTile, level.registryAccess(), mePatternSlots);
         if (player instanceof ServerPlayer serverPlayer) {
             if (upgradedTile instanceof MeAeMachine machine) {
