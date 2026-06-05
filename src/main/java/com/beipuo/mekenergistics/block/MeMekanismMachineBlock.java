@@ -130,6 +130,11 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     }
 
     @Override
+    protected VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return getShape(state, level, pos, CollisionContext.empty());
+    }
+
+    @Override
     public BlockState rotate(BlockState state, LevelAccessor level, BlockPos pos, Rotation rotation) {
         return AttributeStateFacing.rotate(state, level, pos, rotation);
     }

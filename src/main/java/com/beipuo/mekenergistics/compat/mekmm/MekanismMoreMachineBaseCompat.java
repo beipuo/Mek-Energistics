@@ -19,6 +19,7 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.jerry.mekmm.common.block.attribute.MoreMachineAttributeFactoryType;
+import com.jerry.mekmm.common.content.blocktype.MoreMachineBlockShapes;
 import com.jerry.mekmm.common.content.blocktype.MoreMachineFactory;
 import com.jerry.mekmm.common.content.blocktype.MoreMachineFactoryType;
 import com.jerry.mekmm.common.registries.MoreMachineContainerTypes;
@@ -97,6 +98,12 @@ public final class MekanismMoreMachineBaseCompat {
                 .withSideConfig(new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY})
                 .withSupportedUpgrades(Upgrade.SPEED, Upgrade.ENERGY)
                 .with(new MoreMachineAttributeFactoryType(moreMachineFactoryType(machine)));
+        switch (machine) {
+            case PLANTING_STATION -> builder.withCustomShape(MoreMachineBlockShapes.PLANTING_STATION);
+            case REPLICATOR -> builder.withCustomShape(MoreMachineBlockShapes.REPLICATOR);
+            default -> {
+            }
+        }
         MeMekanismMachine upgradeTarget = machine.getBasicFactory();
         if (upgradeTarget != null) {
             builder.with(new MeUpgradeableAttribute(() -> ModBlocks.getMachineBlock(upgradeTarget).get()));

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.11-beta
+
+- Fixed transparent/missing adjacent block faces next to ME machines, including the ME Metallurgic Infuser case reported with AE2 Additions wireless transceivers.
+- Restored Mekanism's original custom block shapes for ME machines and factories so adjacent blocks cull faces correctly.
+- Applied the same shape fix across Mekanism, Mekanism Extras factories, and Mekanism: MoreMachine shape-sensitive machines.
+- Verified the update with Gradle build.
+
 ## 0.0.10-beta
 
 - Fixed ME machine dismantling so wrench removal keeps Mekanism machine data and drops installed AE patterns instead of deleting them.
