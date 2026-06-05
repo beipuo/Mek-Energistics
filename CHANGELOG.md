@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.10-beta
+
+- Fixed ME machine dismantling so wrench removal keeps Mekanism machine data and drops installed AE patterns instead of deleting them.
+- Fixed ME Factory Installer upgrades so installed upgrades, machine data, side configuration, energy, and AE patterns are preserved during conversion.
+- Fixed Isotopic Centrifuge upgrade paths, including ME Isotopic Centrifuge to ME Basic Centrifuging Factory and Mekanism: MoreMachine centrifuging factories.
+- Updated ME centrifuging factory models to use this mod's redesigned local factory indicator bars.
+- Fixed machine light occlusion so ME machines, factories, and tall machines match Mekanism's original lighting behavior.
+- Verified the update with Gradle build.
+
 ## 0.0.9-beta
 
 - Fixed AE-network energy usage for Mekanism machines so recipe execution can consume AE power without displaying network power as stored FE.
