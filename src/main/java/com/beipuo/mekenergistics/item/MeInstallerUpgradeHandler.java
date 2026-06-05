@@ -4,6 +4,7 @@ import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;
@@ -22,6 +23,7 @@ import mekanism.common.tile.interfaces.ITileDirectional;
 import mekanism.common.upgrade.IUpgradeData;
 import mekanism.common.util.WorldUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -105,10 +107,14 @@ public final class MeInstallerUpgradeHandler {
             return InteractionResult.PASS;
         }
         IUpgradeData upgradeData = tierUpgradable.getUpgradeData(level.registryAccess());
-        if (upgradeData == null && tierUpgradable.canBeUpgraded()) {
-            MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: no upgrade data at {}", target.registryName(), pos);
-            return InteractionResult.FAIL;
+        if (upgradeData == null) {
+            if (tierUpgradable.canBeUpgraded()) {
+                MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: no upgrade data at {}", target.registryName(), pos);
+                return InteractionResult.FAIL;
+            }
+            return InteractionResult.PASS;
         }
+        CompoundTag mePatternSlots = MePatternSlotTransfer.save(oldTile, level.registryAccess());
         BlockState upgradeState = BlockStateHelper.copyStateData(state, ModBlocks.getMachineBlock(target).get().defaultBlockState());
         AttributeHasBounding upgradeBounding = Attribute.get(upgradeState, AttributeHasBounding.class);
         if (upgradeBounding != null && !canPlaceBoundingBlocks(level, pos, upgradeState, upgradeBounding)) {
@@ -133,9 +139,8 @@ public final class MeInstallerUpgradeHandler {
         if (oldTile instanceof ITileDirectional directional && directional.isDirectional()) {
             upgradedTile.setFacing(directional.getDirection(), false);
         }
-        if (upgradeData != null) {
-            upgradedTile.parseUpgradeData(level.registryAccess(), upgradeData);
-        }
+        upgradedTile.parseUpgradeData(level.registryAccess(), upgradeData);
+        MePatternSlotTransfer.load(upgradedTile, level.registryAccess(), mePatternSlots);
         if (player instanceof ServerPlayer serverPlayer) {
             if (upgradedTile instanceof MeAeMachine machine) {
                 machine.setOwner(serverPlayer);

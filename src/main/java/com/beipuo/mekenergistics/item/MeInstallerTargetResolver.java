@@ -1,7 +1,9 @@
 package com.beipuo.mekenergistics.item;
 
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import mekanism.common.block.attribute.Attribute;
@@ -28,10 +30,16 @@ final class MeInstallerTargetResolver {
         if (directTarget != null) {
             return directTarget;
         }
-        if (ModList.get().isLoaded("mekmm")) {
-            MeMekanismMachine moreMachineTarget = MekanismMoreMachineBaseCompat.getFactoryTarget(state);
-            if (moreMachineTarget != null) {
-                return moreMachineTarget;
+        if (OptionalCompatClasses.hasMekmmAdvancedFactories()) {
+            MeMekanismMachine advancedFactoryTarget = MekanismMoreMachineAdvancedCompat.getFactoryTarget(state);
+            if (advancedFactoryTarget != null) {
+                return advancedFactoryTarget;
+            }
+        }
+        if (OptionalCompatClasses.hasMekmm()) {
+            MeMekanismMachine baseFactoryTarget = MekanismMoreMachineBaseCompat.getFactoryTarget(state);
+            if (baseFactoryTarget != null) {
+                return baseFactoryTarget;
             }
         }
         AttributeFactoryType attribute = Attribute.get(state, AttributeFactoryType.class);

@@ -6,7 +6,10 @@
   },
   "children": {
     "base": {
-      "parent": "mekanism_extras:block/factory/centrifuging/supreme"
+      "parent": "mekmm:block/factory/centrifuging/base"
+    },
+    "translucent": {
+      "parent": "mekenergistics:block/factory/centrifuging_translucent"
     },
     "front_led": {
       "parent": "mekenergistics:block/factory/front_led/tall/supreme"

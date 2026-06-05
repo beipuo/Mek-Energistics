@@ -4,11 +4,14 @@ import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeMemoryCardSettings;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.item.MeInstallerUpgradeHandler;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
 import java.util.List;
+import mekanism.api.MekanismItemAbilities;
+import mekanism.api.security.IBlockSecurityUtils;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeCustomShape;
 import mekanism.common.block.attribute.AttributeGui;
@@ -23,7 +26,10 @@ import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.base.TileEntityUpdateable;
+import mekanism.common.tags.MekanismTags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -168,7 +174,43 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         if (level.isClientSide) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
+        if (shouldDropPatternsBeforeDismantle(stack, state, player, level, pos, mekanismTile)) {
+            MePatternSlotTransfer.dropAndClear(level, pos, mekanismTile);
+        }
         return mekanismTile.tryWrench(state, player, stack).getInteractionResult();
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        List<ItemStack> drops = super.getDrops(state, params);
+        BlockEntity tile = params.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
+        if (tile instanceof TileEntityUpdateable updateable) {
+            for (ItemStack drop : drops) {
+                if (drop.is(this.asItem())) {
+                    drop.applyComponents(updateable.collectComponents());
+                }
+            }
+        }
+        return drops;
+    }
+
+    private static boolean shouldDropPatternsBeforeDismantle(ItemStack stack, BlockState state, Player player, Level level, BlockPos pos, TileEntityMekanism tile) {
+        return player.isShiftKeyDown()
+                && canDismantle(stack)
+                && tile.getRadiationScale() <= 0
+                && IBlockSecurityUtils.INSTANCE.canAccess(player, level, pos, state, tile);
+    }
+
+    private static boolean canDismantle(ItemStack stack) {
+        if (stack.canPerformAction(MekanismItemAbilities.WRENCH_DISMANTLE)) {
+            return true;
+        }
+        if (stack.canPerformAction(MekanismItemAbilities.WRENCH_ROTATE)
+                || stack.canPerformAction(MekanismItemAbilities.WRENCH_EMPTY)
+                || stack.canPerformAction(MekanismItemAbilities.WRENCH_CONFIGURE)) {
+            return false;
+        }
+        return stack.is(MekanismTags.Items.CONFIGURATORS);
     }
 
     @Override

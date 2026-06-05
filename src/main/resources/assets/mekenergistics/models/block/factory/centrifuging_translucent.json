@@ -1,0 +1,44 @@
+{
+  "render_type": "translucent",
+  "textures": {
+    "glass": "mekmm:block/factory/centrifuging/centrifuging_factory_front2"
+  },
+  "elements": [
+    {
+      "name": "glass_front",
+      "from": [4, 16, 1],
+      "to": [12, 26, 2],
+      "faces": {
+        "north": {"uv": [4, 6, 12, 16], "texture": "#glass"},
+        "south": {"uv": [4, 6, 12, 16], "texture": "#glass"}
+      }
+    },
+    {
+      "name": "glass_left",
+      "from": [1, 16, 4],
+      "to": [2, 26, 12],
+      "faces": {
+        "east": {"uv": [4, 6, 12, 16], "texture": "#glass"},
+        "west": {"uv": [4, 6, 12, 16], "texture": "#glass"}
+      }
+    },
+    {
+      "name": "glass_back",
+      "from": [4, 16, 14],
+      "to": [12, 26, 15],
+      "faces": {
+        "north": {"uv": [4, 6, 12, 16], "texture": "#glass"},
+        "south": {"uv": [4, 6, 12, 16], "texture": "#glass"}
+      }
+    },
+    {
+      "name": "glass_right",
+      "from": [14, 16, 4],
+      "to": [15, 26, 12],
+      "faces": {
+        "east": {"uv": [4, 6, 12, 16], "texture": "#glass"},
+        "west": {"uv": [4, 6, 12, 16], "texture": "#glass"}
+      }
+    }
+  ]
+}

@@ -24,16 +24,26 @@ import com.beipuo.mekenergistics.registry.ModBlockEntities;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
+import com.jerry.mekaf.common.block.attribute.AttributeAdvancedFactoryType;
 import com.jerry.mekaf.common.content.blocktype.AdvancedFactory;
 import com.jerry.mekaf.common.content.blocktype.AdvancedFactoryType;
+import com.jerry.mekextras.common.block.attribute.ExtraAttribute;
 import com.jerry.mekextras.common.integration.mekaf.content.blocktype.ExtraAdvancedFactory;
 import com.jerry.mekextras.common.tier.ExtraFactoryTier;
 import java.util.Locale;
+import mekanism.common.block.attribute.Attribute;
+import mekanism.common.block.attribute.AttributeTier;
 import mekanism.common.block.attribute.AttributeGui;
 import mekanism.common.content.blocktype.BlockTypeTile;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
+import mekanism.common.tier.FactoryTier;
 import mekanism.common.tile.base.TileEntityMekanism;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import org.jetbrains.annotations.Nullable;
 
 public final class MekanismMoreMachineAdvancedCompat {
     private MekanismMoreMachineAdvancedCompat() {
@@ -128,6 +138,76 @@ public final class MekanismMoreMachineAdvancedCompat {
 
     public static ExtraFactoryTier extraFactoryTier(MeMekanismMachine machine) {
         return ExtraFactoryTier.valueOf(machine.extraFactoryTierName().toUpperCase(Locale.ROOT));
+    }
+
+    @Nullable
+    public static MeMekanismMachine getFactoryTarget(BlockState state) {
+        MeMekanismMachine registryTarget = getFactoryTargetByRegistryName(state);
+        if (registryTarget != null) {
+            return registryTarget;
+        }
+        AttributeAdvancedFactoryType attribute = Attribute.get(state, AttributeAdvancedFactoryType.class);
+        if (attribute == null) {
+            return null;
+        }
+        String typeName = attribute.getAdvancedFactoryType().getRegistryNameComponent();
+        if (ModList.get().isLoaded("mekanism_extras")) {
+            ExtraFactoryTier extraTier = ExtraAttribute.getAdvancedTier(state.getBlock(), ExtraFactoryTier.class);
+            if (extraTier != null) {
+                return MeMekanismMachine.getExtraMoreMachineAdvancedFactory(extraTier.name().toLowerCase(Locale.ROOT), typeName);
+            }
+        }
+        AttributeTier<?> tier = Attribute.get(state, AttributeTier.class);
+        if (tier != null && tier.tier() instanceof FactoryTier factoryTier) {
+            return MeMekanismMachine.getMoreMachineAdvancedFactory(factoryTier, typeName);
+        }
+        return MeMekanismMachine.getMoreMachineAdvancedFactory(FactoryTier.BASIC, typeName);
+    }
+
+    @Nullable
+    private static MeMekanismMachine getFactoryTargetByRegistryName(BlockState state) {
+        ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        String path = id.getPath();
+        if (path.startsWith("me_")) {
+            return null;
+        }
+        for (FactoryTier tier : FactoryTier.values()) {
+            MeMekanismMachine target = getFactoryTargetByRegistryName(path, tier.name().toLowerCase(Locale.ROOT), tier);
+            if (target != null) {
+                return target;
+            }
+        }
+        if (ModList.get().isLoaded("mekanism_extras")) {
+            for (String tierName : new String[] {"absolute", "supreme", "cosmic", "infinite"}) {
+                MeMekanismMachine target = getExtraFactoryTargetByRegistryName(path, tierName);
+                if (target != null) {
+                    return target;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static MeMekanismMachine getFactoryTargetByRegistryName(String path, String tierName, FactoryTier tier) {
+        String typeName = factoryTypeName(path, tierName);
+        return typeName == null ? null : MeMekanismMachine.getMoreMachineAdvancedFactory(tier, typeName);
+    }
+
+    @Nullable
+    private static MeMekanismMachine getExtraFactoryTargetByRegistryName(String path, String tierName) {
+        String typeName = factoryTypeName(path, tierName);
+        return typeName == null ? null : MeMekanismMachine.getExtraMoreMachineAdvancedFactory(tierName, typeName);
+    }
+
+    @Nullable
+    private static String factoryTypeName(String path, String tierName) {
+        String prefix = tierName + "_";
+        String suffix = "_factory";
+        if (!path.startsWith(prefix) || !path.endsWith(suffix)) {
+            return null;
+        }
+        return path.substring(prefix.length(), path.length() - suffix.length());
     }
 
     public static void registerGridNodeHost(
