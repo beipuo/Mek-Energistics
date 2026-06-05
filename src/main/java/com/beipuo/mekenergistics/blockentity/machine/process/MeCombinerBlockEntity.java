@@ -80,6 +80,13 @@ public class MeCombinerBlockEntity extends TileEntityCombiner implements ICrafti
         return this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode) || sendUpdatePacket;
     }
 
+    @NotNull
+    @Override
+    public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.CombinerRecipe> createNewCachedRecipe(
+            @NotNull mekanism.api.recipes.CombinerRecipe recipe, int cacheIndex) {
+        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {

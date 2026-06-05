@@ -18,6 +18,8 @@ public final class MeNetworkEnergyHelper {
     }
 
     public interface LocalEnergyBuffer {
+        long getLocalEnergy();
+
         long extractLocal(long amount, Action action, AutomationType automationType);
     }
 
@@ -46,7 +48,7 @@ public final class MeNetworkEnergyHelper {
     }
 
     public static long availableWithLocalBuffer(MachineEnergyContainer<?> localEnergy, IGrid grid, IActionSource source) {
-        long local = localEnergy.getEnergy();
+        long local = localEnergy instanceof LocalEnergyBuffer buffer ? buffer.getLocalEnergy() : localEnergy.getEnergy();
         long needed = localEnergy.getMaxEnergy() - local;
         if (needed <= 0 || grid == null) {
             return local;

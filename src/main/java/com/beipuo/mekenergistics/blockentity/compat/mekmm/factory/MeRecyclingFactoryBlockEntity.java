@@ -45,6 +45,7 @@ public class MeRecyclingFactoryBlockEntity extends TileEntityRecyclingFactory im
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushSingleItem(this, inputHolder); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
+    @Override public mekanism.api.recipes.cache.CachedRecipe<com.jerry.mekmm.api.recipes.RecyclerRecipe> createNewCachedRecipe(@NotNull com.jerry.mekmm.api.recipes.RecyclerRecipe recipe, int cacheIndex) { return MeExternalFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
     @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExternalFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeExternalFactorySupport.updateServer(this, sendUpdatePacket); }
     @Override public void clearRemoved() { super.clearRemoved(); MeExternalFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }

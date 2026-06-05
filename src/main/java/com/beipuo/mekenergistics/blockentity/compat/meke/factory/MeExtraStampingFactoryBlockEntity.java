@@ -41,6 +41,7 @@ public class MeExtraStampingFactoryBlockEntity extends TileEntityExtraStampingFa
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExtraFactoryBridge.pushTwoItems(this, inputHolder, getExtraSlot()); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
+    @Override public mekanism.api.recipes.cache.CachedRecipe<com.jerry.mekmm.api.recipes.StamperRecipe> createNewCachedRecipe(@NotNull com.jerry.mekmm.api.recipes.StamperRecipe recipe, int cacheIndex) { return MeExtraFactoryBridge.wrapRecipeEnergy(this, getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex)); }
     @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExtraFactoryBridge.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeExtraFactoryBridge.updateServer(this, sendUpdatePacket); }
     @Override public void clearRemoved() { super.clearRemoved(); MeExtraFactoryBridge.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }

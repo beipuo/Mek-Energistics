@@ -22,6 +22,9 @@ import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.MekanismRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
+import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.capabilities.holder.chemical.IChemicalTankHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
@@ -142,6 +145,7 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
     @Nullable public IGridNode getActionableNode() { return getMainNode().getNode(); }
     public AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
     public void cycleAeOutputMode() { this.aeOutputMode = this.aeOutputMode.next(); this.owner.setChanged(); }
+    public <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) { return this.aeSupport.wrapRecipeEnergy(energyContainer, cachedRecipe); }
     void clearRemoved() { GridHelper.onFirstTick(this.owner, be -> this.aeSupport.create(be.getLevel(), be.getBlockPos())); }
     void setRemoved() { this.aeSupport.destroy(); }
     void onChunkUnloaded() { this.aeSupport.destroy(); }

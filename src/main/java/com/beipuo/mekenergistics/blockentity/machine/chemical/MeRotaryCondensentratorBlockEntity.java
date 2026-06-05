@@ -82,6 +82,13 @@ public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondense
         return changed || sendUpdatePacket;
     }
 
+    @NotNull
+    @Override
+    public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.RotaryRecipe> createNewCachedRecipe(
+            @NotNull mekanism.api.recipes.RotaryRecipe recipe, int cacheIndex) {
+        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {

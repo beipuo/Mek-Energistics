@@ -42,6 +42,7 @@ public class MeAdvancedCentrifugingFactoryBlockEntity extends TileEntityCentrifu
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeAdvancedFactorySupport.pushChemical(this, inputHolder, this.inputChemicalTanks); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
+    @Override public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.ChemicalToChemicalRecipe> createNewCachedRecipe(@NotNull mekanism.api.recipes.ChemicalToChemicalRecipe recipe, int cacheIndex) { return MeAdvancedFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
     @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeAdvancedFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeAdvancedFactorySupport.updateServer(this, sendUpdatePacket, this.outputChemicalTanks); }
     @Override public void clearRemoved() { super.clearRemoved(); MeAdvancedFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }

@@ -8,6 +8,9 @@ import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.MekanismRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
+import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
@@ -95,6 +98,11 @@ final class MeExtraFactoryBridge {
 
     static List<IPatternDetails> getAvailablePatterns(MeFactoryAeSupport support) {
         return MeExternalFactorySupport.getAvailablePatterns(support);
+    }
+
+    static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(
+            Owner owner, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return MeFactoryAeSupport.withAeRecipeEnergy(owner, energyContainer, cachedRecipe);
     }
 
     @Nullable

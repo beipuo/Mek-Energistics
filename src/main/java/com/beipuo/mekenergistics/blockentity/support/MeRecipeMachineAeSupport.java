@@ -39,6 +39,8 @@ import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.fluid.IExtendedFluidTank;
 import mekanism.api.functions.ConstantPredicates;
+import mekanism.api.recipes.MekanismRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
@@ -350,6 +352,11 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         }
 
         @Override
+        public long getLocalEnergy() {
+            return super.getEnergy();
+        }
+
+        @Override
         public long extractLocal(long amount, Action action, AutomationType automationType) {
             return super.extract(amount, action, automationType);
         }
@@ -360,15 +367,23 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     public static final class RecipeEnergyView implements IEnergyContainer {
-        private final AeBackedEnergyContainer<?> energyContainer;
+        private final MeAeMachine aeMachine;
+        private final IActionSource actionSource;
+        private final MachineEnergyContainer<?> energyContainer;
 
         public RecipeEnergyView(AeBackedEnergyContainer<?> energyContainer) {
+            this(energyContainer.aeMachine, energyContainer.actionSource, energyContainer);
+        }
+
+        public RecipeEnergyView(MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer) {
+            this.aeMachine = aeMachine;
+            this.actionSource = actionSource;
             this.energyContainer = energyContainer;
         }
 
         @Override
         public long getEnergy() {
-            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.energyContainer.aeMachine.getGrid(), this.energyContainer.actionSource);
+            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.aeMachine.getGrid(), this.actionSource);
         }
 
         @Override
@@ -378,7 +393,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            return this.energyContainer.extract(amount, action, automationType);
+            return MeNetworkEnergyHelper.extractWithLocalBuffer(this.energyContainer, this.aeMachine.getGrid(), this.actionSource, amount, action, automationType);
         }
 
         @Override
@@ -400,6 +415,23 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             this.energyContainer.deserializeNBT(provider, nbt);
         }
+    }
+
+    public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
+            MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return energyContainer instanceof AeBackedEnergyContainer<?> aeBackedEnergyContainer
+                ? withAeRecipeEnergy(aeBackedEnergyContainer.aeMachine, aeBackedEnergyContainer.actionSource, energyContainer, cachedRecipe)
+                : cachedRecipe;
+    }
+
+    public <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(
+            MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return withAeRecipeEnergy(this.owner, this.actionSource, energyContainer, cachedRecipe);
+    }
+
+    public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
+            MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick, new RecipeEnergyView(aeMachine, actionSource, energyContainer));
     }
 
     private enum NodeListener implements IGridNodeListener<TileEntityMekanism> {

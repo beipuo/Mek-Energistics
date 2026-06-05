@@ -17,6 +17,9 @@ import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.fluid.IExtendedFluidTank;
 import mekanism.api.inventory.IInventorySlot;
+import mekanism.api.recipes.MekanismRecipe;
+import mekanism.api.recipes.cache.CachedRecipe;
+import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
@@ -306,6 +309,11 @@ public final class MeExternalFactorySupport {
 
     public static List<IPatternDetails> getAvailablePatterns(MeFactoryAeSupport support) {
         return support.getAvailablePatterns();
+    }
+
+    public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(
+            Owner owner, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
+        return MeFactoryAeSupport.withAeRecipeEnergy(owner, energyContainer, cachedRecipe);
     }
 
     public static void save(MeFactoryAeSupport support, CompoundTag tag, HolderLookup.Provider registries) {

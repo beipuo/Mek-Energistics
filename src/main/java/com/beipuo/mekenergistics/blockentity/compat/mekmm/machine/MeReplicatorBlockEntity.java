@@ -51,6 +51,12 @@ public class MeReplicatorBlockEntity extends TileEntityReplicator implements ICr
         return this.meSupport().drainOutputs(super.onUpdateServer());
     }
 
+    @Override
+    public mekanism.api.recipes.cache.CachedRecipe<com.jerry.mekmm.api.recipes.basic.MMBasicItemStackChemicalToItemStackRecipe> createNewCachedRecipe(
+            @NotNull com.jerry.mekmm.api.recipes.basic.MMBasicItemStackChemicalToItemStackRecipe recipe, int cacheIndex) {
+        return this.meSupport().wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
     private MeMekmmItemChemicalMachineSupport<MeReplicatorBlockEntity> meSupport() {
         if (this.meSupport == null) {
             this.meSupport = new MeMekmmItemChemicalMachineSupport<>(this, MeMekanismMachine.REPLICATOR);

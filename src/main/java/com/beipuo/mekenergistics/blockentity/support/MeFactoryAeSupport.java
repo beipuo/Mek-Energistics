@@ -487,6 +487,11 @@ public final class MeFactoryAeSupport {
         }
 
         @Override
+        public long getLocalEnergy() {
+            return super.getEnergy();
+        }
+
+        @Override
         public long extractLocal(long amount, Action action, AutomationType automationType) {
             return super.extract(amount, action, automationType);
         }

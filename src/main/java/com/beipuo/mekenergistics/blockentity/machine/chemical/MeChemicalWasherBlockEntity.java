@@ -80,6 +80,13 @@ public class MeChemicalWasherBlockEntity extends TileEntityChemicalWasher implem
         return this.aeSupport.insertChemicalTankIntoNetwork(this.outputTank, this.aeOutputMode) || sendUpdatePacket;
     }
 
+    @NotNull
+    @Override
+    public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.FluidChemicalToChemicalRecipe> createNewCachedRecipe(
+            @NotNull mekanism.api.recipes.FluidChemicalToChemicalRecipe recipe, int cacheIndex) {
+        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {

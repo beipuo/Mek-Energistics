@@ -51,6 +51,12 @@ public class MePlantingStationBlockEntity extends TileEntityPlantingStation impl
         return this.meSupport().drainOutputs(super.onUpdateServer());
     }
 
+    @Override
+    public mekanism.api.recipes.cache.CachedRecipe<com.jerry.mekmm.api.recipes.PlantingRecipe> createNewCachedRecipe(
+            @NotNull com.jerry.mekmm.api.recipes.PlantingRecipe recipe, int cacheIndex) {
+        return this.meSupport().wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
     private MeMekmmItemChemicalMachineSupport<MePlantingStationBlockEntity> meSupport() {
         if (this.meSupport == null) {
             this.meSupport = new MeMekmmItemChemicalMachineSupport<>(this, MeMekanismMachine.PLANTING_STATION);

@@ -78,6 +78,13 @@ public class MePigmentExtractorBlockEntity extends TileEntityPigmentExtractor im
         return this.aeSupport.insertChemicalTankIntoNetwork(this.pigmentTank, this.aeOutputMode) || sendUpdatePacket;
     }
 
+    @NotNull
+    @Override
+    public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.ItemStackToChemicalRecipe> createNewCachedRecipe(
+            @NotNull mekanism.api.recipes.ItemStackToChemicalRecipe recipe, int cacheIndex) {
+        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {

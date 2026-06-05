@@ -23,6 +23,11 @@ final class MeAeBackedEnergyContainer extends MachineEnergyContainer<MeMekanismM
     }
 
     @Override
+    public long getLocalEnergy() {
+        return super.getEnergy();
+    }
+
+    @Override
     public long extractLocal(long amount, Action action, AutomationType automationType) {
         return super.extract(amount, action, automationType);
     }

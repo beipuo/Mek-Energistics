@@ -83,6 +83,12 @@ public class MeStamperBlockEntity extends TileEntityStamper implements ICrafting
     }
 
     @Override
+    public mekanism.api.recipes.cache.CachedRecipe<com.jerry.mekmm.api.recipes.StamperRecipe> createNewCachedRecipe(
+            @NotNull com.jerry.mekmm.api.recipes.StamperRecipe recipe, int cacheIndex) {
+        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+    }
+
+    @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
