@@ -76,11 +76,7 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
                 attribute.adjustProperties(properties);
             }
         }
-        return machine.isFactory() || machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER || hasCustomShape(blockType) ? properties.noOcclusion() : properties;
-    }
-
-    private static boolean hasCustomShape(@Nullable BlockTypeTile<? extends TileEntityMekanism> blockType) {
-        return blockType != null && blockType.has(AttributeCustomShape.class);
+        return machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER ? properties.noOcclusion() : properties;
     }
 
     public MeMekanismMachine getMachine() {
