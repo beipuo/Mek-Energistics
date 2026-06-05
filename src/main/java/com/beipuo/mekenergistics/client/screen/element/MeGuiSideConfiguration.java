@@ -115,7 +115,8 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
             if (!canToggle(type)) {
                 return;
             }
-            Component text = Component.literal(isTypeEnabled(type) ? "AE: 开" : "AE: 关");
+            Component text = Component.translatable(isTypeEnabled(type) ?
+                    "tooltip.mekenergistics.ae_output.enabled" : "tooltip.mekenergistics.ae_output.disabled");
             drawScaledScrollingString(guiGraphics, text, 0, 0, TextAlignment.RIGHT, screenTextColor(), getWidth(), 1, false, 0.8F);
         }
     }
@@ -126,7 +127,7 @@ public class MeGuiSideConfiguration<TILE extends TileEntityMekanism & ISideConfi
                 sendToggle();
                 return true;
             });
-            setTooltip(Tooltip.create(Component.literal("输出到AE")));
+            setTooltip(Tooltip.create(Component.translatable("tooltip.mekenergistics.ae_output.button")));
         }
 
         @Override
