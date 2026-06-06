@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 public final class ModBlockTypes {
     private static final Map<MeMekanismMachine, BlockTypeTile<? extends TileEntityMekanism>> MACHINES =
             new EnumMap<>(MeMekanismMachine.class);
-
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {
             if (machine.isAvailable()) {
