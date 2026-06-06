@@ -39,6 +39,7 @@ import com.beipuo.mekenergistics.menu.MePatternFormulaicAssemblicatorContainer;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
 import com.beipuo.mekenergistics.menu.MePatternMekanismTileContainer;
 import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasMenuTypes;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasAdvancedMenuTypes;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMenuTypes;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMoreMachineMenuTypes;
@@ -131,6 +132,8 @@ public final class ModMenuTypes {
             optionalHolder("me_advanced_factory");
     public static final ContainerTypeRegistryObject<? extends MekanismTileContainer<?>> ME_EXTRA_FACTORY =
             optionalHolder("me_extra_factory");
+    public static final ContainerTypeRegistryObject<? extends MekanismTileContainer<?>> ME_EM_EXTRA_FACTORY =
+            optionalHolder("me_em_extra_factory");
     public static final ContainerTypeRegistryObject<? extends MekanismTileContainer<?>> ME_EXTRA_MORE_MACHINE_FACTORY =
             optionalHolder("me_extra_more_machine_factory");
     public static final ContainerTypeRegistryObject<? extends MekanismTileContainer<?>> ME_EXTRA_ADVANCED_FACTORY =
@@ -151,6 +154,9 @@ public final class ModMenuTypes {
             if (OptionalCompatClasses.hasMekanismExtrasAdvancedFactories()) {
                 MekanismExtrasAdvancedMenuTypes.register(MENU_TYPES);
             }
+        }
+        if (ModList.get().isLoaded("emextras")) {
+            EvolvedMekanismExtrasMenuTypes.register(MENU_TYPES);
         }
     }
 
@@ -231,6 +237,8 @@ public final class ModMenuTypes {
             return machine.extraFactoryTierName() == null ? ME_MORE_MACHINE_FACTORY : ME_EXTRA_MORE_MACHINE_FACTORY;
         } else if (machine.factoryType() != null && machine.extraFactoryTierName() != null) {
             return ME_EXTRA_FACTORY;
+        } else if (machine.isEvolvedMekanismExtrasFactory()) {
+            return ME_EM_EXTRA_FACTORY;
         } else if (machine.isFactory()) {
             return ME_FACTORY;
         } else if (machine.slotLayout() == MeMekanismMachine.SlotLayout.SINGLE_ITEM && machine.hasRecipeLogic()) {

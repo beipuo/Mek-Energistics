@@ -6,6 +6,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.Optional;
@@ -80,7 +81,13 @@ public final class MeInstallerUpgradeHandler {
             return getMekanismTarget(current, installer.getFromTier(), installer.getToTier());
         }
         if (ModList.get().isLoaded("mekanism_extras")) {
-            return MekanismExtrasCompat.getInstallerTarget(current, stack);
+            MeMekanismMachine target = MekanismExtrasCompat.getInstallerTarget(current, stack);
+            if (target != null) {
+                return target;
+            }
+        }
+        if (ModList.get().isLoaded("emextras")) {
+            return EvolvedMekanismExtrasCompat.getInstallerTarget(current, stack);
         }
         return null;
     }

@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.item;
 
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
@@ -40,6 +41,12 @@ final class MeInstallerTargetResolver {
             MeMekanismMachine baseFactoryTarget = MekanismMoreMachineBaseCompat.getFactoryTarget(state);
             if (baseFactoryTarget != null) {
                 return baseFactoryTarget;
+            }
+        }
+        if (OptionalCompatClasses.hasEvolvedMekanismExtras()) {
+            MeMekanismMachine emExtraTarget = EvolvedMekanismExtrasCompat.getFactoryTarget(state);
+            if (emExtraTarget != null) {
+                return emExtraTarget;
             }
         }
         AttributeFactoryType attribute = Attribute.get(state, AttributeFactoryType.class);

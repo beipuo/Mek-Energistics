@@ -1,6 +1,8 @@
 package com.beipuo.mekenergistics.compat;
 
 import net.neoforged.fml.ModList;
+import mekanism.common.tier.FactoryTier;
+import org.jetbrains.annotations.Nullable;
 
 public final class OptionalCompatClasses {
     private static final String MEKAF_ITEM_TO_CHEMICAL_FACTORY =
@@ -19,6 +21,43 @@ public final class OptionalCompatClasses {
 
     public static boolean hasMekanismExtras() {
         return ModList.get().isLoaded("mekanism_extras");
+    }
+
+    public static boolean hasEvolvedMekanism() {
+        return ModList.get().isLoaded("evolvedmekanism");
+    }
+
+    public static boolean hasEvolvedMekanismExtras() {
+        return ModList.get().isLoaded("emextras");
+    }
+
+    @Nullable
+    public static FactoryTier getEvolvedFactoryTier(String tierName) {
+        if (!hasEvolvedMekanism()) {
+            return null;
+        }
+        try {
+            Object value = Class.forName("fr.iglee42.evolvedmekanism.tiers.EMFactoryTier")
+                    .getField(tierName.toUpperCase(java.util.Locale.ROOT))
+                    .get(null);
+            return value instanceof FactoryTier tier ? tier : null;
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    public static Object getEvolvedMekanismExtrasFactoryTier(String tierName) {
+        if (!hasEvolvedMekanismExtras()) {
+            return null;
+        }
+        try {
+            return Class.forName("io.github.masyumero.emextras.common.tier.EMExtraFactoryTier")
+                    .getField(tierName.toUpperCase(java.util.Locale.ROOT))
+                    .get(null);
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
+            return null;
+        }
     }
 
     public static boolean hasMekmmAdvancedFactories() {

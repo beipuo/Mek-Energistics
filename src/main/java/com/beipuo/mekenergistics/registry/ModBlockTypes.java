@@ -3,6 +3,7 @@ package com.beipuo.mekenergistics.registry;
 import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMoreMachineCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
@@ -53,6 +54,9 @@ public final class ModBlockTypes {
             mekanism.common.registration.impl.TileEntityTypeRegistryObject<TILE> tileType) {
         if (machine.isMekanismExtrasMekanismFactory()) {
             return MekanismExtrasCompat.createFactoryBlockType(machine, tileType);
+        }
+        if (machine.isEvolvedMekanismExtrasFactory()) {
+            return EvolvedMekanismExtrasCompat.createFactoryBlockType(machine, tileType);
         }
         if (machine.isMoreMachineAdvancedFactory()) {
             return MekanismMoreMachineAdvancedCompat.createAdvancedFactoryBlockType(machine, tileType);
