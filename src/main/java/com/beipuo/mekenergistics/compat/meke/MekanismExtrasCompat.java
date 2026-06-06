@@ -110,12 +110,22 @@ public final class MekanismExtrasCompat {
         if (currentTier != fromTier || currentTier == toTier) {
             return null;
         }
-        MeMekanismMachine target = current.getNextFactory();
+        MeMekanismMachine target = currentTier == null && fromTier == null && isTerminalEvolvedFactory(current)
+                ? MeMekanismMachine.getExtraFactory(toTier.getLowerName(), current.factoryType())
+                : current.getNextFactory();
         if (target == null || target.extraFactoryTierName() == null) {
             return null;
         }
         AdvancedTier targetTier = AdvancedTier.valueOf(target.extraFactoryTierName().toUpperCase(Locale.ROOT));
         return targetTier == toTier ? target : null;
+    }
+
+    private static boolean isTerminalEvolvedFactory(MeMekanismMachine machine) {
+        if (!machine.isEvolvedMekanismFactory()) {
+            return false;
+        }
+        MeMekanismMachine next = machine.getNextFactory();
+        return next == null || next.isEvolvedMekanismExtrasFactory();
     }
 
     public static void registerGridNodeHost(

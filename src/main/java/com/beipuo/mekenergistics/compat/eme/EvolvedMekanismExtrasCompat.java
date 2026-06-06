@@ -105,7 +105,11 @@ public final class EvolvedMekanismExtrasCompat {
         if (!(stack.getItem() instanceof EMExtraItemTierInstaller installer)) {
             return null;
         }
-        MeMekanismMachine target = current.getNextFactory();
+        MeMekanismMachine target = current.emExtraFactoryTierName() == null
+                && installer.getFromTier() == null
+                && isTerminalEvolvedFactory(current)
+                ? MeMekanismMachine.getEvolvedMekanismExtrasFactory(installer.getToTier().name().toLowerCase(Locale.ROOT), current.factoryType())
+                : current.getNextFactory();
         if (target == null || target.emExtraFactoryTierName() == null) {
             return null;
         }
@@ -114,6 +118,14 @@ public final class EvolvedMekanismExtrasCompat {
                 : emExtraTier(current).getEMExtraTier();
         EMExtraTier targetTier = emExtraTier(target).getEMExtraTier();
         return currentTier == installer.getFromTier() && targetTier == installer.getToTier() ? target : null;
+    }
+
+    private static boolean isTerminalEvolvedFactory(MeMekanismMachine machine) {
+        if (!machine.isEvolvedMekanismFactory()) {
+            return false;
+        }
+        MeMekanismMachine next = machine.getNextFactory();
+        return next == null || next.isEvolvedMekanismExtrasFactory();
     }
 
     public static void registerGridNodeHost(
