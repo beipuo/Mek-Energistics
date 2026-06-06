@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.12-beta
+
+- Added EvolvedMekanism and EvolvedMekanismExtras factory compatibility, including recipes, models, loot tables, lang entries, and EME Extra factory GUI support.
+- Added the EvolvedMekanism Iglee Library dependency and updated runtime dependencies for the new compatibility chain.
+- Fixed ME Factory Installer behavior so reusing it on existing ME machines does not downgrade them to ME Basic Factories.
+- Matched Mekanism's installer interaction behavior by removing the client-side right-click use animation from ME factory installers.
+- Matched EvolvedMekanism factory upgrade support for ME Evolved factories while keeping stack upgrades limited to factories whose source mod supports them.
+- Added the machine adaptation guide docs.
+- Verified the update with Gradle build.
+
 ## 0.0.11-beta
 
 - Fixed transparent/missing adjacent block faces next to ME machines, including the ME Metallurgic Infuser case reported with AE2 Additions wireless transceivers.
