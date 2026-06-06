@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.13-beta
+
+- Adapted Mekanism Extras and EvolvedMekanismExtras factory installers so terminal VME ME factories can enter the matching extra factory chains.
+- Kept cross-chain installer upgrades gated to the first extra tier, avoiding skips from lower EvolvedMekanism factory tiers.
+- Verified the update with Gradle compile.
+
 ## 0.0.12-beta
 
 - Added EvolvedMekanism and EvolvedMekanismExtras factory compatibility, including recipes, models, loot tables, lang entries, and EME Extra factory GUI support.
