@@ -23,6 +23,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.storage.StorageHelper;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
@@ -152,8 +153,7 @@ public final class MeFactoryAeSupport {
     }
 
     public IGrid getGrid() {
-        IGridNode node = this.mainNode.getNode();
-        return node == null || !node.isActive() ? null : node.getGrid();
+        return this.mainNode.getGrid();
     }
 
     public boolean insertOutputSlotsIntoNetwork(List<IInventorySlot> outputSlots) {
@@ -161,7 +161,8 @@ public final class MeFactoryAeSupport {
         if (!this.aeOutputMode.items()) {
             return false;
         }
-        MEStorage storage = getNetworkStorage();
+        IGrid grid = getGrid();
+        MEStorage storage = getNetworkStorage(grid);
         if (storage == null) {
             return false;
         }
@@ -175,7 +176,7 @@ public final class MeFactoryAeSupport {
             if (key == null) {
                 continue;
             }
-            long inserted = storage.insert(key, output.getCount(), Actionable.MODULATE, this.actionSource);
+            long inserted = StorageHelper.poweredInsert(grid.getEnergyService(), storage, key, output.getCount(), this.actionSource);
             if (inserted > 0) {
                 output.shrink((int) inserted);
                 outputSlot.setStack(output.isEmpty() ? ItemStack.EMPTY : output);
@@ -301,14 +302,19 @@ public final class MeFactoryAeSupport {
     }
 
     private MEStorage getNetworkStorage() {
-        IGrid grid = getGrid();
+        return getNetworkStorage(getGrid());
+    }
+
+    private MEStorage getNetworkStorage(IGrid grid) {
         IStorageService storageService = grid == null ? null : grid.getService(IStorageService.class);
         return storageService == null ? null : storageService.getInventory();
     }
 
     private long insertIntoNetwork(AEKey key, long amount) {
-        MEStorage storage = getNetworkStorage();
-        return storage == null || key == null || amount <= 0 ? 0 : storage.insert(key, amount, Actionable.MODULATE, this.actionSource);
+        IGrid grid = getGrid();
+        MEStorage storage = getNetworkStorage(grid);
+        return storage == null || key == null || amount <= 0 ? 0
+                : StorageHelper.poweredInsert(grid.getEnergyService(), storage, key, amount, this.actionSource);
     }
 
     public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer) {
@@ -444,6 +450,13 @@ public final class MeFactoryAeSupport {
         @Override
         public void onSaveChanges(MeFactoryAeMachine nodeOwner, IGridNode node) {
             nodeOwner.saveChanges();
+        }
+
+        @Override
+        public void onStateChanged(MeFactoryAeMachine nodeOwner, IGridNode node, State state) {
+            if (node.isActive()) {
+                node.getGrid().getTickManager().alertDevice(node);
+            }
         }
     }
 

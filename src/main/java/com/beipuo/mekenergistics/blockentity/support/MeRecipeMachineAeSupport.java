@@ -22,6 +22,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.storage.MEStorage;
+import appeng.api.storage.StorageHelper;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
@@ -124,8 +125,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     public IGrid getGrid() {
-        IGridNode node = this.mainNode.getNode();
-        return node == null || !node.isActive() ? null : node.getGrid();
+        return this.mainNode.getGrid();
     }
 
     public boolean insertOutputSlotIntoNetwork(OutputInventorySlot outputSlot, AeOutputMode mode) {
@@ -270,17 +270,21 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         if (key == null) {
             return 0;
         }
-        MEStorage storage = getNetworkStorage();
-        return storage == null ? 0 : storage.insert(key, stack.getCount(), Actionable.MODULATE, this.actionSource);
+        return insertIntoNetwork(key, stack.getCount());
     }
 
     private long insertIntoNetwork(AEKey key, long amount) {
-        MEStorage storage = getNetworkStorage();
-        return storage == null || key == null || amount <= 0 ? 0 : storage.insert(key, amount, Actionable.MODULATE, this.actionSource);
+        IGrid grid = getGrid();
+        MEStorage storage = getNetworkStorage(grid);
+        return storage == null || key == null || amount <= 0 ? 0
+                : StorageHelper.poweredInsert(grid.getEnergyService(), storage, key, amount, this.actionSource);
     }
 
     private MEStorage getNetworkStorage() {
-        IGrid grid = getGrid();
+        return getNetworkStorage(getGrid());
+    }
+
+    private MEStorage getNetworkStorage(IGrid grid) {
         IStorageService storageService = grid == null ? null : grid.getService(IStorageService.class);
         return storageService == null ? null : storageService.getInventory();
     }
@@ -440,6 +444,13 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         @Override
         public void onSaveChanges(TileEntityMekanism nodeOwner, IGridNode node) {
             nodeOwner.setChanged();
+        }
+
+        @Override
+        public void onStateChanged(TileEntityMekanism nodeOwner, IGridNode node, State state) {
+            if (node.isActive()) {
+                node.getGrid().getTickManager().alertDevice(node);
+            }
         }
     }
 
