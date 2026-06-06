@@ -63,7 +63,7 @@ public final class MeInstallerUpgradeHandler {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         InteractionResult result = upgrade(stack, state, level, pos, player, target);
         return switch (result) {

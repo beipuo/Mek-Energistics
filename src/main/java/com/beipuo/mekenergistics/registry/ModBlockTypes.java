@@ -15,6 +15,7 @@ import mekanism.api.text.ILangEntry;
 import mekanism.common.block.attribute.AttributeHasBounding;
 import mekanism.common.block.attribute.AttributeFactoryType;
 import mekanism.common.block.attribute.AttributeStateFacing;
+import mekanism.common.block.attribute.AttributeUpgradeSupport;
 import mekanism.common.block.attribute.AttributeTier;
 import mekanism.common.block.attribute.Attributes;
 import mekanism.common.content.blocktype.BlockShapes;
@@ -75,7 +76,7 @@ public final class ModBlockTypes {
                 .withEnergyConfig(machine.energyUsage(), machine.energyStorage())
                 .with(new AttributeStateFacing(), Attributes.ACTIVE_LIGHT, Attributes.INVENTORY, Attributes.REDSTONE, Attributes.SECURITY, Attributes.COMPARATOR)
                 .withSideConfig(sideConfigFor(machine))
-                .withSupportedUpgrades(Upgrade.SPEED, Upgrade.ENERGY);
+                .with(upgradeSupportFor(machine));
         if (machine.factoryType() != null) {
             builder.with(new AttributeFactoryType(machine.factoryType()));
         }
@@ -131,6 +132,12 @@ public final class ModBlockTypes {
 
     private static ILangEntry lang(MeMekanismMachine machine) {
         return machine::translationKey;
+    }
+
+    private static AttributeUpgradeSupport upgradeSupportFor(MeMekanismMachine machine) {
+        return machine.isEvolvedMekanismFactory()
+                ? AttributeUpgradeSupport.DEFAULT_MACHINE_UPGRADES
+                : AttributeUpgradeSupport.create(Upgrade.SPEED, Upgrade.ENERGY);
     }
 
     private static TransmissionType[] sideConfigFor(MeMekanismMachine machine) {
