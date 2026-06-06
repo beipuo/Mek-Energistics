@@ -1,4 +1,4 @@
-package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
+ package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
