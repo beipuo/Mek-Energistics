@@ -77,8 +77,8 @@ public class MePrecisionSawmillBlockEntity extends TileEntityPrecisionSawmill im
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         var accessor = (TileEntityPrecisionSawmillAccessor) this;
-        return this.aeSupport.insertOutputSlotsIntoNetwork(this.aeOutputMode, accessor.mekenergistics$getOutputSlot(), accessor.mekenergistics$getSecondaryOutputSlot())
-                || sendUpdatePacket;
+        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket,
+                accessor.mekenergistics$getOutputSlot(), accessor.mekenergistics$getSecondaryOutputSlot());
     }
 
     @NotNull

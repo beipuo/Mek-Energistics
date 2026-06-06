@@ -68,9 +68,7 @@ public class MePressurizedReactionChamberBlockEntity extends TileEntityPressuriz
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         OutputInventorySlot output = ((TileEntityPressurizedReactionChamberAccessor) this).mekenergistics$getOutputSlot();
-        boolean changed = this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode);
-        changed |= this.aeSupport.insertChemicalTankIntoNetwork(this.outputGasTank, this.aeOutputMode);
-        return changed || sendUpdatePacket;
+        return this.aeSupport.drainMixedOutputs(this.aeOutputMode, sendUpdatePacket, output, this.outputGasTank);
     }
 
     @NotNull

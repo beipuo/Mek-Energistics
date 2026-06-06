@@ -77,7 +77,7 @@ public class MeChemicalWasherBlockEntity extends TileEntityChemicalWasher implem
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        return this.aeSupport.insertChemicalTankIntoNetwork(this.outputTank, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.outputTank);
     }
 
     @NotNull

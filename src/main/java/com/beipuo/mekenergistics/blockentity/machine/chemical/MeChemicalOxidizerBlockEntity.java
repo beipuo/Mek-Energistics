@@ -75,7 +75,7 @@ public class MeChemicalOxidizerBlockEntity extends TileEntityChemicalOxidizer im
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        return this.aeSupport.insertChemicalTankIntoNetwork(this.gasTank, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.gasTank);
     }
 
     @NotNull

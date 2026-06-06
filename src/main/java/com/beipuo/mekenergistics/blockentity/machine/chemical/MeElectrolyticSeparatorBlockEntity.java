@@ -61,9 +61,7 @@ public class MeElectrolyticSeparatorBlockEntity extends TileEntityElectrolyticSe
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        boolean changed = this.aeSupport.insertChemicalTankIntoNetwork(this.leftTank, this.aeOutputMode);
-        changed |= this.aeSupport.insertChemicalTankIntoNetwork(this.rightTank, this.aeOutputMode);
-        return changed || sendUpdatePacket;
+        return this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.leftTank, this.rightTank);
     }
 
     @NotNull

@@ -76,10 +76,9 @@ public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondense
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        boolean changed = getMode()
-                ? this.aeSupport.insertChemicalTankIntoNetwork(this.gasTank, this.aeOutputMode)
-                : this.aeSupport.insertFluidTankIntoNetwork(this.fluidTank, this.aeOutputMode);
-        return changed || sendUpdatePacket;
+        return getMode()
+                ? this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.gasTank)
+                : this.aeSupport.drainFluidOutputs(this.aeOutputMode, sendUpdatePacket, this.fluidTank);
     }
 
     @NotNull

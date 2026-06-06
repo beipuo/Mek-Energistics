@@ -76,10 +76,8 @@ public class MeNutritionalLiquifierBlockEntity extends TileEntityNutritionalLiqu
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        boolean changed = this.aeSupport.insertFluidTankIntoNetwork(this.fluidTank, this.aeOutputMode);
         OutputInventorySlot output = ((TileEntityNutritionalLiquifierAccessor) this).mekenergistics$getOutputSlot();
-        changed |= this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode);
-        return changed || sendUpdatePacket;
+        return this.aeSupport.drainMixedOutputs(this.aeOutputMode, sendUpdatePacket, output, this.fluidTank);
     }
 
     @NotNull

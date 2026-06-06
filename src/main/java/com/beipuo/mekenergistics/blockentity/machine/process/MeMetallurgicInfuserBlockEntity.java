@@ -79,7 +79,7 @@ public class MeMetallurgicInfuserBlockEntity extends TileEntityMetallurgicInfuse
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         OutputInventorySlot output = ((TileEntityMetallurgicInfuserAccessor) this).mekenergistics$getOutputSlot();
-        return this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket, output);
     }
 
     @NotNull

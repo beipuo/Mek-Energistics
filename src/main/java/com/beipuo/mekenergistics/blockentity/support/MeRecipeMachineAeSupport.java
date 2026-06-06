@@ -39,6 +39,7 @@ import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.fluid.IExtendedFluidTank;
+import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
@@ -180,6 +181,48 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         tank.shrinkStack((int) Math.min(Integer.MAX_VALUE, inserted), Action.EXECUTE);
         this.owner.setChanged();
         return true;
+    }
+
+    public boolean drainOutputs(AeOutputMode mode, boolean sendUpdatePacket, OutputInventorySlot... outputSlots) {
+        return insertOutputSlotsIntoNetwork(mode, outputSlots) || sendUpdatePacket;
+    }
+
+    public boolean drainOutputs(AeOutputMode mode, boolean sendUpdatePacket, Iterable<? extends IInventorySlot> outputSlots) {
+        boolean changed = false;
+        for (IInventorySlot slot : outputSlots) {
+            if (slot instanceof OutputInventorySlot outputSlot) {
+                changed |= insertOutputSlotIntoNetwork(outputSlot, mode);
+            }
+        }
+        return changed || sendUpdatePacket;
+    }
+
+    public boolean drainChemicalOutputs(AeOutputMode mode, boolean sendUpdatePacket, IChemicalTank... tanks) {
+        boolean changed = false;
+        for (IChemicalTank tank : tanks) {
+            changed |= insertChemicalTankIntoNetwork(tank, mode);
+        }
+        return changed || sendUpdatePacket;
+    }
+
+    public boolean drainFluidOutputs(AeOutputMode mode, boolean sendUpdatePacket, IExtendedFluidTank... tanks) {
+        boolean changed = false;
+        for (IExtendedFluidTank tank : tanks) {
+            changed |= insertFluidTankIntoNetwork(tank, mode);
+        }
+        return changed || sendUpdatePacket;
+    }
+
+    public boolean drainMixedOutputs(AeOutputMode mode, boolean sendUpdatePacket, OutputInventorySlot outputSlot, IChemicalTank chemicalTank) {
+        boolean changed = insertOutputSlotIntoNetwork(outputSlot, mode);
+        changed |= insertChemicalTankIntoNetwork(chemicalTank, mode);
+        return changed || sendUpdatePacket;
+    }
+
+    public boolean drainMixedOutputs(AeOutputMode mode, boolean sendUpdatePacket, OutputInventorySlot outputSlot, IExtendedFluidTank fluidTank) {
+        boolean changed = insertOutputSlotIntoNetwork(outputSlot, mode);
+        changed |= insertFluidTankIntoNetwork(fluidTank, mode);
+        return changed || sendUpdatePacket;
     }
 
     private void rememberOutputSlot(OutputInventorySlot outputSlot) {

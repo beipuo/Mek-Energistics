@@ -42,7 +42,7 @@ public class MeAdvancedDissolvingFactoryBlockEntity extends TileEntityDissolving
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.ChemicalDissolutionRecipe> createNewCachedRecipe(@NotNull mekanism.api.recipes.ChemicalDissolutionRecipe recipe, int cacheIndex) { return MeAdvancedFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
-    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeAdvancedFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeAdvancedFactorySupport.updateServer(this, sendUpdatePacket); }
+    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeAdvancedFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeAdvancedFactorySupport.updateServer(this, sendUpdatePacket, this.outputChemicalTanks); }
     @Override public void clearRemoved() { super.clearRemoved(); MeAdvancedFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { getAeSupport().destroy(); super.onChunkUnloaded(); }

@@ -299,6 +299,10 @@ public final class MeExternalFactorySupport {
         return drainOutputs(owner) || sendUpdatePacket;
     }
 
+    public static boolean updateServer(Owner owner, boolean sendUpdatePacket, IExtendedFluidTank outputTank) {
+        return updateServer(owner, sendUpdatePacket) || owner.getAeSupport().insertFluidTankIntoNetwork(outputTank);
+    }
+
     public static boolean drainOutputs(Owner owner) {
         return owner.getAeSupport().insertOutputSlotsIntoNetwork(owner.meOutputSlots());
     }

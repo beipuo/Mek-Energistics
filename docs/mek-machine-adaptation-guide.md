@@ -200,6 +200,12 @@ this.aeSupport.insertFluidTankIntoNetwork(tank)
 
 普通机器 `MeRecipeMachineAeSupport` 中 fluid 输出当前受 `mode.items()` 控制；工厂 `MeFactoryAeSupport` 中 fluid 输出当前受 `aeOutputMode.chemicals()` 控制。新增机器前要确认这是不是目标语义，尤其是 GUI 上的 “items/chemicals/both” 开关是否符合玩家预期。
 
+输出回网必须走 AE 的 powered insert 语义，而不是直接对 storage 做裸 `insert`。item、fluid、chemical 映射成 AE key 后，使用 `StorageHelper.poweredInsert(grid.getEnergyService(), storage, key, amount, actionSource)`，这样才会同时 obey AE 网络能量、存储容量和返回速率限制。
+
+AE grid 获取逻辑要贴近原版 pattern provider：`getGrid()` 直接返回 `mainNode.getGrid()`，不要额外用 `node.isActive()` 把 grid 门住。无线连接器、跨维连接、刚读档恢复频道时，节点 active 状态和 grid 可见性可能不是同一拍更新；如果先用 active 卡掉 grid，产物回网会错过可用网络。
+
+节点状态变化时要唤醒 AE ticker。`NodeListener.onStateChanged(...)` 中如果节点重新 active，应调用 support 的唤醒逻辑，让之前因为网络不可用、没电、没频道或存储满而睡眠的输出重试恢复。否则会出现无线连接建立后不回网，或重进存档后机器不再用 AE 电的现象。
+
 `onUpdateServer()` 推荐模式：
 
 ```java
@@ -209,6 +215,8 @@ return sendUpdatePacket;
 ```
 
 如果机器可能因为网络满而留下输出，support 的 AE ticker 会在网络变化后继续尝试。但前提是这个 slot/tank 已经被 `remember` 过，也就是至少调用过一次 insert 方法。
+
+输出速率不足、AE 网络电量不足、存储满或存储总线限速时，产物会留在 Mek 输出 slot/tank 中继续堆积。这是正确的背压行为，不是吞物品。新增机器只要不绕过 Mek 自己的输出容量限制，就会在输出槽/tank 满时自然停机；网络恢复容量或能量后，support ticker 会继续尝试回网。
 
 ## 8. Mixin accessor
 
@@ -897,7 +905,10 @@ public class MeSomeExternalFactoryBlockEntity extends TileEntitySomeFactory impl
 | 下单吞原料 | 是否先 execute 了部分输入；必须所有 item/fluid/chemical simulate 成功后再 execute |
 | 下单后机器不加工 | Mek recipe type 是否匹配、输入槽/tank 是否正确、recipe cache 是否 unpause、能量 view 是否包了 AE 网络能量 |
 | 机器显示没电 | `createNewCachedRecipe` 是否使用 `wrapRecipeEnergy` / `withAeRecipeEnergy`，energy container 是否 AE-backed |
+| 重进世界后不能用 AE 电 | grid 获取是否被 `node.isActive()` 额外门住、AE-backed energy container 是否重新绑定 grid、节点状态变化是否唤醒 recipe/output ticker |
+| 无线连接器连上后不回网 | `getGrid()` 是否直接返回 `mainNode.getGrid()`、`NodeListener.onStateChanged(...)` 是否在 active 恢复时唤醒 ticker、输出 slot/tank 是否已 remember |
 | 产物留在输出槽 | `AeOutputMode` 是否允许该类型、输出 slot/tank 是否传给 support、AE 网络是否有存储空间 |
+| 产物持续堆积 | AE 网络电量、存储容量、存储总线限速是否不足；这是 Mek 输出槽/tank 的正常背压，满了后机器应自然停机 |
 | 网络恢复后产物仍不回网 | 输出 slot/tank 是否被 support remember；至少要调用过对应 `insert*IntoNetwork` |
 | chemical/fluid 不回网 | `AeOutputMode` 的 type 映射是否符合当前 support 逻辑，Applied Mekanistics key 是否可用 |
 | 重进世界样板消失 | `saveSlots/loadSlots` 是否调用，pattern slot tag key 是否一致 |

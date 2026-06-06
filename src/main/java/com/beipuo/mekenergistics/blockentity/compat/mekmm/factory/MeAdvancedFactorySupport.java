@@ -93,6 +93,10 @@ final class MeAdvancedFactorySupport {
         return updateServer(owner, sendUpdatePacket) || owner.getAeSupport().insertChemicalTankIntoNetwork(outputTank);
     }
 
+    static boolean updateServer(Owner owner, boolean sendUpdatePacket, mekanism.api.fluid.IExtendedFluidTank outputTank) {
+        return MeExternalFactorySupport.updateServer(adapt(owner), sendUpdatePacket, outputTank);
+    }
+
     static void createNodeOnFirstTick(TileEntityMekanism tile, MeFactoryAeSupport support, Level level, BlockPos pos) {
         MeExternalFactorySupport.createNodeOnFirstTick(tile, support, level, pos);
     }

@@ -74,7 +74,7 @@ public class MeChemicalInfuserBlockEntity extends TileEntityChemicalInfuser impl
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        return this.aeSupport.insertChemicalTankIntoNetwork(this.centerTank, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.centerTank);
     }
 
     @NotNull

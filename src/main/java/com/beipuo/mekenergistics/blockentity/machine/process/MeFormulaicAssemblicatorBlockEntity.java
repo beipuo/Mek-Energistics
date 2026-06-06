@@ -31,7 +31,6 @@ import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.sync.SyncableInt;
 import mekanism.common.inventory.slot.BasicInventorySlot;
-import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.tile.machine.TileEntityFormulaicAssemblicator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -75,13 +74,8 @@ public class MeFormulaicAssemblicatorBlockEntity extends TileEntityFormulaicAsse
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        boolean changed = false;
-        for (IInventorySlot slot : ((TileEntityFormulaicAssemblicatorAccessor) this).mekenergistics$getOutputSlots()) {
-            if (slot instanceof OutputInventorySlot outputSlot) {
-                changed |= this.aeSupport.insertOutputSlotIntoNetwork(outputSlot, this.aeOutputMode);
-            }
-        }
-        return changed || sendUpdatePacket;
+        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket,
+                ((TileEntityFormulaicAssemblicatorAccessor) this).mekenergistics$getOutputSlots());
     }
 
     @Override

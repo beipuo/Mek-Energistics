@@ -78,7 +78,7 @@ public class MeAntiprotonicNucleosynthesizerBlockEntity extends TileEntityAntipr
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         OutputInventorySlot output = ((TileEntityAntiprotonicNucleosynthesizerAccessor) this).mekenergistics$getOutputSlot();
-        return this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket, output);
     }
 
     @NotNull

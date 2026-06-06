@@ -75,7 +75,7 @@ public class MePigmentExtractorBlockEntity extends TileEntityPigmentExtractor im
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        return this.aeSupport.insertChemicalTankIntoNetwork(this.pigmentTank, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.pigmentTank);
     }
 
     @NotNull

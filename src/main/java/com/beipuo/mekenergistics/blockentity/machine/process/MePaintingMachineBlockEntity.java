@@ -78,7 +78,7 @@ public class MePaintingMachineBlockEntity extends TileEntityPaintingMachine impl
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         OutputInventorySlot output = ((TileEntityPaintingMachineAccessor) this).mekenergistics$getOutputSlot();
-        return this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket, output);
     }
 
     @NotNull

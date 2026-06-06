@@ -77,7 +77,7 @@ public class MeCombinerBlockEntity extends TileEntityCombiner implements ICrafti
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         OutputInventorySlot output = ((TileEntityCombinerAccessor) this).mekenergistics$getOutputSlot();
-        return this.aeSupport.insertOutputSlotIntoNetwork(output, this.aeOutputMode) || sendUpdatePacket;
+        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket, output);
     }
 
     @NotNull
