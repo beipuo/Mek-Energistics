@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.client;
 
 import com.beipuo.mekenergistics.MekEnergistics;
+import com.beipuo.mekenergistics.client.compat.eme.EvolvedMekanismExtrasClientScreens;
 import com.beipuo.mekenergistics.client.compat.meke.MekanismExtrasAdvancedClientScreens;
 import com.beipuo.mekenergistics.client.compat.meke.MekanismExtrasClientScreens;
 import com.beipuo.mekenergistics.client.compat.meke.MekanismExtrasMoreMachineClientScreens;
@@ -225,6 +226,9 @@ public final class ClientSetup {
             if (OptionalCompatClasses.hasMekanismExtrasAdvancedFactories()) {
                 MekanismExtrasAdvancedClientScreens.register(event);
             }
+        }
+        if (ModList.get().isLoaded("emextras")) {
+            EvolvedMekanismExtrasClientScreens.register(event);
         }
     }
 }

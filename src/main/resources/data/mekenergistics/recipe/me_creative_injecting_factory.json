@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "evolvedmekanism:creative_injecting_factory"
+    },
+    {
+      "item": "ae2:pattern_provider"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mekenergistics:me_creative_injecting_factory"
+  }
+}

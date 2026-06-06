@@ -41,6 +41,7 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActi
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMoreMachineCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
@@ -87,6 +88,8 @@ public final class ModBlockEntities {
         TileEntityTypeRegistryObject<?> registered;
         if (machine.isMekanismExtrasMekanismFactory()) {
             registered = MekanismExtrasCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
+        } else if (machine.isEvolvedMekanismExtrasFactory()) {
+            registered = EvolvedMekanismExtrasCompat.registerFactoryMachine(machine, ModBlockEntities::registerMachine);
         } else if (machine.isMoreMachineAdvancedFactory()) {
             registered = MekanismMoreMachineAdvancedCompat.registerAdvancedFactoryMachine(machine, ModBlockEntities::registerMachine);
         } else if (machine.isMoreMachineFactory()) {
@@ -147,6 +150,8 @@ public final class ModBlockEntities {
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder = MACHINES.get(machine);
             if (machine.isMekanismExtrasMekanismFactory()) {
                 MekanismExtrasCompat.registerGridNodeHost(event, holder);
+            } else if (machine.isEvolvedMekanismExtrasFactory()) {
+                EvolvedMekanismExtrasCompat.registerGridNodeHost(event, holder);
             } else if (machine.isMoreMachineAdvancedFactory()) {
                 MekanismMoreMachineAdvancedCompat.registerGridNodeHost(event, holder);
             } else if (machine.isMoreMachineFactory()) {

@@ -128,6 +128,9 @@ configurations {
 dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:19.2.16"
     implementation "curse.maven:mekanism-268560:7904058"
+    implementation "curse.maven:iglee-library-541199:7000755"
+    implementation "curse.maven:evolved-mekanism-1230085:7599592"
+    implementation "curse.maven:evolved-mekanism-extras-1268159:8118026"
 
     compileOnly "curse.maven:jei-238222:7420587"
     compileOnly "curse.maven:applied-mekanistics-574300:7096962"

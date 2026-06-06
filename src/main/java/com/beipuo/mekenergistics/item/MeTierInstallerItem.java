@@ -56,7 +56,10 @@ public class MeTierInstallerItem extends Item {
             state = level.getBlockState(pos);
         }
         MeMekanismMachine current = ModBlocks.getMachine(state.getBlock());
-        MeMekanismMachine target = current == null ? MeInstallerTargetResolver.resolve(state) : current.getBasicFactory();
+        if (current != null) {
+            return InteractionResult.PASS;
+        }
+        MeMekanismMachine target = MeInstallerTargetResolver.resolve(state);
         if (target == null) {
             return InteractionResult.PASS;
         }
@@ -64,7 +67,7 @@ public class MeTierInstallerItem extends Item {
             return InteractionResult.PASS;
         }
         if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.PASS;
         }
         BlockEntity oldTile = WorldUtils.getTileEntity(level, pos);
         if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(player, level, pos, oldTile)) {
