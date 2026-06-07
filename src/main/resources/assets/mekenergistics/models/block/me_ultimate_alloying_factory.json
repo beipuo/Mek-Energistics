@@ -1,0 +1,15 @@
+{
+  "children": {
+    "front_led": {
+      "parent": "mekenergistics:block/factory/front_led/ultimate"
+    },
+    "base": {
+      "parent": "evolvedmekanism:block/factory/alloying/base"
+    }
+  },
+  "textures": {
+    "particle": "evolvedmekanism:block/factory/alloying/alloying_factory_front"
+  },
+  "parent": "block/block",
+  "loader": "neoforge:composite"
+}

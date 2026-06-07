@@ -10,6 +10,7 @@ import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import java.util.EnumMap;
 import java.util.Map;
+import fr.iglee42.evolvedmekanism.registries.EMFactoryType;
 import mekanism.api.Upgrade;
 import mekanism.api.text.ILangEntry;
 import mekanism.common.block.attribute.AttributeHasBounding;
@@ -78,6 +79,8 @@ public final class ModBlockTypes {
                 .with(upgradeSupportFor(machine));
         if (machine.factoryType() != null) {
             builder.with(new AttributeFactoryType(machine.factoryType()));
+        } else if ("alloying".equals(machine.customFactoryTypeName())) {
+            builder.with(new AttributeFactoryType(EMFactoryType.ALLOYING));
         }
         if (machine.factoryTier() != null) {
             builder.with(new AttributeTier<>(machine.factoryTier()));
@@ -103,6 +106,9 @@ public final class ModBlockTypes {
     private static VoxelShape[] customShapeFor(MeMekanismMachine machine) {
         if (machine.factoryType() != null && machine.factoryTier() != null) {
             return BlockShapes.getShape(machine.factoryTier(), machine.factoryType());
+        }
+        if ("alloying".equals(machine.customFactoryTypeName()) && machine.factoryTier() != null) {
+            return BlockShapes.getShape(machine.factoryTier(), EMFactoryType.ALLOYING);
         }
         return switch (machine) {
             case METALLURGIC_INFUSER -> BlockShapes.METALLURGIC_INFUSER;

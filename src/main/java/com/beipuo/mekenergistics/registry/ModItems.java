@@ -89,7 +89,7 @@ public final class ModItems {
                     AttachedSideConfig.ELECTRIC_MACHINE;
             case OSMIUM_COMPRESSOR, METALLURGIC_INFUSER ->
                     AttachedSideConfig.ADVANCED_MACHINE;
-            case COMBINER, FORMULAIC_ASSEMBLICATOR ->
+            case ALLOYER, COMBINER, FORMULAIC_ASSEMBLICATOR ->
                     AttachedSideConfig.EXTRA_MACHINE;
             case PURIFICATION_CHAMBER, CHEMICAL_INJECTION_CHAMBER, ANTIPROTONIC_NUCLEOSYNTHESIZER ->
                     AttachedSideConfig.ADVANCED_MACHINE_INPUT_ONLY;

@@ -64,9 +64,13 @@ final class MeInstallerTargetResolver {
         if (tier == null) {
             return MeMekanismMachine.getBaseMachine(factoryType);
         }
-        return tier.tier() instanceof FactoryTier factoryTier
-                ? MeMekanismMachine.getFactory(factoryTier, factoryType)
-                : null;
+        if (!(tier.tier() instanceof FactoryTier factoryTier)) {
+            return null;
+        }
+        if ("alloying".equals(factoryType.getRegistryNameComponent())) {
+            return MeMekanismMachine.getFactory(factoryTier, "alloying");
+        }
+        return MeMekanismMachine.getFactory(factoryTier, factoryType);
     }
 
     @Nullable

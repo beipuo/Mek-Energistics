@@ -1,0 +1,15 @@
+{
+  "ingredients": [
+    {
+      "item": "evolvedmekanism:multiversal_alloying_factory"
+    },
+    {
+      "item": "ae2:pattern_provider"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "result": {
+    "count": 1,
+    "id": "mekenergistics:me_multiversal_alloying_factory"
+  }
+}

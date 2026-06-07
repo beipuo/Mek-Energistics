@@ -17,6 +17,7 @@ public enum MeMekanismMachine {
     OSMIUM_COMPRESSOR(FactoryType.COMPRESSING, "osmium_compressor", "ME Osmium Compressor"),
     COMBINER(FactoryType.COMBINING, "combiner", "ME Combiner"),
     METALLURGIC_INFUSER(FactoryType.INFUSING, "metallurgic_infuser", "ME Metallurgic Infuser"),
+    ALLOYER("alloyer", "alloying", "ME Alloyer", 'e'),
     PURIFICATION_CHAMBER(FactoryType.PURIFYING, "purification_chamber", "ME Purification Chamber"),
     CHEMICAL_INJECTION_CHAMBER(FactoryType.INJECTING, "chemical_injection_chamber", "ME Chemical Injection Chamber"),
     PRESSURIZED_REACTION_CHAMBER((FactoryType) null, "pressurized_reaction_chamber", "ME Pressurized Reaction Chamber"),
@@ -87,6 +88,10 @@ public enum MeMekanismMachine {
     ULTIMATE_INJECTING_FACTORY(FactoryTier.ULTIMATE, FactoryType.INJECTING),
     ULTIMATE_INFUSING_FACTORY(FactoryTier.ULTIMATE, FactoryType.INFUSING),
     ULTIMATE_SAWING_FACTORY(FactoryTier.ULTIMATE, FactoryType.SAWING),
+    BASIC_ALLOYING_FACTORY(FactoryTier.BASIC, "alloying", "Alloying", (short) 0),
+    ADVANCED_ALLOYING_FACTORY(FactoryTier.ADVANCED, "alloying", "Alloying", (short) 0),
+    ELITE_ALLOYING_FACTORY(FactoryTier.ELITE, "alloying", "Alloying", (short) 0),
+    ULTIMATE_ALLOYING_FACTORY(FactoryTier.ULTIMATE, "alloying", "Alloying", (short) 0),
     OVERCLOCKED_SMELTING_FACTORY("overclocked", FactoryType.SMELTING, true),
     OVERCLOCKED_ENRICHING_FACTORY("overclocked", FactoryType.ENRICHING, true),
     OVERCLOCKED_CRUSHING_FACTORY("overclocked", FactoryType.CRUSHING, true),
@@ -132,6 +137,11 @@ public enum MeMekanismMachine {
     CREATIVE_INJECTING_FACTORY("creative", FactoryType.INJECTING, true),
     CREATIVE_INFUSING_FACTORY("creative", FactoryType.INFUSING, true),
     CREATIVE_SAWING_FACTORY("creative", FactoryType.SAWING, true),
+    OVERCLOCKED_ALLOYING_FACTORY("overclocked", "alloying", "Alloying", (byte) 0),
+    QUANTUM_ALLOYING_FACTORY("quantum", "alloying", "Alloying", (byte) 0),
+    DENSE_ALLOYING_FACTORY("dense", "alloying", "Alloying", (byte) 0),
+    MULTIVERSAL_ALLOYING_FACTORY("multiversal", "alloying", "Alloying", (byte) 0),
+    CREATIVE_ALLOYING_FACTORY("creative", "alloying", "Alloying", (byte) 0),
     ABSOLUTE_SMELTING_FACTORY("absolute", FactoryType.SMELTING),
     ABSOLUTE_ENRICHING_FACTORY("absolute", FactoryType.ENRICHING),
     ABSOLUTE_CRUSHING_FACTORY("absolute", FactoryType.CRUSHING),
@@ -168,6 +178,10 @@ public enum MeMekanismMachine {
     INFINITE_INJECTING_FACTORY("infinite", FactoryType.INJECTING),
     INFINITE_INFUSING_FACTORY("infinite", FactoryType.INFUSING),
     INFINITE_SAWING_FACTORY("infinite", FactoryType.SAWING),
+    ABSOLUTE_ALLOYING_FACTORY("absolute", "alloying", "Alloying", 0L),
+    SUPREME_ALLOYING_FACTORY("supreme", "alloying", "Alloying", 0L),
+    COSMIC_ALLOYING_FACTORY("cosmic", "alloying", "Alloying", 0L),
+    INFINITE_ALLOYING_FACTORY("infinite", "alloying", "Alloying", 0L),
     ABSOLUTE_OVERCLOCKED_SMELTING_FACTORY("absolute_overclocked", FactoryType.SMELTING, 0),
     ABSOLUTE_OVERCLOCKED_ENRICHING_FACTORY("absolute_overclocked", FactoryType.ENRICHING, 0),
     ABSOLUTE_OVERCLOCKED_CRUSHING_FACTORY("absolute_overclocked", FactoryType.CRUSHING, 0),
@@ -204,6 +218,10 @@ public enum MeMekanismMachine {
     INFINITE_MULTIVERSAL_INJECTING_FACTORY("infinite_multiversal", FactoryType.INJECTING, 0),
     INFINITE_MULTIVERSAL_INFUSING_FACTORY("infinite_multiversal", FactoryType.INFUSING, 0),
     INFINITE_MULTIVERSAL_SAWING_FACTORY("infinite_multiversal", FactoryType.SAWING, 0),
+    ABSOLUTE_OVERCLOCKED_ALLOYING_FACTORY("absolute_overclocked", "alloying", "Alloying", 0),
+    SUPREME_QUANTUM_ALLOYING_FACTORY("supreme_quantum", "alloying", "Alloying", 0),
+    COSMIC_DENSE_ALLOYING_FACTORY("cosmic_dense", "alloying", "Alloying", 0),
+    INFINITE_MULTIVERSAL_ALLOYING_FACTORY("infinite_multiversal", "alloying", "Alloying", 0),
     BASIC_RECYCLING_FACTORY(FactoryTier.BASIC, "recycling", "Recycling"),
     BASIC_PLANTING_FACTORY(FactoryTier.BASIC, "planting", "Planting"),
     BASIC_STAMPING_FACTORY(FactoryTier.BASIC, "stamping", "Stamping"),
@@ -330,6 +348,8 @@ public enum MeMekanismMachine {
     @Nullable
     private final FactoryTier factoryTier;
     @Nullable
+    private final String customFactoryTypeName;
+    @Nullable
     private final String evolvedFactoryTierName;
     @Nullable
     private final String emExtraFactoryTierName;
@@ -349,6 +369,7 @@ public enum MeMekanismMachine {
     MeMekanismMachine(@Nullable FactoryType factoryType, String baseName, String englishName) {
         this.factoryType = factoryType;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = null;
@@ -360,9 +381,25 @@ public enum MeMekanismMachine {
         this.englishName = englishName;
     }
 
+    MeMekanismMachine(String baseName, String customFactoryTypeName, String englishName, char evolvedMachine) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.customFactoryTypeName = customFactoryTypeName;
+        this.evolvedFactoryTierName = null;
+        this.emExtraFactoryTierName = null;
+        this.extraFactoryTierName = null;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "evolvedmekanism";
+        this.baseName = baseName;
+        this.englishName = englishName;
+    }
+
     MeMekanismMachine(FactoryTier factoryTier, FactoryType factoryType) {
         this.factoryType = factoryType;
         this.factoryTier = factoryTier;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = null;
@@ -377,6 +414,7 @@ public enum MeMekanismMachine {
     MeMekanismMachine(String evolvedFactoryTierName, FactoryType factoryType, boolean evolvedFactory) {
         this.factoryType = factoryType;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = evolvedFactoryTierName;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = null;
@@ -388,9 +426,40 @@ public enum MeMekanismMachine {
         this.englishName = "ME " + capitalize(evolvedFactoryTierName) + " " + factoryType.getRegistryNameComponentCapitalized() + " Factory";
     }
 
+    MeMekanismMachine(FactoryTier factoryTier, String customFactoryTypeName, String factoryEnglishName, short evolvedFactory) {
+        this.factoryType = null;
+        this.factoryTier = factoryTier;
+        this.customFactoryTypeName = customFactoryTypeName;
+        this.evolvedFactoryTierName = null;
+        this.emExtraFactoryTierName = null;
+        this.extraFactoryTierName = null;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "evolvedmekanism";
+        this.baseName = factoryTier.name().toLowerCase(Locale.ROOT) + "_" + customFactoryTypeName + "_factory";
+        this.englishName = "ME " + capitalize(factoryTier.name()) + " " + factoryEnglishName + " Factory";
+    }
+
+    MeMekanismMachine(String evolvedFactoryTierName, String customFactoryTypeName, String factoryEnglishName, byte evolvedFactory) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.customFactoryTypeName = customFactoryTypeName;
+        this.evolvedFactoryTierName = evolvedFactoryTierName;
+        this.emExtraFactoryTierName = null;
+        this.extraFactoryTierName = null;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "evolvedmekanism";
+        this.baseName = evolvedFactoryTierName + "_" + customFactoryTypeName + "_factory";
+        this.englishName = "ME " + capitalize(evolvedFactoryTierName) + " " + factoryEnglishName + " Factory";
+    }
+
     MeMekanismMachine(String emExtraFactoryTierName, FactoryType factoryType, int evolvedMekanismExtrasFactory) {
         this.factoryType = factoryType;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = emExtraFactoryTierName;
         this.extraFactoryTierName = null;
@@ -402,9 +471,25 @@ public enum MeMekanismMachine {
         this.englishName = "ME " + displayTierName(emExtraFactoryTierName) + " " + factoryType.getRegistryNameComponentCapitalized() + " Factory";
     }
 
+    MeMekanismMachine(String emExtraFactoryTierName, String customFactoryTypeName, String factoryEnglishName, int evolvedMekanismExtrasFactory) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.customFactoryTypeName = customFactoryTypeName;
+        this.evolvedFactoryTierName = null;
+        this.emExtraFactoryTierName = emExtraFactoryTierName;
+        this.extraFactoryTierName = null;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "emextras";
+        this.baseName = emExtraFactoryTierName + "_" + customFactoryTypeName + "_factory";
+        this.englishName = "ME " + displayTierName(emExtraFactoryTierName) + " " + factoryEnglishName + " Factory";
+    }
+
     MeMekanismMachine(String extraFactoryTierName, FactoryType factoryType) {
         this.factoryType = factoryType;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = extraFactoryTierName;
@@ -416,9 +501,25 @@ public enum MeMekanismMachine {
         this.englishName = "ME " + capitalize(extraFactoryTierName) + " " + factoryType.getRegistryNameComponentCapitalized() + " Factory";
     }
 
+    MeMekanismMachine(String extraFactoryTierName, String customFactoryTypeName, String factoryEnglishName, long extraCustomFactory) {
+        this.factoryType = null;
+        this.factoryTier = null;
+        this.customFactoryTypeName = customFactoryTypeName;
+        this.evolvedFactoryTierName = null;
+        this.emExtraFactoryTierName = null;
+        this.extraFactoryTierName = extraFactoryTierName;
+        this.moreMachineFactoryTypeName = null;
+        this.moreMachineAdvancedFactoryTypeName = null;
+        this.moreMachineBaseTypeName = null;
+        this.requiredModId = "mekanism_extras";
+        this.baseName = extraFactoryTierName + "_" + customFactoryTypeName + "_factory";
+        this.englishName = "ME " + capitalize(extraFactoryTierName) + " " + factoryEnglishName + " Factory";
+    }
+
     MeMekanismMachine(FactoryTier factoryTier, String moreMachineFactoryTypeName, String factoryEnglishName) {
         this.factoryType = null;
         this.factoryTier = factoryTier;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = null;
@@ -433,6 +534,7 @@ public enum MeMekanismMachine {
     MeMekanismMachine(String extraFactoryTierName, String moreMachineFactoryTypeName, String factoryEnglishName, boolean ignoredAdvancedFactory, boolean ignoredExtraFactory) {
         this.factoryType = null;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = extraFactoryTierName;
@@ -447,6 +549,7 @@ public enum MeMekanismMachine {
     MeMekanismMachine(FactoryTier factoryTier, String moreMachineAdvancedFactoryTypeName, String factoryEnglishName, boolean advancedFactory) {
         this.factoryType = null;
         this.factoryTier = factoryTier;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = null;
@@ -461,6 +564,7 @@ public enum MeMekanismMachine {
     MeMekanismMachine(String extraFactoryTierName, String moreMachineAdvancedFactoryTypeName, String factoryEnglishName, boolean advancedFactory) {
         this.factoryType = null;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = extraFactoryTierName;
@@ -475,6 +579,7 @@ public enum MeMekanismMachine {
     MeMekanismMachine(String baseName, String moreMachineBaseTypeName, String englishName) {
         this.factoryType = null;
         this.factoryTier = null;
+        this.customFactoryTypeName = null;
         this.evolvedFactoryTierName = null;
         this.emExtraFactoryTierName = null;
         this.extraFactoryTierName = null;
@@ -513,7 +618,7 @@ public enum MeMekanismMachine {
     }
 
     public boolean isMekanismExtrasMekanismFactory() {
-        return extraFactoryTierName != null && factoryType != null;
+        return extraFactoryTierName != null && (factoryType != null || customFactoryTypeName != null);
     }
 
     public boolean isMoreMachineFactory() {
@@ -536,6 +641,19 @@ public enum MeMekanismMachine {
     @Nullable
     public String emExtraFactoryTierName() {
         return emExtraFactoryTierName;
+    }
+
+    @Nullable
+    public String customFactoryTypeName() {
+        return customFactoryTypeName;
+    }
+
+    @Nullable
+    public String factoryTypeName() {
+        if (factoryType != null) {
+            return factoryType.getRegistryNameComponent();
+        }
+        return customFactoryTypeName;
     }
 
     @Nullable
@@ -568,7 +686,10 @@ public enum MeMekanismMachine {
         if ("mekanism_extras".equals(requiredModId) && !OptionalCompatClasses.hasMekanismExtras()) {
             return false;
         }
-        if ("evolvedmekanism".equals(requiredModId) && evolvedFactoryTier() == null) {
+        if ("evolvedmekanism".equals(requiredModId) && !OptionalCompatClasses.hasEvolvedMekanism()) {
+            return false;
+        }
+        if ("evolvedmekanism".equals(requiredModId) && evolvedFactoryTierName != null && evolvedFactoryTier() == null) {
             return false;
         }
         if ("emextras".equals(requiredModId) && OptionalCompatClasses.getEvolvedMekanismExtrasFactoryTier(emExtraFactoryTierName) == null) {
@@ -714,6 +835,9 @@ public enum MeMekanismMachine {
         if (moreMachineBaseTypeName != null) {
             return getMoreMachineFactory(FactoryTier.BASIC, moreMachineBaseTypeName);
         }
+        if (customFactoryTypeName != null) {
+            return getFactory(FactoryTier.BASIC, customFactoryTypeName);
+        }
         return factoryType == null ? null : getFactory(FactoryTier.BASIC, factoryType);
     }
 
@@ -745,23 +869,31 @@ public enum MeMekanismMachine {
             }
             return getMoreMachineAdvancedFactory(FactoryTier.values()[factoryTier.ordinal() + 1], moreMachineAdvancedFactoryTypeName);
         }
-        if (factoryType == null) {
+        if (factoryType == null && customFactoryTypeName == null) {
             return null;
         }
+        if ("alloying".equals(customFactoryTypeName)) {
+            if (factoryTier == FactoryTier.ULTIMATE) {
+                return getEvolvedFactory("overclocked", customFactoryTypeName);
+            }
+            if (factoryTier != null) {
+                return getFactory(FactoryTier.values()[factoryTier.ordinal() + 1], customFactoryTypeName);
+            }
+        }
         if (extraFactoryTierName != null) {
-            return getNextExtraFactory(extraFactoryTierName, factoryType);
+            return getNextExtraFactory(extraFactoryTierName, factoryTypeName());
         }
         if (emExtraFactoryTierName != null) {
             String nextTier = getNextEvolvedMekanismExtrasFactoryTier(emExtraFactoryTierName);
-            return nextTier == null ? null : getEvolvedMekanismExtrasFactory(nextTier, factoryType);
+            return nextTier == null ? null : getEvolvedMekanismExtrasFactory(nextTier, factoryTypeName());
         }
         if (factoryTier == FactoryTier.ULTIMATE) {
-            MeMekanismMachine evolvedTarget = getEvolvedFactory("overclocked", factoryType);
-            return evolvedTarget != null ? evolvedTarget : getExtraFactory("absolute", factoryType);
+            MeMekanismMachine evolvedTarget = getEvolvedFactory("overclocked", factoryTypeName());
+            return evolvedTarget != null ? evolvedTarget : getExtraFactory("absolute", factoryTypeName());
         }
         if (evolvedFactoryTierName != null) {
             String nextTier = getNextEvolvedFactoryTier(evolvedFactoryTierName);
-            return nextTier == null ? getEvolvedMekanismExtrasFactory("absolute_overclocked", factoryType) : getEvolvedFactory(nextTier, factoryType);
+            return nextTier == null ? getEvolvedMekanismExtrasFactory("absolute_overclocked", factoryTypeName()) : getEvolvedFactory(nextTier, factoryTypeName());
         }
         if (factoryTier == null) {
             return null;
@@ -791,11 +923,29 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getEvolvedFactory(String tierName, FactoryType type) {
-        if (tierName == null || type == null || OptionalCompatClasses.getEvolvedFactoryTier(tierName) == null) {
+        return type == null ? null : getEvolvedFactory(tierName, type.getRegistryNameComponent());
+    }
+
+    @Nullable
+    public static MeMekanismMachine getEvolvedFactory(String tierName, String typeName) {
+        if (tierName == null || typeName == null || OptionalCompatClasses.getEvolvedFactoryTier(tierName) == null) {
             return null;
         }
         for (MeMekanismMachine machine : values()) {
-            if (tierName.equals(machine.evolvedFactoryTierName) && machine.factoryType == type && machine.isAvailable()) {
+            if (tierName.equals(machine.evolvedFactoryTierName) && typeName.equals(machine.factoryTypeName()) && machine.isAvailable()) {
+                return machine;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static MeMekanismMachine getFactory(FactoryTier tier, String typeName) {
+        if (tier == null || typeName == null) {
+            return null;
+        }
+        for (MeMekanismMachine machine : values()) {
+            if (machine.factoryTier() == tier && typeName.equals(machine.factoryTypeName()) && machine.isAvailable()) {
                 return machine;
             }
         }
@@ -804,11 +954,16 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getEvolvedMekanismExtrasFactory(String tierName, FactoryType type) {
-        if (tierName == null || type == null || OptionalCompatClasses.getEvolvedMekanismExtrasFactoryTier(tierName) == null) {
+        return type == null ? null : getEvolvedMekanismExtrasFactory(tierName, type.getRegistryNameComponent());
+    }
+
+    @Nullable
+    public static MeMekanismMachine getEvolvedMekanismExtrasFactory(String tierName, String typeName) {
+        if (tierName == null || typeName == null || OptionalCompatClasses.getEvolvedMekanismExtrasFactoryTier(tierName) == null) {
             return null;
         }
         for (MeMekanismMachine machine : values()) {
-            if (tierName.equals(machine.emExtraFactoryTierName) && machine.factoryType == type && machine.isAvailable()) {
+            if (tierName.equals(machine.emExtraFactoryTierName) && typeName.equals(machine.factoryTypeName()) && machine.isAvailable()) {
                 return machine;
             }
         }
@@ -869,11 +1024,16 @@ public enum MeMekanismMachine {
 
     @Nullable
     public static MeMekanismMachine getExtraFactory(String tierName, FactoryType type) {
-        if (tierName == null || type == null) {
+        return type == null ? null : getExtraFactory(tierName, type.getRegistryNameComponent());
+    }
+
+    @Nullable
+    public static MeMekanismMachine getExtraFactory(String tierName, String typeName) {
+        if (tierName == null || typeName == null) {
             return null;
         }
         for (MeMekanismMachine machine : values()) {
-            if (tierName.equals(machine.extraFactoryTierName) && machine.factoryType == type && machine.isAvailable()) {
+            if (tierName.equals(machine.extraFactoryTierName) && typeName.equals(machine.factoryTypeName()) && machine.isAvailable()) {
                 return machine;
             }
         }
@@ -891,9 +1051,9 @@ public enum MeMekanismMachine {
     }
 
     @Nullable
-    private static MeMekanismMachine getNextExtraFactory(String tierName, FactoryType type) {
+    private static MeMekanismMachine getNextExtraFactory(String tierName, String typeName) {
         String next = getNextExtraFactoryTier(tierName);
-        return next == null ? null : getExtraFactory(next, type);
+        return next == null ? null : getExtraFactory(next, typeName);
     }
 
     @Nullable

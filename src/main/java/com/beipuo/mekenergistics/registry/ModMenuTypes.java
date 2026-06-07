@@ -208,7 +208,7 @@ public final class ModMenuTypes {
             return machine.extraFactoryTierName() == null ? ME_ADVANCED_FACTORY : ME_EXTRA_ADVANCED_FACTORY;
         } else if (machine.isMoreMachineFactory()) {
             return machine.extraFactoryTierName() == null ? ME_MORE_MACHINE_FACTORY : ME_EXTRA_MORE_MACHINE_FACTORY;
-        } else if (machine.factoryType() != null && machine.extraFactoryTierName() != null) {
+        } else if (machine.extraFactoryTierName() != null && (machine.factoryType() != null || "alloying".equals(machine.customFactoryTypeName()))) {
             return ME_EXTRA_FACTORY;
         } else if (machine.isEvolvedMekanismExtrasFactory()) {
             return ME_EM_EXTRA_FACTORY;

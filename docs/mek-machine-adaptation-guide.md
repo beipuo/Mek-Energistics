@@ -384,6 +384,77 @@ translation key: block.mekenergistics.me_enrichment_chamber
 9. 补所有 tier 的资源文件和配方。
 10. 确认 JEI 隐藏策略只隐藏变体，不隐藏代表性 catalyst。
 
+### 扩展模组自定义 FactoryType + Extras tier 链
+
+有些扩展模组会把新 factory type 注入到 Mekanism 的 `FactoryType` 体系里，但它不是源码里可直接枚举的 Mek 原生常量。EvolvedMekanism 的 alloying factory 就是这种类型；EvolvedMekanismExtras 又同时提供两条高阶链：
+
+- EME 自己的 `EMExtraFactoryTier`: `absolute_overclocked -> supreme_quantum -> cosmic_dense -> infinite_multiversal`。
+- MekanismExtras 风格的 `ExtraFactoryTier`: `absolute -> supreme -> cosmic -> infinite`，但 factory type 仍然是 EvolvedMekanism 的 `EMFactoryType.ALLOYING`。
+
+适配这类机器时不要用反射读取第三方注册表。推荐做法是把 type name 作为字符串放进 `MeMekanismMachine`，在真正需要 Mek `FactoryType` attribute 的位置显式映射到第三方暴露的静态字段，例如 `EMFactoryType.ALLOYING`。
+
+检查步骤：
+
+1. 在 `MeMekanismMachine` 增加支持 `customFactoryTypeName` 的构造路径，`factoryTypeName()` 返回 Mek 原生 `factoryType.getRegistryNameComponent()` 或自定义字符串。
+2. `getFactory(...)`、`getEvolvedFactory(...)`、`getExtraFactory(...)` 和 `getNextFactory()` 都要接受字符串 type name。不要让升级链只走 `FactoryType` 参数。
+3. `isAvailable()` 只检查实际需要的模组和 tier。普通 EvolvedMekanism factory 不应因为缺少 EME tier 而被跳过。
+4. 在对应 compat 的 `registerFactoryMachine(...)` 中先处理自定义 type name，再进入 `switch (machine.factoryType())`。否则 `factoryType == null` 会空指针。
+5. `createFactoryBlockType(...)` 中用字符串选择 upgrade support，并在自定义 type 时显式加 `new AttributeFactoryType(EMFactoryType.ALLOYING)` 和对应 shape。
+6. `ModMenuTypes.getMachineContainer(...)` 不能只用 `factoryType() != null` 判断工厂容器。`extraFactoryTierName != null && customFactoryTypeName == "alloying"` 这类机器也要进对应 Extras factory container。
+7. 安装器跨链时使用 `current.factoryTypeName()`。例如 ultimate alloying factory 通过 MekanismExtras installer 升到 `absolute_alloying_factory` 时，`current.factoryType()` 是 `null`。
+8. BlockEntity 继承目标模组真实 tile，例如 `TileEntityExtraAlloyingFactory`，再接 `MeExternalFactorySupport.pushThreeItems(...)`、`wrapRecipeEnergy(...)` 和 `drainOutputs(...)`。
+9. 资源要按真实原方块 id 补配方。`absolute_alloying_factory` 这条链应使用 `emextras:absolute_alloying_factory`，不要误用 `absolute_overclocked_alloying_factory`。
+10. 最后用 `rg` 同时扫 enum、BlockEntity、菜单、资源和 recipe，确认每个 tier 都有代码和资源入口。
+
+示例搜索：
+
+```powershell
+rg -n "ABSOLUTE_ALLOYING|SUPREME_ALLOYING|COSMIC_ALLOYING|INFINITE_ALLOYING|me_absolute_alloying|MeExtraAlloying" src/main/java src/main/resources
+```
+
+### 工厂等级中文翻译对照
+
+批量补 `zh_cn.json` 时，等级名必须和已有翻译保持一致。机器类型放在等级名后面，例如 `ME 寰宇支配熔炼工厂`、`ME 悖论无限合金工厂`。
+
+Mekanism 原版等级：
+
+| registry tier | 中文等级 |
+| --- | --- |
+| `basic` | 基础 |
+| `advanced` | 高级 |
+| `elite` | 精英 |
+| `ultimate` | 终极 |
+
+EvolvedMekanism 等级：
+
+| registry tier | 中文等级 |
+| --- | --- |
+| `overclocked` | 超频 |
+| `quantum` | 量子 |
+| `dense` | 致密 |
+| `multiversal` | 多元宇宙 |
+| `creative` | 创造 |
+
+MekanismExtras / ExtraFactoryTier 等级：
+
+| registry tier | 中文等级 |
+| --- | --- |
+| `absolute` | 绝对 |
+| `supreme` | 至尊 |
+| `cosmic` | 寰宇支配 |
+| `infinite` | 悖论无限 |
+
+EvolvedMekanismExtras / EMExtraFactoryTier 等级：
+
+| registry tier | 中文等级 |
+| --- | --- |
+| `absolute_overclocked` | 绝对超频 |
+| `supreme_quantum` | 至尊量子 |
+| `cosmic_dense` | 寰宇致密 |
+| `infinite_multiversal` | 无限多元宇宙 |
+
+注意 `cosmic` 单独出现时翻译为 `寰宇支配`，`cosmic_dense` 翻译为 `寰宇致密`。`infinite` 单独出现时翻译为 `悖论无限`，`infinite_multiversal` 翻译为 `无限多元宇宙`。
+
 ## 17. 验证清单
 
 每台机器完成前至少验证：
@@ -415,6 +486,8 @@ translation key: block.mekenergistics.me_enrichment_chamber
 - 可选模组类在公共静态初始化中被直接引用，未安装该模组时崩溃。
 - 默认 side config 没补，玩家放下机器后输入输出方向不符合 Mek 原机习惯。
 - recipe energy view 没包 AE 能量，机器连上 AE 网络也被配方缓存判定没电。
+- 自定义 factory type 只补了 enum 和资源，但 compat 注册、BlockType、菜单仍按 `FactoryType` 判断，导致游戏里看不到或打开 GUI 崩溃。
+- 同一个扩展模组有两条 tier 链时，把 `absolute` 和 `absolute_overclocked` 混在一起，安装器和配方会升级到错误机器。
 
 ## 19. 后续抽象方向
 
@@ -800,6 +873,7 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 | MekMM 双 item | CNC Stamper | `MeStamperBlockEntity` | `MeStampingFactoryBlockEntity` | stamping factory 有独立 extra slot |
 | MekMM item + chemical | Planting / Replicating | `MePlantingStationBlockEntity` / `MeReplicatorBlockEntity` | `MePlantingFactoryBlockEntity` / `MeReplicatingFactoryBlockEntity` | 复用 `MeMekmmItemChemicalMachineSupport` |
 | Mek Extras 工厂 | absolute/supreme/cosmic/infinite | 无普通机器 | `MeExtra*FactoryBlockEntity` | Extras tier + Mek 原 factory |
+| EvolvedMekanism 合金工厂 | Alloyer / alloying factories | `MeAlloyerBlockEntity` | `MeAlloyingFactoryBlockEntity` / `MeEMExtraAlloyingFactoryBlockEntity` / `MeExtraAlloyingFactoryBlockEntity` | `EMFactoryType.ALLOYING` 是扩展 type；同时覆盖 Evolved tier、EMExtra tier 和 Extra tier |
 | Extras + MekMM 工厂 | Extras More Machine factories | 无普通机器 | `MeExtraMoreMachine*FactoryBlockEntity` | 组合 compat，必须 class resource 探测 |
 | 无 AE 样板工具 | Digital Miner / Teleporter / Pump | `Me*BlockEntity` utility 类 | 无 | `noAe(...)`，只保留 Mek GUI/功能 |
 
@@ -917,6 +991,9 @@ public class MeSomeExternalFactoryBlockEntity extends TileEntitySomeFactory impl
 | JEI 没 catalyst | `MekEnergisticsJeiPlugin.registerRecipeCatalysts` 或 compat JEI 类是否补了 recipe type |
 | JEI 重复机器太多 | `hiddenStacks()` 是否包含新增 factory 变体，配置 `hideJeiMachineVariants` 是否生效 |
 | 安装器不能升级原机器 | `MeInstallerTargetResolver` 是否能通过 registry path、factory attribute 或 compat resolver 找到目标 |
+| 扩展 factory 安装器断在某级 | `getNextFactory()` 和 compat installer 是否使用 `factoryTypeName()`，而不是只传 `factoryType()` |
+| Extras 高阶机器缺少某个自定义类型 | `MeMekanismMachine` 是否补齐该 tier 的字符串 type enum，compat 是否先判断 `customFactoryTypeName()` 再 switch |
+| EME / MekE 两条高阶链串错 | recipe 输入 id 和升级目标是否区分 `absolute_overclocked` 与 `absolute` |
 | 安装器升级丢数据 | 升级路径是否保留 Mek data、side config、energy、upgrades、AE patterns、owner/security |
 | 拆除机器样板消失 | `MeMekanismMachineBlock` 拆除逻辑是否能 `dropAndClear` pattern slots，BlockEntity 是否暴露 pattern slots |
 

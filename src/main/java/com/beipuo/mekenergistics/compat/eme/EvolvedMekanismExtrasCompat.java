@@ -1,6 +1,7 @@
 package com.beipuo.mekenergistics.compat.eme;
 
 import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
+import com.beipuo.mekenergistics.blockentity.compat.eme.factory.MeEMExtraAlloyingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.eme.factory.MeEMExtraCombiningFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.eme.factory.MeEMExtraItemStackChemicalToItemStackFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.eme.factory.MeEMExtraItemStackToItemStackFactoryBlockEntity;
@@ -11,6 +12,7 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeUpgradeSupport;
+import fr.iglee42.evolvedmekanism.registries.EMFactoryType;
 import io.github.masyumero.emextras.common.block.attribute.EMExtraAttribute;
 import io.github.masyumero.emextras.common.block.attribute.EMExtraAttributeFactoryType;
 import io.github.masyumero.emextras.common.block.attribute.EMExtraAttributeTier;
@@ -42,6 +44,9 @@ public final class EvolvedMekanismExtrasCompat {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static TileEntityTypeRegistryObject<? extends TileEntityMekanism> registerFactoryMachine(
             MeMekanismMachine machine, MachineFactoryRegistrar registrar) {
+        if ("alloying".equals(machine.customFactoryTypeName())) {
+            return registrar.register(machine, MeEMExtraAlloyingFactoryBlockEntity::new);
+        }
         TileEntityTypeRegistryObject<?> registered = switch (machine.factoryType()) {
             case SMELTING, ENRICHING, CRUSHING -> registrar.register(machine, MeEMExtraItemStackToItemStackFactoryBlockEntity::new);
             case COMPRESSING, INJECTING, PURIFYING, INFUSING -> registrar.register(machine, MeEMExtraItemStackChemicalToItemStackFactoryBlockEntity::new);
@@ -53,7 +58,7 @@ public final class EvolvedMekanismExtrasCompat {
 
     public static <TILE extends TileEntityMekanism> BlockTypeTile<TILE> createFactoryBlockType(
             MeMekanismMachine machine, TileEntityTypeRegistryObject<TILE> tileType) {
-        EMExtraFactoryType type = emExtraFactoryType(machine.factoryType());
+        EMExtraFactoryType type = emExtraFactoryType(machine.factoryTypeName());
         var builder = BlockTypeTile.BlockTileBuilder
                 .createBlock(() -> tileType, machine::translationKey)
                 .withGui(() -> ModMenuTypes.ME_EM_EXTRA_FACTORY)
@@ -62,8 +67,8 @@ public final class EvolvedMekanismExtrasCompat {
                 .withSideConfig(machine.hasChemicalInput()
                         ? new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL}
                         : new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY})
-                .with(emExtraUpgradeSupport(machine.factoryType()))
-                .with(new AttributeFactoryType(machine.factoryType()))
+                .with(emExtraUpgradeSupport(machine.factoryTypeName()))
+                .with(new AttributeFactoryType(attributeFactoryType(machine)))
                 .with(new EMExtraAttributeFactoryType(type))
                 .with(new EMExtraAttributeTier<>(emExtraTier(machine)))
                 .withCustomShape(EMExtraBlockShapes.getShape(type));
@@ -74,8 +79,11 @@ public final class EvolvedMekanismExtrasCompat {
         return builder.build();
     }
 
-    private static AttributeUpgradeSupport emExtraUpgradeSupport(FactoryType type) {
-        return switch (type) {
+    private static AttributeUpgradeSupport emExtraUpgradeSupport(String typeName) {
+        if ("alloying".equals(typeName)) {
+            return ExtraAttributeUpgradeSupport.EXTRA_MACHINE_UPGRADES;
+        }
+        return switch (FactoryType.valueOf(typeName.toUpperCase(Locale.ROOT))) {
             case PURIFYING, INJECTING -> ExtraAttributeUpgradeSupport.EXTRA_ADVANCED_MACHINE_UPGRADES;
             case SMELTING, ENRICHING, CRUSHING, COMPRESSING, COMBINING, INFUSING, SAWING -> ExtraAttributeUpgradeSupport.EXTRA_MACHINE_UPGRADES;
         };
@@ -89,15 +97,24 @@ public final class EvolvedMekanismExtrasCompat {
         return EMExtraFactoryType.valueOf(type.name());
     }
 
+    public static EMExtraFactoryType emExtraFactoryType(String typeName) {
+        return EMExtraFactoryType.valueOf(typeName.toUpperCase(Locale.ROOT));
+    }
+
+    private static FactoryType attributeFactoryType(MeMekanismMachine machine) {
+        return "alloying".equals(machine.customFactoryTypeName()) ? EMFactoryType.ALLOYING : machine.factoryType();
+    }
+
     @Nullable
     public static MeMekanismMachine getFactoryTarget(BlockState state) {
         EMExtraAttributeFactoryType typeAttribute = Attribute.get(state, EMExtraAttributeFactoryType.class);
         EMExtraFactoryTier tier = EMExtraAttribute.getEMExtraTier(state.getBlock(), EMExtraFactoryTier.class);
-        if (typeAttribute == null || tier == null || typeAttribute.getFactoryType() == EMExtraFactoryType.ALLOYING) {
+        if (typeAttribute == null || tier == null) {
             return null;
         }
-        FactoryType factoryType = FactoryType.valueOf(typeAttribute.getFactoryType().name());
-        return MeMekanismMachine.getEvolvedMekanismExtrasFactory(tier.name().toLowerCase(Locale.ROOT), factoryType);
+        return MeMekanismMachine.getEvolvedMekanismExtrasFactory(
+                tier.name().toLowerCase(Locale.ROOT),
+                typeAttribute.getFactoryType().getRegistryNameComponent());
     }
 
     @Nullable
@@ -108,7 +125,7 @@ public final class EvolvedMekanismExtrasCompat {
         MeMekanismMachine target = current.emExtraFactoryTierName() == null
                 && installer.getFromTier() == null
                 && isTerminalEvolvedFactory(current)
-                ? MeMekanismMachine.getEvolvedMekanismExtrasFactory(installer.getToTier().name().toLowerCase(Locale.ROOT), current.factoryType())
+                ? MeMekanismMachine.getEvolvedMekanismExtrasFactory(installer.getToTier().name().toLowerCase(Locale.ROOT), current.factoryTypeName())
                 : current.getNextFactory();
         if (target == null || target.emExtraFactoryTierName() == null) {
             return null;
