@@ -8,6 +8,7 @@ import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraItemStac
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraItemStackToItemStackFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraSawingFactoryBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismCompat;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
 import com.beipuo.mekenergistics.registry.machine.MachineFactoryRegistrar;
 import com.beipuo.mekenergistics.registry.ModBlocks;
@@ -18,7 +19,6 @@ import com.jerry.mekextras.common.block.attribute.ExtraAttributeTier;
 import com.jerry.mekextras.common.block.attribute.ExtraAttributeUpgradeSupport;
 import com.jerry.mekextras.common.item.ItemExtraTierInstaller;
 import com.jerry.mekextras.common.tier.ExtraFactoryTier;
-import fr.iglee42.evolvedmekanism.registries.EMFactoryType;
 import java.util.Locale;
 import mekanism.common.block.attribute.AttributeFactoryType;
 import mekanism.common.block.attribute.AttributeUpgradeSupport;
@@ -71,8 +71,8 @@ public final class MekanismExtrasCompat {
             builder.with(new AttributeFactoryType(machine.factoryType()));
             builder.withCustomShape(BlockShapes.getShape(null, machine.factoryType()));
         } else if ("alloying".equals(machine.customFactoryTypeName())) {
-            builder.with(new AttributeFactoryType(EMFactoryType.ALLOYING));
-            builder.withCustomShape(BlockShapes.getShape(null, EMFactoryType.ALLOYING));
+            EvolvedMekanismCompat.withAlloyingFactoryType(builder);
+            builder.withCustomShape(EvolvedMekanismCompat.alloyingFactoryShape(null));
         }
         builder.with(new ExtraAttributeTier<>(extraTier(machine)));
         MeMekanismMachine upgradeTarget = machine.getNextFactory();

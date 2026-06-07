@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "emextras"
+    }
+  ],
   "ingredients": [
     {
       "item": "emextras:cosmic_dense_alloying_factory"

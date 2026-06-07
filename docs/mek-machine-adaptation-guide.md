@@ -352,6 +352,47 @@ translation key: block.mekenergistics.me_enrichment_chamber
 
 新增其它模组时，也应先做一个类似 `OptionalCompatClasses` 的能力探测，再接注册分派。这样能支持“同一个模组不同版本功能不一致”的情况。
 
+### 可选模组软依赖启动流程
+
+适配 `mekmm`、`mekanism_extras`、`evolvedmekanism`、`emextras` 这类可选模组时，目标不是“装齐依赖能编译”，而是“缺少任意可选模组时主模组仍能启动”。每次新增 compat 都按下面流程检查：
+
+1. `src/main/templates/META-INF/neoforge.mods.toml` 中把目标模组声明为 `type="optional"`，并使用 `ordering="AFTER"`。例如 `mekmm`、`mekanism_extras`、`evolvedmekanism`、`emextras` 都应是 optional。
+2. `MeMekanismMachine.isAvailable()` 必须挡住未安装模组时的 enum 注册。组合机器要检查真实依赖，不要只检查表面 tier。例：`absolute_alloying_factory` 虽然挂在 MekanismExtras 风格 tier 下，但真实 factory type 来自 EvolvedMekanism/EMExtras，没装 `emextras` 时不能注册。
+3. `ModBlocks`、`ModItems`、`ModBlockEntities`、`ModBlockTypes` 只能遍历并注册 `machine.isAvailable()` 的机器。公共静态初始化中不能因为一个 unavailable 机器而解析目标模组类。
+4. 主注册类可以引用本项目自己的 compat 门面，但不要直接 import 目标模组类。真正需要第三方类型的逻辑放进对应 compat 类，并保证只在 `ModList` / `OptionalCompatClasses` 判断通过后调用。
+5. JEI 主插件不要直接 import 可选模组的 recipe viewer type。做一个 `client/jei/compat/<Mod>JeiCompat`，主插件只在目标模组加载后延迟调用；必要时用 `Class.forName(...).getMethod(...).invoke(...)` 隔离类加载。
+6. client screen 注册同样只在目标模组加载后调用 `client/compat/<modid>` 门面。不要让 common 初始化路径碰到 client-only 或 optional mod client 类。
+7. 可选模组的 mixin accessor 不能无条件应用。给 `mekenergistics.mixins.json` 配 `IMixinConfigPlugin`，在 `shouldApplyMixin(...)` 中按 mod id 过滤目标 accessor。例如 `TileEntityAlloyerAccessor` 只在 `evolvedmekanism` 存在时应用。
+8. 如果一个 compat 只依赖 `evolvedmekanism`，不要让它引用 `emextras` compat；如果只依赖 `mekanism_extras`，不要让它引用 `mekmm` 或 `emextras` 类。组合 compat 需要拆成更小的 helper，按真实依赖分层。
+9. 资源 JSON 引用可选模组贴图、模型或物品一般不会在对应方块未注册时主动加载，但配方必须有 `forge:mod_loaded` / NeoForge 条件，避免缺少输入物品时数据加载报错。
+10. 验证时至少跑四组：只装基础依赖、基础 + `mekmm`、基础 + `mekanism_extras`、基础 + `evolvedmekanism` / `emextras`。如果只跑“全装”，软依赖问题很容易漏。
+
+典型拆分：
+
+```text
+主线类
+-> 只持有 MeMekanismMachine 和本项目 compat 门面
+
+compat/eme/EvolvedMekanismCompat
+-> 只引用 EvolvedMekanism 本体类，如 EMFactoryType.ALLOYING
+
+compat/eme/EvolvedMekanismExtrasCompat
+-> 只引用 EMExtras 类和必须的 EvolvedMekanism 类型
+
+client/jei/compat/EvolvedMekanismJeiCompat
+-> 只在 evolvedmekanism 已加载后由主 JEI 插件延迟调用
+```
+
+软依赖排查优先看这些症状：
+
+| 现象 | 优先检查 |
+| --- | --- |
+| 少装某个可选模组启动崩溃 | `isAvailable()` 是否挡住 enum 注册，公共类是否直接 import 目标模组类 |
+| mixin 阶段找不到目标类 | optional accessor 是否加了 `IMixinConfigPlugin.shouldApplyMixin` 过滤 |
+| 只装 meke 时崩在 emek/emeke 类 | MekanismExtras compat 是否引用了 EvolvedMekanism/EMExtras helper |
+| 只装 emek 时 JEI 崩溃 | 主 JEI 插件是否直接 import 了 EvolvedMekanism recipe viewer type |
+| 机器没注册但配方报错 | recipe JSON 是否缺少 mod-loaded 条件 |
+
 ## 15. 新增 Mek 机器的推荐步骤
 
 按这个顺序做，出错时定位最快：
@@ -397,14 +438,16 @@ translation key: block.mekenergistics.me_enrichment_chamber
 
 1. 在 `MeMekanismMachine` 增加支持 `customFactoryTypeName` 的构造路径，`factoryTypeName()` 返回 Mek 原生 `factoryType.getRegistryNameComponent()` 或自定义字符串。
 2. `getFactory(...)`、`getEvolvedFactory(...)`、`getExtraFactory(...)` 和 `getNextFactory()` 都要接受字符串 type name。不要让升级链只走 `FactoryType` 参数。
-3. `isAvailable()` 只检查实际需要的模组和 tier。普通 EvolvedMekanism factory 不应因为缺少 EME tier 而被跳过。
+3. `isAvailable()` 只检查实际需要的模组和 tier。普通 EvolvedMekanism factory 不应因为缺少 EME tier 而被跳过；MekanismExtras 风格的 alloying tier 则必须额外要求 `emextras` 可用，不能只因为 `mekanism_extras` 存在就注册。
 4. 在对应 compat 的 `registerFactoryMachine(...)` 中先处理自定义 type name，再进入 `switch (machine.factoryType())`。否则 `factoryType == null` 会空指针。
-5. `createFactoryBlockType(...)` 中用字符串选择 upgrade support，并在自定义 type 时显式加 `new AttributeFactoryType(EMFactoryType.ALLOYING)` 和对应 shape。
+5. `createFactoryBlockType(...)` 中用字符串选择 upgrade support，并在自定义 type 时显式加 `new AttributeFactoryType(EMFactoryType.ALLOYING)` 和对应 shape。这个 `EMFactoryType` 引用要放在只依赖 EvolvedMekanism 的 compat helper 中，主注册类不要直接 import。
 6. `ModMenuTypes.getMachineContainer(...)` 不能只用 `factoryType() != null` 判断工厂容器。`extraFactoryTierName != null && customFactoryTypeName == "alloying"` 这类机器也要进对应 Extras factory container。
 7. 安装器跨链时使用 `current.factoryTypeName()`。例如 ultimate alloying factory 通过 MekanismExtras installer 升到 `absolute_alloying_factory` 时，`current.factoryType()` 是 `null`。
 8. BlockEntity 继承目标模组真实 tile，例如 `TileEntityExtraAlloyingFactory`，再接 `MeExternalFactorySupport.pushThreeItems(...)`、`wrapRecipeEnergy(...)` 和 `drainOutputs(...)`。
 9. 资源要按真实原方块 id 补配方。`absolute_alloying_factory` 这条链应使用 `emextras:absolute_alloying_factory`，不要误用 `absolute_overclocked_alloying_factory`。
-10. 最后用 `rg` 同时扫 enum、BlockEntity、菜单、资源和 recipe，确认每个 tier 都有代码和资源入口。
+10. 基础 `ME Alloyer` 的 JEI catalyst 要注册到 EvolvedMekanism 的 alloying recipe type，但主 JEI 插件必须延迟调用 compat JEI 类，避免没装 `evolvedmekanism` 时加载失败。
+11. `TileEntityAlloyerAccessor` 这类指向 EvolvedMekanism tile 的 mixin accessor 必须通过 mixin plugin 按 mod id 过滤。
+12. 最后用 `rg` 同时扫 enum、BlockEntity、菜单、资源和 recipe，确认每个 tier 都有代码和资源入口。
 
 示例搜索：
 

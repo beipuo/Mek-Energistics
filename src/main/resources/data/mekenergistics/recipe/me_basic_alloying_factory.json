@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "evolvedmekanism"
+    }
+  ],
   "ingredients": [
     {
       "item": "evolvedmekanism:basic_alloying_factory"

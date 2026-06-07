@@ -3,6 +3,7 @@ package com.beipuo.mekenergistics.registry;
 import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismCompat;
 import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasMoreMachineCompat;
@@ -10,7 +11,6 @@ import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedCompat;
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineBaseCompat;
 import java.util.EnumMap;
 import java.util.Map;
-import fr.iglee42.evolvedmekanism.registries.EMFactoryType;
 import mekanism.api.Upgrade;
 import mekanism.api.text.ILangEntry;
 import mekanism.common.block.attribute.AttributeHasBounding;
@@ -80,7 +80,7 @@ public final class ModBlockTypes {
         if (machine.factoryType() != null) {
             builder.with(new AttributeFactoryType(machine.factoryType()));
         } else if ("alloying".equals(machine.customFactoryTypeName())) {
-            builder.with(new AttributeFactoryType(EMFactoryType.ALLOYING));
+            EvolvedMekanismCompat.withAlloyingFactoryType(builder);
         }
         if (machine.factoryTier() != null) {
             builder.with(new AttributeTier<>(machine.factoryTier()));
@@ -108,7 +108,7 @@ public final class ModBlockTypes {
             return BlockShapes.getShape(machine.factoryTier(), machine.factoryType());
         }
         if ("alloying".equals(machine.customFactoryTypeName()) && machine.factoryTier() != null) {
-            return BlockShapes.getShape(machine.factoryTier(), EMFactoryType.ALLOYING);
+            return EvolvedMekanismCompat.alloyingFactoryShape(machine.factoryTier());
         }
         return switch (machine) {
             case METALLURGIC_INFUSER -> BlockShapes.METALLURGIC_INFUSER;

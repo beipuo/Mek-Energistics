@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "com.beipuo.mekenergistics.mixin",
+  "plugin": "com.beipuo.mekenergistics.mixin.MekEnergisticsMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "TileEntityElectricMachineAccessor",

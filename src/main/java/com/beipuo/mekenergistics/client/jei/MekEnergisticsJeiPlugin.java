@@ -6,6 +6,7 @@ import com.beipuo.mekenergistics.client.overlay.MePatternWindowOverlay;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModItems;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.client.gui.GuiMekanism;
@@ -70,6 +71,7 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
         registerMachines(registration, RecipeViewerRecipeType.NUTRITIONAL_LIQUIFICATION, MeMekanismMachine.NUTRITIONAL_LIQUIFIER);
         registerMachines(registration, RecipeViewerRecipeType.CONDENSENTRATING, MeMekanismMachine.ROTARY_CONDENSENTRATOR);
         registerMachines(registration, RecipeViewerRecipeType.DECONDENSENTRATING, MeMekanismMachine.ROTARY_CONDENSENTRATOR);
+        registerEvolvedMekanismCatalysts(registration);
         registerMachines(registration, RecipeViewerRecipeType.CHEMICAL_CONVERSION,
                 MeMekanismMachine.PURIFICATION_CHAMBER,
                 MeMekanismMachine.METALLURGIC_INFUSER,
@@ -97,7 +99,7 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
         }
     }
 
-    private static void registerMachines(IRecipeCatalystRegistration registration, IRecipeViewerRecipeType<?> recipeType, MeMekanismMachine... machines) {
+    public static void registerMachines(IRecipeCatalystRegistration registration, IRecipeViewerRecipeType<?> recipeType, MeMekanismMachine... machines) {
         ItemLike[] catalysts = catalysts(machines);
         if (catalysts.length > 0) {
             registration.addRecipeCatalysts(MekanismJEI.genericRecipeType(recipeType), catalysts);
@@ -120,6 +122,18 @@ public class MekEnergisticsJeiPlugin implements IModPlugin {
             return;
         }
         MekanismMoreMachineJeiCompat.registerCatalysts(registration, MekEnergisticsJeiPlugin::registerMoreMachineFactories);
+    }
+
+    private static void registerEvolvedMekanismCatalysts(IRecipeCatalystRegistration registration) {
+        if (!ModList.get().isLoaded("evolvedmekanism")) {
+            return;
+        }
+        try {
+            Class.forName("com.beipuo.mekenergistics.client.jei.compat.EvolvedMekanismJeiCompat")
+                    .getMethod("registerCatalysts", IRecipeCatalystRegistration.class)
+                    .invoke(null, registration);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        }
     }
 
     private static void registerMoreMachineFactories(IRecipeCatalystRegistration registration, IRecipeViewerRecipeType<?> recipeType, String factoryTypeName) {

@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "emextras"
+    }
+  ],
   "ingredients": [
     {
       "item": "emextras:infinite_multiversal_alloying_factory"

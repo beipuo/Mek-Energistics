@@ -686,6 +686,10 @@ public enum MeMekanismMachine {
         if ("mekanism_extras".equals(requiredModId) && !OptionalCompatClasses.hasMekanismExtras()) {
             return false;
         }
+        if ("mekanism_extras".equals(requiredModId) && "alloying".equals(customFactoryTypeName)
+                && !OptionalCompatClasses.hasEvolvedMekanismExtras()) {
+            return false;
+        }
         if ("evolvedmekanism".equals(requiredModId) && !OptionalCompatClasses.hasEvolvedMekanism()) {
             return false;
         }

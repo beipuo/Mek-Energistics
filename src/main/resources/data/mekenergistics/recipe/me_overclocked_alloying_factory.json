@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "evolvedmekanism"
+    }
+  ],
   "ingredients": [
     {
       "item": "evolvedmekanism:overclocked_alloying_factory"
