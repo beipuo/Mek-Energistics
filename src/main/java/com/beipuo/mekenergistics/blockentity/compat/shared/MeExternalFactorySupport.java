@@ -74,6 +74,13 @@ public final class MeExternalFactorySupport {
         return input != null && input.isItem() && insertItem(owner, input.item());
     }
 
+    public static boolean pushSingleItemWithRequiredExtraSlot(Owner owner, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
+        if (extraSlot == null || extraSlot.getStack().isEmpty()) {
+            return false;
+        }
+        return pushSingleItem(owner, inputHolder);
+    }
+
     public static boolean pushItemChemical(Owner owner, KeyCounter[] inputHolder, IChemicalTank chemicalTank) {
         if (inputHolder == null || inputHolder.length != 2) {
             return false;

@@ -42,7 +42,7 @@ public class MeStampingFactoryBlockEntity extends TileEntityStampingFactory impl
     @Override public Level getOwnerLevel() { return getLevel(); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return MeExternalFactorySupport.getAvailablePatterns(getAeSupport()); }
     @Override public int getPatternPriority() { return getAeSupport().getPatternPriority(); }
-    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushTwoItems(this, inputHolder, getExtraSlot()); }
+    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushSingleItemWithRequiredExtraSlot(this, inputHolder, getExtraSlot()); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public mekanism.api.recipes.cache.CachedRecipe<com.jerry.mekmm.api.recipes.StamperRecipe> createNewCachedRecipe(@NotNull com.jerry.mekmm.api.recipes.StamperRecipe recipe, int cacheIndex) { return MeExternalFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }

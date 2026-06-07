@@ -10,7 +10,6 @@ import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
-import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
@@ -20,8 +19,6 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import com.jerry.mekmm.common.tile.machine.TileEntityStamper;
 import java.util.ArrayList;
 import java.util.List;
-import mekanism.api.Action;
-import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
@@ -90,23 +87,11 @@ public class MeStamperBlockEntity extends TileEntityStamper implements ICrafting
 
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
-        if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
+        if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails)
+                || this.meMoldInputSlot == null || this.meMoldInputSlot.getStack().isEmpty()) {
             return false;
         }
-        MeFactoryPatternInput first = MeFactoryPatternInput.single(inputHolder[0]);
-        MeFactoryPatternInput second = MeFactoryPatternInput.single(inputHolder[1]);
-        if (first == null || second == null || !first.isItem() || !second.isItem()) {
-            return false;
-        }
-        if (this.meItemInputSlot == null || this.meMoldInputSlot == null
-                || !this.meItemInputSlot.insertItem(first.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                || !this.meMoldInputSlot.insertItem(second.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-            return false;
-        }
-        this.meItemInputSlot.insertItem(first.item(), Action.EXECUTE, AutomationType.INTERNAL);
-        this.meMoldInputSlot.insertItem(second.item(), Action.EXECUTE, AutomationType.INTERNAL);
-        setChanged();
-        return true;
+        return this.meItemInputSlot != null && this.aeSupport.pushSingleItem(inputHolder, this.meItemInputSlot);
     }
 
     @Override public boolean isBusy() { return false; }

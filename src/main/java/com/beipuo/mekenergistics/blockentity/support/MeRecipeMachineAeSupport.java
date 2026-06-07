@@ -21,6 +21,7 @@ import appeng.api.networking.ticking.TickingRequest;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
 import appeng.api.storage.StorageHelper;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
@@ -223,6 +224,23 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         boolean changed = insertOutputSlotIntoNetwork(outputSlot, mode);
         changed |= insertFluidTankIntoNetwork(fluidTank, mode);
         return changed || sendUpdatePacket;
+    }
+
+    public boolean pushSingleItem(KeyCounter[] inputHolder, IInventorySlot inputSlot) {
+        if (inputHolder == null || inputHolder.length != 1 || inputSlot == null) {
+            return false;
+        }
+        MeFactoryPatternInput input = MeFactoryPatternInput.single(inputHolder[0]);
+        if (input == null || !input.isItem()) {
+            return false;
+        }
+        ItemStack itemInput = input.item();
+        if (!inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            return false;
+        }
+        inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
+        this.owner.setChanged();
+        return true;
     }
 
     private void rememberOutputSlot(OutputInventorySlot outputSlot) {

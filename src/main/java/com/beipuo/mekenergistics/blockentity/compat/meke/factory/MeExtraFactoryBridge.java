@@ -40,6 +40,10 @@ final class MeExtraFactoryBridge {
         return MeExternalFactorySupport.pushSingleItem(adapt(owner), inputHolder);
     }
 
+    static boolean pushSingleItemWithRequiredExtraSlot(Owner owner, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
+        return MeExternalFactorySupport.pushSingleItemWithRequiredExtraSlot(adapt(owner), inputHolder, extraSlot);
+    }
+
     static boolean pushTwoItems(Owner owner, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
         return MeExternalFactorySupport.pushTwoItems(adapt(owner), inputHolder, extraSlot);
     }
