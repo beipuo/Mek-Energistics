@@ -10,31 +10,22 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalOxidizer
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalWasherBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeCombinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeDigitalMinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeDimensionalStabilizerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeElectricMachineBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeElectricPumpBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeElectrolyticSeparatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeFluidicPlenisherBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeFormulaicAssemblicatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeItemStackToItemStackFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeIsotopicCentrifugeBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeLogisticalSorterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeMetallurgicInfuserBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeModificationStationBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeNutritionalLiquifierBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeOredictionificatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MePaintingMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentExtractorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentMixerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MePrecisionSawmillBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MePressurizedReactionChamberBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeResistiveHeaterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeRotaryCondensentratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeSeismicVibratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActivatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.menu.MePatternFormulaicAssemblicatorContainer;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
 import com.beipuo.mekenergistics.menu.MePatternMekanismTileContainer;
@@ -72,26 +63,8 @@ public final class ModMenuTypes {
             registerPatternContainer("me_combiner", MeCombinerBlockEntity.class);
     public static final ContainerTypeRegistryObject<MePatternMachineContainer<MePrecisionSawmillBlockEntity>> ME_PRECISION_SAWMILL =
             registerPatternContainer("me_precision_sawmill", MePrecisionSawmillBlockEntity.class);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeElectricPumpBlockEntity>> ME_ELECTRIC_PUMP =
-            registerPatternTileContainer("me_electric_pump", MeElectricPumpBlockEntity.class);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeFluidicPlenisherBlockEntity>> ME_FLUIDIC_PLENISHER =
-            registerPatternTileContainer("me_fluidic_plenisher", MeFluidicPlenisherBlockEntity.class);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeResistiveHeaterBlockEntity>> ME_RESISTIVE_HEATER =
-            registerPatternTileContainer("me_resistive_heater", MeResistiveHeaterBlockEntity.class);
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MeSeismicVibratorBlockEntity>> ME_SEISMIC_VIBRATOR =
             registerPatternTileContainer("me_seismic_vibrator", MeSeismicVibratorBlockEntity.class);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeTeleporterBlockEntity>> ME_TELEPORTER =
-            registerPatternTileContainer("me_teleporter", MeTeleporterBlockEntity.class, 0, 74);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeOredictionificatorBlockEntity>> ME_OREDICTIONIFICATOR =
-            registerPatternTileContainer("me_oredictionificator", MeOredictionificatorBlockEntity.class, 30, 64);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeModificationStationBlockEntity>> ME_MODIFICATION_STATION =
-            registerPatternTileContainer("me_modification_station", MeModificationStationBlockEntity.class, 0, 64, 8, 8, 8);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeDigitalMinerBlockEntity>> ME_DIGITAL_MINER =
-            registerPatternTileContainer("me_digital_miner", MeDigitalMinerBlockEntity.class, 0, 76);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeLogisticalSorterBlockEntity>> ME_LOGISTICAL_SORTER =
-            registerPatternTileContainer("me_logistical_sorter", MeLogisticalSorterBlockEntity.class, 50, 88);
-    public static final ContainerTypeRegistryObject<MekanismTileContainer<MeDimensionalStabilizerBlockEntity>> ME_DIMENSIONAL_STABILIZER =
-            registerPatternTileContainer("me_dimensional_stabilizer", MeDimensionalStabilizerBlockEntity.class);
     public static final ContainerTypeRegistryObject<MePatternFormulaicAssemblicatorContainer> ME_FORMULAIC_ASSEMBLICATOR =
             registerFormulaicAssemblicatorContainer();
     public static final ContainerTypeRegistryObject<MekanismTileContainer<MePressurizedReactionChamberBlockEntity>> ME_PRESSURIZED_REACTION_CHAMBER =
@@ -251,26 +224,8 @@ public final class ModMenuTypes {
             return ME_COMBINER;
         } else if (machine == MeMekanismMachine.PRECISION_SAWMILL) {
             return ME_PRECISION_SAWMILL;
-        } else if (machine == MeMekanismMachine.ELECTRIC_PUMP) {
-            return ME_ELECTRIC_PUMP;
-        } else if (machine == MeMekanismMachine.FLUIDIC_PLENISHER) {
-            return ME_FLUIDIC_PLENISHER;
-        } else if (machine == MeMekanismMachine.RESISTIVE_HEATER) {
-            return ME_RESISTIVE_HEATER;
         } else if (machine == MeMekanismMachine.SEISMIC_VIBRATOR) {
             return ME_SEISMIC_VIBRATOR;
-        } else if (machine == MeMekanismMachine.TELEPORTER) {
-            return ME_TELEPORTER;
-        } else if (machine == MeMekanismMachine.OREDICTIONIFICATOR) {
-            return ME_OREDICTIONIFICATOR;
-        } else if (machine == MeMekanismMachine.MODIFICATION_STATION) {
-            return ME_MODIFICATION_STATION;
-        } else if (machine == MeMekanismMachine.DIGITAL_MINER) {
-            return ME_DIGITAL_MINER;
-        } else if (machine == MeMekanismMachine.LOGISTICAL_SORTER) {
-            return ME_LOGISTICAL_SORTER;
-        } else if (machine == MeMekanismMachine.DIMENSIONAL_STABILIZER) {
-            return ME_DIMENSIONAL_STABILIZER;
         } else if (machine == MeMekanismMachine.FORMULAIC_ASSEMBLICATOR) {
             return ME_FORMULAIC_ASSEMBLICATOR;
         } else if (machine == MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER) {

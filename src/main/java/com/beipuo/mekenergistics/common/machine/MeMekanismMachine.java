@@ -559,6 +559,9 @@ public enum MeMekanismMachine {
     }
 
     public boolean isAvailable() {
+        if (!hasMeVariant()) {
+            return false;
+        }
         if ("mekmm".equals(requiredModId) && !OptionalCompatClasses.hasMekmm()) {
             return false;
         }
@@ -580,6 +583,14 @@ public enum MeMekanismMachine {
             return OptionalCompatClasses.hasMekanismExtrasMoreMachineFactories();
         }
         return true;
+    }
+
+    public boolean hasMeVariant() {
+        return switch (this) {
+            case DIGITAL_MINER, ELECTRIC_PUMP, FLUIDIC_PLENISHER, TELEPORTER, RESISTIVE_HEATER,
+                    LOGISTICAL_SORTER, DIMENSIONAL_STABILIZER, OREDICTIONIFICATOR, MODIFICATION_STATION -> false;
+            default -> true;
+        };
     }
 
     @Nullable

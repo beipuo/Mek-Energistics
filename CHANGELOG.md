@@ -5,6 +5,7 @@
 - Fixed Mekanism: MoreMachine CNC Stamper pattern insertion so non-consumed mold items can stay preloaded in the extra slot while AE patterns only provide consumed input items.
 - Applied the same non-consumed mold handling to MekMM and Mekanism Extras stamping factories.
 - Improved shared AE pattern insertion helpers for single-item inputs with required extra slots.
+- Removed unsupported ME variants for Mekanism utility/configuration machines that do not need AE pattern support.
 - Verified the update with Gradle build.
 
 ## 0.0.13-beta

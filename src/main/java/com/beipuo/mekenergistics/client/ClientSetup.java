@@ -38,52 +38,27 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalInfuserB
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalOxidizerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalWasherBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeCombinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeDigitalMinerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeDimensionalStabilizerBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeElectricPumpBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeElectrolyticSeparatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeFluidicPlenisherBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeFormulaicAssemblicatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeIsotopicCentrifugeBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeLogisticalSorterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeMetallurgicInfuserBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeModificationStationBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeNutritionalLiquifierBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeOredictionificatorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MePaintingMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentExtractorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MePigmentMixerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MePrecisionSawmillBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MePressurizedReactionChamberBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeResistiveHeaterBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeRotaryCondensentratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeSeismicVibratorBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeSolarNeutronActivatorBlockEntity;
-import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEntity;
 import com.beipuo.mekenergistics.menu.MePatternMachineContainer;
 import com.beipuo.mekenergistics.registry.ModMenuTypes;
-import mekanism.client.gui.GuiDimensionalStabilizer;
-import mekanism.client.gui.GuiLogisticalSorter;
-import mekanism.client.gui.GuiModificationStation;
-import mekanism.client.gui.GuiTeleporter;
-import mekanism.client.gui.machine.GuiDigitalMiner;
-import mekanism.client.gui.machine.GuiElectricPump;
-import mekanism.client.gui.machine.GuiFluidicPlenisher;
 import mekanism.client.gui.machine.GuiFormulaicAssemblicator;
-import mekanism.client.gui.machine.GuiOredictionificator;
-import mekanism.client.gui.machine.GuiResistiveHeater;
 import mekanism.client.gui.machine.GuiSeismicVibrator;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.container.tile.FormulaicAssemblicatorContainer;
-import mekanism.common.tile.TileEntityLogisticalSorter;
-import mekanism.common.tile.TileEntityModificationStation;
-import mekanism.common.tile.TileEntityTeleporter;
 import mekanism.common.tile.machine.TileEntityCombiner;
-import mekanism.common.tile.machine.TileEntityDigitalMiner;
-import mekanism.common.tile.machine.TileEntityDimensionalStabilizer;
-import mekanism.common.tile.machine.TileEntityElectricPump;
 import mekanism.common.tile.machine.TileEntityElectrolyticSeparator;
-import mekanism.common.tile.machine.TileEntityFluidicPlenisher;
 import mekanism.common.tile.machine.TileEntityAntiprotonicNucleosynthesizer;
 import mekanism.common.tile.machine.TileEntityChemicalCrystallizer;
 import mekanism.common.tile.machine.TileEntityChemicalDissolutionChamber;
@@ -93,13 +68,11 @@ import mekanism.common.tile.machine.TileEntityChemicalWasher;
 import mekanism.common.tile.machine.TileEntityIsotopicCentrifuge;
 import mekanism.common.tile.machine.TileEntityMetallurgicInfuser;
 import mekanism.common.tile.machine.TileEntityNutritionalLiquifier;
-import mekanism.common.tile.machine.TileEntityOredictionificator;
 import mekanism.common.tile.machine.TileEntityPaintingMachine;
 import mekanism.common.tile.machine.TileEntityPigmentExtractor;
 import mekanism.common.tile.machine.TileEntityPigmentMixer;
 import mekanism.common.tile.machine.TileEntityPrecisionSawmill;
 import mekanism.common.tile.machine.TileEntityPressurizedReactionChamber;
-import mekanism.common.tile.machine.TileEntityResistiveHeater;
 import mekanism.common.tile.machine.TileEntityRotaryCondensentrator;
 import mekanism.common.tile.machine.TileEntitySeismicVibrator;
 import mekanism.common.tile.machine.TileEntitySolarNeutronActivator;
@@ -133,36 +106,9 @@ public final class ClientSetup {
         event.register((MenuType) ModMenuTypes.ME_PRECISION_SAWMILL.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
                         new MeGuiPrecisionSawmill((MekanismTileContainer<MePrecisionSawmillBlockEntity>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_ELECTRIC_PUMP.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiElectricPump((MekanismTileContainer<TileEntityElectricPump>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_FLUIDIC_PLENISHER.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiFluidicPlenisher((MekanismTileContainer<TileEntityFluidicPlenisher>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_RESISTIVE_HEATER.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiResistiveHeater((MekanismTileContainer<TileEntityResistiveHeater>) (MekanismTileContainer<?>) menu, inv, title));
         event.register((MenuType) ModMenuTypes.ME_SEISMIC_VIBRATOR.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
                         new GuiSeismicVibrator((MekanismTileContainer<TileEntitySeismicVibrator>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_TELEPORTER.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiTeleporter((MekanismTileContainer<TileEntityTeleporter>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_OREDICTIONIFICATOR.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiOredictionificator((MekanismTileContainer<TileEntityOredictionificator>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_MODIFICATION_STATION.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiModificationStation((MekanismTileContainer<TileEntityModificationStation>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_DIGITAL_MINER.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiDigitalMiner((MekanismTileContainer<TileEntityDigitalMiner>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_LOGISTICAL_SORTER.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiLogisticalSorter((MekanismTileContainer<TileEntityLogisticalSorter>) (MekanismTileContainer<?>) menu, inv, title));
-        event.register((MenuType) ModMenuTypes.ME_DIMENSIONAL_STABILIZER.get(),
-                (MenuScreens.ScreenConstructor) (menu, inv, title) ->
-                        new GuiDimensionalStabilizer((MekanismTileContainer<TileEntityDimensionalStabilizer>) (MekanismTileContainer<?>) menu, inv, title));
         event.register(ModMenuTypes.ME_FORMULAIC_ASSEMBLICATOR.get(), GuiFormulaicAssemblicator::new);
         event.register((MenuType) ModMenuTypes.ME_PRESSURIZED_REACTION_CHAMBER.get(),
                 (MenuScreens.ScreenConstructor) (menu, inv, title) ->
