@@ -23,10 +23,12 @@ import mekanism.common.block.interfaces.IHasTileEntity;
 import mekanism.common.block.interfaces.ITypeBlock;
 import mekanism.common.content.blocktype.BlockType;
 import mekanism.common.content.blocktype.BlockTypeTile;
+import mekanism.common.resource.BlockResourceInfo;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.base.TileEntityUpdateable;
 import mekanism.common.tags.MekanismTags;
+import mekanism.common.util.WorldUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -74,7 +76,8 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     private static BlockBehaviour.Properties properties(MeMekanismMachine machine) {
         BlockBehaviour.Properties properties = BlockBehaviour.Properties.of()
                 .strength(3.5F, 16.0F)
-                .requiresCorrectToolForDrops();
+                .requiresCorrectToolForDrops()
+                .mapColor(BlockResourceInfo.STEEL.getMapColor());
         BlockTypeTile<? extends TileEntityMekanism> blockType = ModBlockTypes.getMachineBlockType(machine);
         if (blockType != null) {
             for (Attribute attribute : blockType.getAll()) {
@@ -180,10 +183,19 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         if (level.isClientSide) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
-        if (shouldDropPatternsBeforeDismantle(stack, state, player, level, pos, mekanismTile)) {
+        boolean shouldDropPatterns = shouldDropPatternsBeforeDismantle(stack, state, player, level, pos, mekanismTile);
+        if (shouldDropPatterns) {
             MePatternSlotTransfer.dropAndClear(level, pos, mekanismTile);
         }
-        return mekanismTile.tryWrench(state, player, stack).getInteractionResult();
+        ItemInteractionResult wrenchResult = mekanismTile.tryWrench(state, player, stack).getInteractionResult();
+        if (wrenchResult.consumesAction()) {
+            return wrenchResult;
+        }
+        if (shouldDropPatterns && stack.is(COMMON_WRENCHES)) {
+            WorldUtils.dismantleBlock(state, level, pos, mekanismTile, player, stack);
+            return ItemInteractionResult.SUCCESS;
+        }
+        return wrenchResult;
     }
 
     @Override
