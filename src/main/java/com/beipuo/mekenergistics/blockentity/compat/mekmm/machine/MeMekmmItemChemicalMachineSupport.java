@@ -149,7 +149,7 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
     void clearRemoved() { GridHelper.onFirstTick(this.owner, be -> this.aeSupport.create(be.getLevel(), be.getBlockPos())); }
     void setRemoved() { this.aeSupport.destroy(); }
     void onChunkUnloaded() { this.aeSupport.destroy(); }
-    void addContainerTrackers(MekanismContainer container) { container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); }
+    void addContainerTrackers(MekanismContainer container) { container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); this.aeSupport.addPatternMirrorTrackers(container); }
     void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { tag.putInt("AeOutputMode", this.aeOutputMode.ordinal()); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
     void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
 }

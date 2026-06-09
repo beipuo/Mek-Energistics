@@ -5,10 +5,12 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MePatternMirrorOwner;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MePatternMirrorSupport;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
@@ -87,6 +89,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
     private final IActionSource actionSource;
     private List<BasicInventorySlot> patternSlots;
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final MePatternMirrorSupport patternMirrorSupport;
     private int patternPriority;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
@@ -100,6 +103,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, this)
                 .addService(IGridTickable.class, new AeTicker());
+        this.patternMirrorSupport = new MePatternMirrorSupport(new MirrorOwner());
     }
 
     @NotNull
@@ -286,7 +290,16 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
 
     @Override
     public List<IPatternDetails> getAvailablePatterns() {
+        return Collections.unmodifiableList(this.patternMirrorSupport.getEffectivePatterns());
+    }
+
+    public List<IPatternDetails> getLocalAvailablePatterns() {
         return Collections.unmodifiableList(this.patterns);
+    }
+
+    @Override
+    public MePatternMirrorSupport getPatternMirrorSupport() {
+        return this.patternMirrorSupport;
     }
 
     @Override
@@ -296,7 +309,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
 
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
-        if (!this.mainNode.isActive() || !this.patterns.contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
+        if (!this.mainNode.isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
         ItemStack itemInput = ItemStack.EMPTY;
@@ -354,6 +367,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
+        this.patternMirrorSupport.updateGroup();
     }
 
     @Override
@@ -361,6 +375,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
         tag.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
+        this.patternMirrorSupport.save(tag);
         this.mainNode.saveToNBT(tag);
     }
 
@@ -369,6 +384,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         super.loadAdditional(tag, registries);
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
         this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
+        this.patternMirrorSupport.load(tag);
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }
@@ -378,6 +394,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         super.addContainerTrackers(container);
         container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(),
                 mode -> this.aeOutputMode = AeOutputMode.byId(mode)));
+        this.patternMirrorSupport.addContainerTrackers(container);
     }
 
     @Override
@@ -486,6 +503,45 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         @Override
         public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             this.energyContainer.deserializeNBT(provider, nbt);
+        }
+    }
+
+    private final class MirrorOwner implements MePatternMirrorOwner {
+        @Override
+        public MePatternMirrorSupport getPatternMirrorSupport() {
+            return patternMirrorSupport;
+        }
+
+        @Override
+        public IManagedGridNode getMainNode() {
+            return mainNode;
+        }
+
+        @Override
+        public MeMekanismMachine getMachine() {
+            return machine;
+        }
+
+        @Override
+        public net.minecraft.world.level.Level getOwnerLevel() {
+            return getLevel();
+        }
+
+        @Override
+        public List<IPatternDetails> getLocalAvailablePatterns() {
+            return MeAdvancedElectricMachineBlockEntity.this.getLocalAvailablePatterns();
+        }
+
+        @Override
+        public void requestPatternMirrorUpdate() {
+            if (mainNode.getNode() != null) {
+                ICraftingProvider.requestUpdate(mainNode);
+            }
+        }
+
+        @Override
+        public void saveChanges() {
+            setChanged();
         }
     }
 

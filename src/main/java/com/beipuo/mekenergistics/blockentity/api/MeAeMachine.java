@@ -6,7 +6,9 @@ import appeng.api.networking.IGrid;
 import appeng.api.stacks.AEItemKey;
 import appeng.helpers.patternprovider.PatternContainer;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
+import com.beipuo.mekenergistics.blockentity.support.MePatternMirrorSupport;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
@@ -32,6 +34,12 @@ public interface MeAeMachine extends PatternContainer {
     void setOwner(ServerPlayer player);
 
     List<BasicInventorySlot> getPatternSlots();
+
+    default MePatternMirrorSupport getPatternMirrorSupport() {
+        return this instanceof MeMekanismMachineBlockEntity machine
+                ? machine.getPatternMirrorSupport()
+                : MeRecipeMachineAeSupport.getPatternMirrorSupport(this);
+    }
 
     MeMekanismMachine getMachine();
 

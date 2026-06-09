@@ -8,7 +8,10 @@ import appeng.client.gui.me.common.StackSizeRenderer;
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.PatternMirrorRole;
+import com.beipuo.mekenergistics.blockentity.support.MePatternMirrorSupport;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
+import com.beipuo.mekenergistics.network.packet.SetPatternMirrorConfigPacket;
 import com.beipuo.mekenergistics.network.packet.SetPatternTerminalNamePacket;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +58,7 @@ public final class MePatternWindowOverlay {
     private static final Component PATTERN_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.button");
     private static final Component PATTERN_WINDOW_TITLE = Component.translatable("gui.mekenergistics.me_patterns.title");
     private static final Component RENAME_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.rename");
+    private static final Component CHANNEL_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.channel");
     private static final int TAB_X = 0;
     private static final int TAB_Y = 62;
     private static final int TAB_SIZE = 26;
@@ -132,10 +136,10 @@ public final class MePatternWindowOverlay {
             return null;
         }
         if (container.getTileEntity() instanceof MeAeMachine machine) {
-            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName));
+            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName), machine.getPatternMirrorSupport());
         }
         if (container.getTileEntity() instanceof MeFactoryAeMachine machine) {
-            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName));
+            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName), machine.getPatternMirrorSupport());
         }
         return null;
     }
@@ -172,7 +176,7 @@ public final class MePatternWindowOverlay {
         }
     }
 
-    private record Target(GuiMekanism<?> gui, MekanismTileContainer<?> container, List<BasicInventorySlot> patternSlots, NameAccess nameAccess) {
+    private record Target(GuiMekanism<?> gui, MekanismTileContainer<?> container, List<BasicInventorySlot> patternSlots, NameAccess nameAccess, MePatternMirrorSupport mirrorSupport) {
     }
 
     private record NameAccess(Supplier<String> getter, Consumer<String> setter) {
@@ -228,6 +232,10 @@ public final class MePatternWindowOverlay {
             }
             addChild(new MekanismImageButton(gui, relativeX + 158, relativeY + 4, 12, CHECK_BUTTON, (element, mouseX, mouseY) -> toggleNameEditor()))
                     .setTooltip(Tooltip.create(RENAME_BUTTON_TOOLTIP));
+            if (this.target.mirrorSupport() != null && this.target.mirrorSupport().isChannelCardInstalled()) {
+                addChild(new MekanismImageButton(gui, relativeX + 142, relativeY + 4, 12, CHECK_BUTTON, (element, mouseX, mouseY) -> clickChannelButton()))
+                        .setTooltip(Tooltip.create(CHANNEL_BUTTON_TOOLTIP));
+            }
             this.lastSavedName = this.target.nameAccess().get();
             this.nameField = addChild(new GuiTextField(gui, this, relativeX + 132, relativeY + 4, NAME_FIELD_WIDTH, NAME_FIELD_HEIGHT));
             this.nameField.setMaxLength(MeAeMachine.MAX_PATTERN_TERMINAL_NAME_LENGTH);
@@ -246,6 +254,23 @@ public final class MePatternWindowOverlay {
             } else {
                 saveNameIfDirty();
             }
+            return true;
+        }
+
+        private boolean clickChannelButton() {
+            MePatternMirrorSupport mirror = this.target.mirrorSupport();
+            if (mirror == null || !mirror.isChannelCardInstalled()) {
+                return false;
+            }
+            int channel = mirror.channel();
+            PatternMirrorRole role = mirror.role();
+            if (Screen.hasShiftDown()) {
+                role = role.next();
+            } else {
+                channel = channel >= 16 ? 1 : channel + 1;
+            }
+            mirror.setConfig(channel, role);
+            PacketDistributor.sendToServer(new SetPatternMirrorConfigPacket(this.target.container().getTileEntity().getBlockPos(), channel, role.ordinal()));
             return true;
         }
 
@@ -326,7 +351,21 @@ public final class MePatternWindowOverlay {
         public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
             super.renderForeground(guiGraphics, mouseX, mouseY);
             drawTitleText(guiGraphics, PATTERN_WINDOW_TITLE, 6);
+            drawMirrorText(guiGraphics);
             drawScrollingString(guiGraphics, Component.literal((this.currentPage + 1) + "/" + pageCount()), 20, 99, TextAlignment.CENTER, titleTextColor(), width - 40, 0, false);
+        }
+
+        private void drawMirrorText(GuiGraphics guiGraphics) {
+            MePatternMirrorSupport mirror = this.target.mirrorSupport();
+            if (mirror == null || !mirror.isChannelCardInstalled()) {
+                return;
+            }
+            String role = switch (mirror.role()) {
+                case MASTER -> "M";
+                case SLAVE -> "S";
+                case OFF -> "-";
+            };
+            drawScrollingString(guiGraphics, Component.literal("C" + mirror.channel() + " " + role), 112, 7, TextAlignment.CENTER, titleTextColor(), 28, 0, false);
         }
     }
 

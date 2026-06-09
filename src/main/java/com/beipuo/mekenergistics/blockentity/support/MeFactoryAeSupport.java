@@ -27,6 +27,7 @@ import appeng.api.storage.StorageHelper;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MePatternMirrorOwner;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
@@ -68,6 +69,7 @@ public final class MeFactoryAeSupport {
     private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final InternalInventory terminalPatternInventory = new PatternSlotInternalInventory(new PatternSlotOwner());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final MePatternMirrorSupport patternMirrorSupport;
     private final List<IInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
@@ -84,6 +86,7 @@ public final class MeFactoryAeSupport {
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, owner)
                 .addService(IGridTickable.class, new AeTicker());
+        this.patternMirrorSupport = new MePatternMirrorSupport(new MirrorOwner());
         for (int i = 0; i < MekEnergisticsConfig.patternSlots(); i++) {
             this.patternSlots.add(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, this::updatePatterns));
         }
@@ -98,7 +101,15 @@ public final class MeFactoryAeSupport {
     }
 
     public List<IPatternDetails> getAvailablePatterns() {
+        return Collections.unmodifiableList(this.patternMirrorSupport.getEffectivePatterns());
+    }
+
+    public List<IPatternDetails> getLocalAvailablePatterns() {
         return Collections.unmodifiableList(this.patterns);
+    }
+
+    public MePatternMirrorSupport getPatternMirrorSupport() {
+        return this.patternMirrorSupport;
     }
 
     public int getPatternPriority() {
@@ -354,6 +365,7 @@ public final class MeFactoryAeSupport {
         } else {
             tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
         }
+        this.patternMirrorSupport.save(tag);
         this.mainNode.saveToNBT(tag);
     }
 
@@ -361,6 +373,7 @@ public final class MeFactoryAeSupport {
         this.patternPriority = tag.getInt("PatternPriority");
         this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
+        this.patternMirrorSupport.load(tag);
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }
@@ -380,6 +393,7 @@ public final class MeFactoryAeSupport {
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
+        this.patternMirrorSupport.updateGroup();
         this.owner.saveChanges();
     }
 
@@ -441,6 +455,45 @@ public final class MeFactoryAeSupport {
         @Override
         public void setCustomPatternTerminalName(String name) {
             MeFactoryAeSupport.this.setPatternTerminalName(name);
+        }
+    }
+
+    private final class MirrorOwner implements MePatternMirrorOwner {
+        @Override
+        public MePatternMirrorSupport getPatternMirrorSupport() {
+            return patternMirrorSupport;
+        }
+
+        @Override
+        public IManagedGridNode getMainNode() {
+            return mainNode;
+        }
+
+        @Override
+        public MeMekanismMachine getMachine() {
+            return owner.getMachine();
+        }
+
+        @Override
+        public Level getOwnerLevel() {
+            return owner.getOwnerLevel();
+        }
+
+        @Override
+        public List<IPatternDetails> getLocalAvailablePatterns() {
+            return MeFactoryAeSupport.this.getLocalAvailablePatterns();
+        }
+
+        @Override
+        public void requestPatternMirrorUpdate() {
+            if (mainNode.getNode() != null) {
+                ICraftingProvider.requestUpdate(mainNode);
+            }
+        }
+
+        @Override
+        public void saveChanges() {
+            owner.saveChanges();
         }
     }
 

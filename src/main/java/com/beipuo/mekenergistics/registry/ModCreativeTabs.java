@@ -26,6 +26,7 @@ public final class ModCreativeTabs {
                             output.accept(item.get());
                         }
                         output.accept(ModItems.ME_FACTORY_INSTALLER.get());
+                        output.accept(ModItems.ME_CHANNEL_CARD.get());
                     })
                     .build()
     );

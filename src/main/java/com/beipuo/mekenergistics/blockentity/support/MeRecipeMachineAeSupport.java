@@ -26,6 +26,7 @@ import appeng.api.storage.MEStorage;
 import appeng.api.storage.StorageHelper;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
+import com.beipuo.mekenergistics.blockentity.api.MePatternMirrorOwner;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
@@ -33,6 +34,8 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
@@ -59,12 +62,14 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & MeAeMachine & ICraftingProvider & IActionHost> {
     private static final String TAG_PATTERN_TERMINAL_NAME = "PatternTerminalName";
+    private static final Map<MeAeMachine, MePatternMirrorSupport> MIRROR_SUPPORTS = new WeakHashMap<>();
 
     private final TILE owner;
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
     private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final MePatternMirrorSupport patternMirrorSupport;
     private final List<OutputInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
@@ -80,9 +85,15 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(ICraftingProvider.class, owner)
                 .addService(IGridTickable.class, new AeTicker());
+        this.patternMirrorSupport = new MePatternMirrorSupport(new MirrorOwner());
+        MIRROR_SUPPORTS.put(owner, this.patternMirrorSupport);
         for (int i = 0; i < MekEnergisticsConfig.patternSlots(); i++) {
             this.patternSlots.add(MePatternInventorySlot.create(PatternDetailsHelper::isEncodedPattern, this::updatePatterns));
         }
+    }
+
+    public static MePatternMirrorSupport getPatternMirrorSupport(MeAeMachine machine) {
+        return MIRROR_SUPPORTS.get(machine);
     }
 
     public IManagedGridNode getMainNode() {
@@ -94,7 +105,19 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     public List<IPatternDetails> getAvailablePatterns() {
+        return Collections.unmodifiableList(this.patternMirrorSupport.getEffectivePatterns());
+    }
+
+    public List<IPatternDetails> getLocalAvailablePatterns() {
         return Collections.unmodifiableList(this.patterns);
+    }
+
+    public MePatternMirrorSupport getPatternMirrorSupport() {
+        return this.patternMirrorSupport;
+    }
+
+    public void addPatternMirrorTrackers(mekanism.common.inventory.container.MekanismContainer container) {
+        this.patternMirrorSupport.addContainerTrackers(container);
     }
 
     public int getPatternPriority() {
@@ -114,6 +137,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
+        this.patternMirrorSupport.updateGroup();
         this.owner.setChanged();
     }
 
@@ -374,12 +398,14 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         } else {
             tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
         }
+        this.patternMirrorSupport.save(tag);
         this.mainNode.saveToNBT(tag);
     }
 
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
+        this.patternMirrorSupport.load(tag);
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }
@@ -512,6 +538,45 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
             if (node.isActive()) {
                 node.getGrid().getTickManager().alertDevice(node);
             }
+        }
+    }
+
+    private final class MirrorOwner implements MePatternMirrorOwner {
+        @Override
+        public MePatternMirrorSupport getPatternMirrorSupport() {
+            return patternMirrorSupport;
+        }
+
+        @Override
+        public IManagedGridNode getMainNode() {
+            return mainNode;
+        }
+
+        @Override
+        public MeMekanismMachine getMachine() {
+            return owner.getMachine();
+        }
+
+        @Override
+        public Level getOwnerLevel() {
+            return owner.getLevel();
+        }
+
+        @Override
+        public List<IPatternDetails> getLocalAvailablePatterns() {
+            return MeRecipeMachineAeSupport.this.getLocalAvailablePatterns();
+        }
+
+        @Override
+        public void requestPatternMirrorUpdate() {
+            if (mainNode.getNode() != null) {
+                ICraftingProvider.requestUpdate(mainNode);
+            }
+        }
+
+        @Override
+        public void saveChanges() {
+            owner.setChanged();
         }
     }
 

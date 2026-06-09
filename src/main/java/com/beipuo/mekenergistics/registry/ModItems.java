@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.registry;
 
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.item.MeChannelCardItem;
 import com.beipuo.mekenergistics.item.MeMachineBlockItem;
 import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import java.util.EnumMap;
@@ -22,6 +23,8 @@ public final class ModItems {
     private static final Map<MeMekanismMachine, DeferredItem<BlockItem>> MACHINES = new EnumMap<>(MeMekanismMachine.class);
     public static final DeferredItem<MeTierInstallerItem> ME_FACTORY_INSTALLER =
             ITEMS.register("me_factory_installer", () -> new MeTierInstallerItem(new Item.Properties()));
+    public static final DeferredItem<MeChannelCardItem> ME_CHANNEL_CARD =
+            ITEMS.register("me_channel_card", () -> new MeChannelCardItem(new Item.Properties()));
 
     static {
         for (MeMekanismMachine machine : MeMekanismMachine.values()) {

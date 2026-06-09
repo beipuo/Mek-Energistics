@@ -9,6 +9,7 @@ import appeng.api.networking.security.IActionHost;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.MePatternMirrorSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
@@ -42,6 +43,10 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
         return getAeSupport().getPatternSlots();
     }
 
+    default MePatternMirrorSupport getPatternMirrorSupport() {
+        return getAeSupport().getPatternMirrorSupport();
+    }
+
     default AeOutputMode getAeOutputMode() {
         return getAeSupport().getAeOutputMode();
     }
@@ -65,6 +70,7 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
     default void addAeOutputModeTracker(MekanismContainer container) {
         container.track(SyncableInt.create(() -> getAeOutputMode().ordinal(),
                 mode -> getAeSupport().setAeOutputMode(AeOutputMode.byId(mode))));
+        getPatternMirrorSupport().addContainerTrackers(container);
     }
 
     default void setOwner(ServerPlayer player) {

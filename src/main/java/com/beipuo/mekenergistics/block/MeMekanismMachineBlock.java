@@ -8,6 +8,7 @@ import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.item.MeInstallerUpgradeHandler;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
+import com.beipuo.mekenergistics.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.MekanismItemAbilities;
@@ -175,6 +176,20 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         ItemInteractionResult memoryCardResult = MeMemoryCardSettings.use(stack, level, player, tile);
         if (memoryCardResult.consumesAction()) {
             return memoryCardResult;
+        }
+        if (stack.is(ModItems.ME_CHANNEL_CARD.get())) {
+            boolean installed = false;
+            if (tile instanceof MeAeMachine machine && machine.getPatternMirrorSupport() != null) {
+                installed = machine.getPatternMirrorSupport().installChannelCard();
+            } else if (tile instanceof MeFactoryAeMachine machine) {
+                installed = machine.getPatternMirrorSupport().installChannelCard();
+            }
+            if (installed) {
+                if (!level.isClientSide && !player.getAbilities().instabuild) {
+                    stack.shrink(1);
+                }
+                return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            }
         }
         ItemInteractionResult installerResult = MeInstallerUpgradeHandler.tryUpgrade(stack, state, level, pos, player);
         if (installerResult.consumesAction()) {
