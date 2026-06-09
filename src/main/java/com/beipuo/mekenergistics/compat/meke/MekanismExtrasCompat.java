@@ -121,14 +121,34 @@ public final class MekanismExtrasCompat {
         if (currentTier != fromTier || currentTier == toTier) {
             return null;
         }
-        MeMekanismMachine target = currentTier == null && fromTier == null && isTerminalEvolvedFactory(current)
-                ? MeMekanismMachine.getExtraFactory(toTier.getLowerName(), current.factoryTypeName())
-                : current.getNextFactory();
+        MeMekanismMachine target = currentTier == null
+                ? getFirstExtraFactoryTarget(current, toTier)
+                : getExtraFactoryTarget(current, toTier);
         if (target == null || target.extraFactoryTierName() == null) {
             return null;
         }
         AdvancedTier targetTier = AdvancedTier.valueOf(target.extraFactoryTierName().toUpperCase(Locale.ROOT));
         return targetTier == toTier ? target : null;
+    }
+
+    @Nullable
+    private static MeMekanismMachine getFirstExtraFactoryTarget(MeMekanismMachine current, AdvancedTier toTier) {
+        if (current.factoryTier() != mekanism.common.tier.FactoryTier.ULTIMATE && !isTerminalEvolvedFactory(current)) {
+            return null;
+        }
+        return getExtraFactoryTarget(current, toTier);
+    }
+
+    @Nullable
+    private static MeMekanismMachine getExtraFactoryTarget(MeMekanismMachine current, AdvancedTier toTier) {
+        String tierName = toTier.getLowerName();
+        if (current.moreMachineFactoryTypeName() != null) {
+            return MeMekanismMachine.getExtraMoreMachineFactory(tierName, current.moreMachineFactoryTypeName());
+        }
+        if (current.moreMachineAdvancedFactoryTypeName() != null) {
+            return MeMekanismMachine.getExtraMoreMachineAdvancedFactory(tierName, current.moreMachineAdvancedFactoryTypeName());
+        }
+        return MeMekanismMachine.getExtraFactory(tierName, current.factoryTypeName());
     }
 
     private static boolean isTerminalEvolvedFactory(MeMekanismMachine machine) {

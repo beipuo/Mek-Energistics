@@ -26,9 +26,6 @@ public final class MeInstallerUpgradeEvents {
             }
             return;
         }
-        if (!event.getEntity().isShiftKeyDown()) {
-            return;
-        }
         ItemInteractionResult result = MeInstallerUpgradeHandler.tryUpgrade(
                 stack,
                 event.getLevel().getBlockState(event.getPos()),

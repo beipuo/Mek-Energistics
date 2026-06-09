@@ -57,7 +57,7 @@ public class MeTierInstallerItem extends Item {
         }
         MeMekanismMachine current = ModBlocks.getMachine(state.getBlock());
         if (current != null) {
-            return InteractionResult.PASS;
+            return MeInstallerUpgradeHandler.tryUpgrade(stack, state, level, pos, player).result();
         }
         MeMekanismMachine target = MeInstallerTargetResolver.resolve(state);
         if (target == null) {

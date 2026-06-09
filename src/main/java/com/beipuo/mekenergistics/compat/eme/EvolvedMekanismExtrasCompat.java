@@ -122,19 +122,35 @@ public final class EvolvedMekanismExtrasCompat {
         if (!(stack.getItem() instanceof EMExtraItemTierInstaller installer)) {
             return null;
         }
-        MeMekanismMachine target = current.emExtraFactoryTierName() == null
-                && installer.getFromTier() == null
-                && isTerminalEvolvedFactory(current)
-                ? MeMekanismMachine.getEvolvedMekanismExtrasFactory(installer.getToTier().name().toLowerCase(Locale.ROOT), current.factoryTypeName())
-                : current.getNextFactory();
-        if (target == null || target.emExtraFactoryTierName() == null) {
-            return null;
-        }
         EMExtraTier currentTier = current.emExtraFactoryTierName() == null
                 ? null
                 : emExtraTier(current).getEMExtraTier();
+        if (currentTier != installer.getFromTier() || currentTier == installer.getToTier()) {
+            return null;
+        }
+        MeMekanismMachine target = currentTier == null
+                ? getFirstEmExtraFactoryTarget(current, installer.getToTier())
+                : getEmExtraFactoryTarget(current, installer.getToTier());
+        if (target == null || target.emExtraFactoryTierName() == null) {
+            return null;
+        }
         EMExtraTier targetTier = emExtraTier(target).getEMExtraTier();
-        return currentTier == installer.getFromTier() && targetTier == installer.getToTier() ? target : null;
+        return targetTier == installer.getToTier() ? target : null;
+    }
+
+    @Nullable
+    private static MeMekanismMachine getFirstEmExtraFactoryTarget(MeMekanismMachine current, EMExtraTier toTier) {
+        if (!isTerminalEvolvedFactory(current)) {
+            return null;
+        }
+        return getEmExtraFactoryTarget(current, toTier);
+    }
+
+    @Nullable
+    private static MeMekanismMachine getEmExtraFactoryTarget(MeMekanismMachine current, EMExtraTier toTier) {
+        return MeMekanismMachine.getEvolvedMekanismExtrasFactory(
+                toTier.name().toLowerCase(Locale.ROOT),
+                current.factoryTypeName());
     }
 
     private static boolean isTerminalEvolvedFactory(MeMekanismMachine machine) {
