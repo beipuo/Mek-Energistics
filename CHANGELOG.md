@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.0
+
+### Change
+
+- Added smart pattern multiplication for ME pattern slots, so large autocrafting requests can place repeated patterns more conveniently when the machine has room.
+- Improved ME machine items to look and read more like their Mekanism counterparts, including colored machine names and clearer item tooltips.
+- Improved ME machine registration and item behavior consistency across Mekanism, Mekanism: MoreMachine, Mekanism Extras, and Evolved Mekanism Extras integrations.
+
+### Fix
+
+- Fixed ME machine wrench dismantling so machine data, upgrades, side configuration, energy, inventory contents, and installed AE patterns are preserved correctly.
+- Fixed ME Factory Installer upgrades across Mekanism Extras and Evolved Mekanism Extras factory chains.
+- Fixed ME machine item tooltips and stored-data display by backing item behavior with the expected capabilities.
+- Fixed ME Isotopic Centrifuge and ME Centrifuging Factory item icons being too large in inventories.
+- Fixed ME centrifuging factory item lighting so their inventory icons match the original factory style more closely.
+
 ## 0.0.14-beta
 
 - Fixed Mekanism: MoreMachine CNC Stamper pattern insertion so non-consumed mold items can stay preloaded in the extra slot while AE patterns only provide consumed input items.
