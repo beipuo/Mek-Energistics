@@ -740,6 +740,16 @@ public enum MeMekanismMachine {
         return "block.mekenergistics." + registryName();
     }
 
+    public String descriptionKey() {
+        if (isFactory()) {
+            return "description.mekanism.factory";
+        }
+        if (requiredModId == null) {
+            return "description.mekanism." + baseName;
+        }
+        return "description.mekenergistics.machine";
+    }
+
     public String serializedName() {
         return name().toLowerCase(Locale.ROOT);
     }

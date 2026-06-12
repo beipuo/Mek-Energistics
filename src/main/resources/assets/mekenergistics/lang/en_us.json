@@ -680,5 +680,6 @@
   "block.mekenergistics.me_cosmic_alloying_factory": "ME Cosmic Alloying Factory",
   "container.mekenergistics.me_cosmic_alloying_factory": "ME Cosmic Alloying Factory",
   "block.mekenergistics.me_infinite_alloying_factory": "ME Infinite Alloying Factory",
-  "container.mekenergistics.me_infinite_alloying_factory": "ME Infinite Alloying Factory"
+  "container.mekenergistics.me_infinite_alloying_factory": "ME Infinite Alloying Factory",
+  "description.mekenergistics.machine": "A Mekanism-style ME machine with built-in pattern slots and AE network output."
 }

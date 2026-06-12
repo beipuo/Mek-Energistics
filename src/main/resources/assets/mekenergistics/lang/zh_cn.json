@@ -680,5 +680,6 @@
   "block.mekenergistics.me_cosmic_alloying_factory": "ME 寰宇支配合金工厂",
   "container.mekenergistics.me_cosmic_alloying_factory": "ME 寰宇支配合金工厂",
   "block.mekenergistics.me_infinite_alloying_factory": "ME 悖论无限合金工厂",
-  "container.mekenergistics.me_infinite_alloying_factory": "ME 悖论无限合金工厂"
+  "container.mekenergistics.me_infinite_alloying_factory": "ME 悖论无限合金工厂",
+  "description.mekenergistics.machine": "一台带有内置样板槽并可输出到 AE 网络的 Mek 风格 ME 机器。"
 }

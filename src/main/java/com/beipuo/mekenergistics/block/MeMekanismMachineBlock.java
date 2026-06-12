@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeMemoryCardSettings;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
+import com.beipuo.mekenergistics.common.MeLangEntry;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismCompat;
 import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
@@ -14,6 +15,7 @@ import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
 import java.util.List;
+import mekanism.api.text.ILangEntry;
 import mekanism.api.security.IBlockSecurityUtils;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeCustomShape;
@@ -23,6 +25,7 @@ import mekanism.common.block.attribute.AttributeState;
 import mekanism.common.block.attribute.AttributeStateFacing;
 import mekanism.common.block.attribute.Attributes;
 import mekanism.common.block.interfaces.IHasTileEntity;
+import mekanism.common.block.interfaces.IHasDescription;
 import mekanism.common.block.interfaces.ITypeBlock;
 import mekanism.common.content.blocktype.BlockType;
 import mekanism.common.content.blocktype.BlockTypeTile;
@@ -63,7 +66,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
-public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<TileEntityMekanism> {
+public class MeMekanismMachineBlock extends Block implements IHasDescription, ITypeBlock, IHasTileEntity<TileEntityMekanism> {
     private static final List<AttributeState> STATE_ATTRIBUTES = List.of(new AttributeStateFacing(), (AttributeState) Attributes.ACTIVE);
     private final MeMekanismMachine machine;
 
@@ -98,6 +101,11 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     @Override
     public BlockType getType() {
         return ModBlockTypes.getMachineBlockType(this.machine);
+    }
+
+    @Override
+    public ILangEntry getDescription() {
+        return MeLangEntry.of(this.machine.descriptionKey());
     }
 
     @Override

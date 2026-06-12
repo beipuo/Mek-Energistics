@@ -680,5 +680,6 @@
   "block.mekenergistics.me_cosmic_alloying_factory": "МЭ космический сплавляющий механизм",
   "container.mekenergistics.me_cosmic_alloying_factory": "МЭ космический сплавляющий механизм",
   "block.mekenergistics.me_infinite_alloying_factory": "МЭ бесконечный сплавляющий механизм",
-  "container.mekenergistics.me_infinite_alloying_factory": "МЭ бесконечный сплавляющий механизм"
+  "container.mekenergistics.me_infinite_alloying_factory": "МЭ бесконечный сплавляющий механизм",
+  "description.mekenergistics.machine": "ME-машина в стиле Mekanism со встроенными слотами шаблонов и выводом в сеть AE."
 }
