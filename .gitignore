@@ -38,3 +38,7 @@ run/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
+
+### Project ###
+docs/kubejs-recipe-customization.md
+docs/multiblock-design-notes.md
