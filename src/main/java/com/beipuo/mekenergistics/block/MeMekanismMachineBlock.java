@@ -35,6 +35,7 @@ import mekanism.common.resource.BlockResourceInfo;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.base.TileEntityUpdateable;
+import mekanism.common.tile.interfaces.ITileRadioactive;
 import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.WorldUtils;
 import net.minecraft.core.BlockPos;
@@ -205,14 +206,14 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
         if (!player.isShiftKeyDown() && isInstaller(stack)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
+        if (level.isClientSide) {
+            return genericClientActivated(stack, tile);
+        }
         if (player.isShiftKeyDown()) {
             ItemInteractionResult installerResult = MeInstallerUpgradeHandler.tryUpgrade(stack, state, level, pos, player);
             if (installerResult.consumesAction()) {
                 return installerResult;
             }
-        }
-        if (level.isClientSide) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         boolean shouldDropPatterns = shouldDropPatternsBeforeDismantle(stack, state, player, level, pos, mekanismTile);
         if (shouldDropPatterns) {
@@ -222,11 +223,17 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
         if (wrenchResult.consumesAction()) {
             return wrenchResult;
         }
-        if (shouldDropPatterns && MekanismUtils.canUseAsWrench(stack)) {
-            WorldUtils.dismantleBlock(state, level, pos, mekanismTile, player, stack);
+        return wrenchResult;
+    }
+
+    private static ItemInteractionResult genericClientActivated(ItemStack stack, BlockEntity tile) {
+        if (MekanismUtils.canUseAsWrench(stack)) {
+            if (tile instanceof ITileRadioactive radioactiveTile && radioactiveTile.getRadiationScale() > 0) {
+                return ItemInteractionResult.FAIL;
+            }
             return ItemInteractionResult.SUCCESS;
         }
-        return wrenchResult;
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     private static boolean isInstaller(ItemStack stack) {
