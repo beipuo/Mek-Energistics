@@ -125,6 +125,6 @@ public class MeGuiMoreMachineFactory extends MeGuiConfigurableTile<TileEntityMor
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleText(guiGraphics);
         renderInventoryText(guiGraphics, dumpButton == null ? getXSize() : dumpButton.getRelativeX());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

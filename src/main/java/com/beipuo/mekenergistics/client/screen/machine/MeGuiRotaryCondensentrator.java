@@ -85,6 +85,6 @@ public class MeGuiRotaryCondensentrator extends MeGuiConfigurableTile<MeRotaryCo
         renderTitleText(guiGraphics);
         ILangEntry modeLang = tile.getMode() ? MekanismLang.DECONDENSENTRATING : MekanismLang.CONDENSENTRATING;
         drawScrollingString(guiGraphics, modeLang.translate(), 4, imageHeight - 92, TextAlignment.LEFT, titleTextColor(), energyBar.getRelativeX() - 4, 2, false);
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

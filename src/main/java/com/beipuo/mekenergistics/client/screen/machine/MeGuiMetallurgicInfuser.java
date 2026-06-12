@@ -11,10 +11,8 @@ import mekanism.client.gui.element.progress.ProgressType;
 import mekanism.client.gui.element.tab.GuiEnergyTab;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.warning.WarningTracker.WarningType;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import org.jetbrains.annotations.NotNull;
 
 public class MeGuiMetallurgicInfuser extends MeGuiConfigurableTile<MeMetallurgicInfuserBlockEntity, MekanismTileContainer<MeMetallurgicInfuserBlockEntity>> {
     public MeGuiMetallurgicInfuser(MekanismTileContainer<MeMetallurgicInfuserBlockEntity> container, Inventory inv, Component title) {
@@ -35,10 +33,4 @@ public class MeGuiMetallurgicInfuser extends MeGuiConfigurableTile<MeMetallurgic
         addRenderableWidget(new GuiDumpButton<>(this, tile, 16, 59));
     }
 
-    @Override
-    protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTitleText(guiGraphics);
-        renderInventoryText(guiGraphics);
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
-    }
 }

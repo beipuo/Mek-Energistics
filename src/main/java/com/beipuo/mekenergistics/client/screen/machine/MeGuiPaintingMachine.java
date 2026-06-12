@@ -12,10 +12,8 @@ import mekanism.client.gui.element.progress.ProgressType;
 import mekanism.client.gui.element.tab.GuiEnergyTab;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.warning.WarningTracker.WarningType;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import org.jetbrains.annotations.NotNull;
 
 public class MeGuiPaintingMachine extends MeGuiConfigurableTile<MePaintingMachineBlockEntity, MekanismTileContainer<MePaintingMachineBlockEntity>> {
     public MeGuiPaintingMachine(MekanismTileContainer<MePaintingMachineBlockEntity> container, Inventory inv, Component title) {
@@ -35,13 +33,6 @@ public class MeGuiPaintingMachine extends MeGuiConfigurableTile<MePaintingMachin
                 .warning(WarningType.NO_MATCHING_RECIPE, tile.getWarningCheck(RecipeError.NOT_ENOUGH_SECONDARY_INPUT));
         addRenderableWidget(new GuiProgress(tile::getScaledProgress, ProgressType.LARGE_RIGHT, this, 64, 39).recipeViewerCategory(tile).colored(new PigmentColorDetails()))
                 .warning(WarningType.INPUT_DOESNT_PRODUCE_OUTPUT, tile.getWarningCheck(RecipeError.INPUT_DOESNT_PRODUCE_OUTPUT));
-    }
-
-    @Override
-    protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTitleText(guiGraphics);
-        renderInventoryText(guiGraphics);
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
     }
 
     private class PigmentColorDetails implements ColorDetails {

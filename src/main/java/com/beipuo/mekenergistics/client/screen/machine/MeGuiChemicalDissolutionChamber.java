@@ -44,6 +44,6 @@ public class MeGuiChemicalDissolutionChamber extends MeGuiConfigurableTile<MeChe
     @Override
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleTextWithOffset(guiGraphics, inputGauge.getRelativeRight());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

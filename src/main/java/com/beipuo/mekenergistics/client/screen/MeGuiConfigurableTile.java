@@ -7,8 +7,10 @@ import mekanism.client.gui.element.tab.window.GuiTransporterConfigTab;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.interfaces.ISideConfiguration;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class MeGuiConfigurableTile<TILE extends TileEntityMekanism & ISideConfiguration, CONTAINER extends MekanismTileContainer<TILE>>
         extends GuiMekanismTile<TILE, CONTAINER> {
@@ -25,5 +27,16 @@ public abstract class MeGuiConfigurableTile<TILE extends TileEntityMekanism & IS
         Supplier<MeGuiSideConfigurationTab<TILE>> sideConfigSupplier = () -> this.sideConfigTab;
         this.sideConfigTab = addRenderableWidget(new MeGuiSideConfigurationTab<>(this, this.tile, sideConfigSupplier));
         this.transporterConfigTab = addRenderableWidget(new GuiTransporterConfigTab<>(this, this.tile, () -> this.transporterConfigTab));
+    }
+
+    @Override
+    protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        renderTitleText(guiGraphics);
+        renderInventoryText(guiGraphics);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
+    }
+
+    protected void drawMekanismForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.drawForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

@@ -50,6 +50,6 @@ public class MeGuiElectrolyticSeparator extends MeGuiConfigurableTile<MeElectrol
     @Override
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleTextWithOffset(guiGraphics, fluidGauge.getRelativeRight());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

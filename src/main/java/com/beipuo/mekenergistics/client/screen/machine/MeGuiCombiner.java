@@ -10,10 +10,8 @@ import mekanism.client.gui.element.progress.ProgressType;
 import mekanism.client.gui.element.tab.GuiEnergyTab;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.warning.WarningTracker.WarningType;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import org.jetbrains.annotations.NotNull;
 
 public class MeGuiCombiner extends MeGuiConfigurableTile<MeCombinerBlockEntity, MekanismTileContainer<MeCombinerBlockEntity>> {
     public MeGuiCombiner(MekanismTileContainer<MeCombinerBlockEntity> container, Inventory inv, Component title) {
@@ -32,10 +30,4 @@ public class MeGuiCombiner extends MeGuiConfigurableTile<MeCombinerBlockEntity, 
                 .warning(WarningType.INPUT_DOESNT_PRODUCE_OUTPUT, tile.getWarningCheck(RecipeError.INPUT_DOESNT_PRODUCE_OUTPUT));
     }
 
-    @Override
-    protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTitleText(guiGraphics);
-        renderInventoryText(guiGraphics);
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
-    }
 }

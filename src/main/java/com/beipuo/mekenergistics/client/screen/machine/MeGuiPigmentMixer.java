@@ -55,7 +55,7 @@ public class MeGuiPigmentMixer extends MeGuiConfigurableTile<MePigmentMixerBlock
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleTextWithOffset(guiGraphics, 1, centerGauge.getRelativeX(), 4, TextAlignment.LEFT);
         renderInventoryText(guiGraphics, centerGauge.getRelativeX());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 
     private class LeftColorDetails extends PigmentColorDetails {

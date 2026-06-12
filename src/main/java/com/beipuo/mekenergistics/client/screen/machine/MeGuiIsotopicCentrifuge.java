@@ -46,6 +46,6 @@ public class MeGuiIsotopicCentrifuge extends MeGuiConfigurableTile<MeIsotopicCen
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleText(guiGraphics);
         renderInventoryText(guiGraphics, energyBar.getRelativeX());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

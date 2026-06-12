@@ -51,6 +51,6 @@ public class MeGuiChemicalInfuser extends MeGuiConfigurableTile<MeChemicalInfuse
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleTextWithOffset(guiGraphics, 1, centerGauge.getRelativeX(), 4, TextAlignment.LEFT);
         renderInventoryText(guiGraphics, centerGauge.getRelativeX());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }
