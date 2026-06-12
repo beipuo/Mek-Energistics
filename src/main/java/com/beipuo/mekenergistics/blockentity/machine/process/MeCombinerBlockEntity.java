@@ -46,6 +46,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeCombinerBlockEntity extends TileEntityCombiner implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeCombinerBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeCombinerBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

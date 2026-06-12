@@ -3,11 +3,10 @@ package com.beipuo.mekenergistics.blockentity.factory;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.GridHelper;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
@@ -108,7 +107,7 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
-        ItemStack input = getSingleItemInput(inputHolder[0]);
+        ItemStack input = MeFactoryPatternInput.singleItem(inputHolder[0]);
         if (input.isEmpty()) {
             return false;
         }
@@ -117,22 +116,6 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
             return true;
         }
         return false;
-    }
-
-    private ItemStack getSingleItemInput(KeyCounter counter) {
-        if (counter == null || counter.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack input = ItemStack.EMPTY;
-        for (var entry : counter) {
-            AEKey key = entry.getKey();
-            long amount = entry.getLongValue();
-            if (!(key instanceof AEItemKey itemKey) || amount <= 0 || amount > Integer.MAX_VALUE || !input.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-            input = itemKey.toStack((int) amount);
-        }
-        return input;
     }
 
     @NotNull

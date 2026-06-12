@@ -24,7 +24,6 @@ import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
-import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
@@ -40,13 +39,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MeChemicalWasherBlockEntity extends TileEntityChemicalWasher implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeChemicalWasherBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeChemicalWasherBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
@@ -95,36 +98,16 @@ public class MeChemicalWasherBlockEntity extends TileEntityChemicalWasher implem
         if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
             return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
         }
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        FluidStack fluidInput = FluidStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            } else if (input.isFluid()) {
-                if (!fluidInput.isEmpty()) {
-                    return false;
-                }
-                fluidInput = input.fluid();
-            } else {
-                return false;
-            }
-        }
-        if (chemicalInput.isEmpty() || fluidInput.isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || !input.item().isEmpty() || input.chemical().isEmpty() || input.fluid().isEmpty()) {
             return false;
         }
-        if (this.inputTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount() != 0
-                || this.fluidTank.fill(fluidInput.copy(), FluidAction.SIMULATE) != fluidInput.getAmount()) {
+        if (this.inputTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount() != 0
+                || this.fluidTank.fill(input.fluid().copy(), FluidAction.SIMULATE) != input.fluid().getAmount()) {
             return false;
         }
-        this.inputTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-        this.fluidTank.fill(fluidInput, FluidAction.EXECUTE);
+        this.inputTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
+        this.fluidTank.fill(input.fluid(), FluidAction.EXECUTE);
         setChanged();
         return true;
     }

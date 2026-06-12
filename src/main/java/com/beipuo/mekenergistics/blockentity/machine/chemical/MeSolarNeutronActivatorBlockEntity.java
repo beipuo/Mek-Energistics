@@ -41,6 +41,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeSolarNeutronActivatorBlockEntity extends TileEntitySolarNeutronActivator implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeSolarNeutronActivatorBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeSolarNeutronActivatorBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

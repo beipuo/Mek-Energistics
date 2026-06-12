@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
 
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.IGridNode;
 import appeng.api.stacks.KeyCounter;
@@ -24,7 +26,7 @@ final class MeExtraFactoryBridge {
     private MeExtraFactoryBridge() {
     }
 
-    interface Owner extends MeExtraFactoryAeMachine {
+    interface Owner extends MeFactoryAeMachine {
         List<IInventorySlot> meInputSlots();
 
         List<IInventorySlot> meOutputSlots();

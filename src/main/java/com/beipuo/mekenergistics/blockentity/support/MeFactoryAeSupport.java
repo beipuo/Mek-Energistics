@@ -375,12 +375,13 @@ public final class MeFactoryAeSupport {
 
     public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer) {
         return energyContainer instanceof AeBackedFactoryEnergyContainer<?> aeBackedEnergyContainer
-                ? new FactoryRecipeEnergyView(aeBackedEnergyContainer.owner instanceof MeFactoryAeMachine aeMachine ? aeMachine : null, aeBackedEnergyContainer)
+                ? recipeEnergyView(aeBackedEnergyContainer.owner instanceof MeFactoryAeMachine aeMachine ? aeMachine : null, aeBackedEnergyContainer)
                 : energyContainer;
     }
 
     public static IEnergyContainer recipeEnergyView(MeFactoryAeMachine owner, MachineEnergyContainer<?> energyContainer) {
-        return new FactoryRecipeEnergyView(owner, energyContainer);
+        return owner == null ? energyContainer
+                : MeNetworkEnergyHelper.recipeEnergyView(energyContainer, () -> owner.getAeSupport().getGrid(), owner.getAeSupport().actionSource);
     }
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
@@ -567,58 +568,6 @@ public final class MeFactoryAeSupport {
 
         private long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {
             return MeFactoryAeSupport.extractAeAsFe(aeMachine, requestedFe, action);
-        }
-    }
-
-    public static final class FactoryRecipeEnergyView implements IEnergyContainer {
-        private final MeFactoryAeMachine owner;
-        private final MachineEnergyContainer<?> energyContainer;
-
-        public FactoryRecipeEnergyView(MeFactoryAeMachine owner, MachineEnergyContainer<?> energyContainer) {
-            this.owner = owner;
-            this.energyContainer = energyContainer;
-        }
-
-        @Override
-        public long getEnergy() {
-            if (this.owner == null) {
-                return this.energyContainer.getEnergy();
-            }
-            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.owner.getAeSupport().getGrid(), this.owner.getAeSupport().actionSource);
-        }
-
-        @Override
-        public void setEnergy(long energy) {
-            this.energyContainer.setEnergy(energy);
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            if (this.owner == null) {
-                return this.energyContainer.extract(amount, action, automationType);
-            }
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this.energyContainer, this.owner.getAeSupport().getGrid(),
-                    this.owner.getAeSupport().actionSource, amount, action, automationType);
-        }
-
-        @Override
-        public long getMaxEnergy() {
-            return this.energyContainer.getMaxEnergy();
-        }
-
-        @Override
-        public void onContentsChanged() {
-            this.energyContainer.onContentsChanged();
-        }
-
-        @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-            return this.energyContainer.serializeNBT(provider);
-        }
-
-        @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
-            this.energyContainer.deserializeNBT(provider, nbt);
         }
     }
 

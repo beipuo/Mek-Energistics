@@ -42,6 +42,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeRecyclerBlockEntity extends TileEntityRecycler implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeRecyclerBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
     private InputInventorySlot meInputSlot;
     private OutputInventorySlot meOutputSlot;

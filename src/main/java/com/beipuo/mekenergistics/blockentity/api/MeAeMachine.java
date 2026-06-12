@@ -46,7 +46,7 @@ public interface MeAeMachine extends PatternContainer {
     }
 
     default boolean isSmartPatternMultiplicationEnabled() {
-        MeRecipeMachineAeSupport<?> support = getRecipeMachineAeSupport();
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
         if (support != null) {
             return support.isSmartPatternMultiplicationEnabled();
         }
@@ -54,10 +54,14 @@ public interface MeAeMachine extends PatternContainer {
     }
 
     default void setSmartPatternMultiplicationEnabled(boolean enabled) {
-        MeRecipeMachineAeSupport<?> support = getRecipeMachineAeSupport();
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
         if (support != null) {
             support.setSmartPatternMultiplicationEnabled(enabled);
         }
+    }
+
+    default MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return null;
     }
 
     default Component getPatternTerminalDisplayName() {
@@ -93,23 +97,4 @@ public interface MeAeMachine extends PatternContainer {
         return sanitized.length() > MAX_PATTERN_TERMINAL_NAME_LENGTH ? sanitized.substring(0, MAX_PATTERN_TERMINAL_NAME_LENGTH) : sanitized;
     }
 
-    private MeRecipeMachineAeSupport<?> getRecipeMachineAeSupport() {
-        Class<?> type = getClass();
-        while (type != null && type != Object.class) {
-            try {
-                java.lang.reflect.Field field = type.getDeclaredField("aeSupport");
-                if (MeRecipeMachineAeSupport.class.isAssignableFrom(field.getType())) {
-                    field.setAccessible(true);
-                    return (MeRecipeMachineAeSupport<?>) field.get(this);
-                }
-            } catch (NoSuchFieldException ignored) {
-                type = type.getSuperclass();
-                continue;
-            } catch (IllegalAccessException ignored) {
-                return null;
-            }
-            break;
-        }
-        return null;
-    }
 }

@@ -485,57 +485,6 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         }
     }
 
-    public static final class RecipeEnergyView implements IEnergyContainer {
-        private final MeAeMachine aeMachine;
-        private final IActionSource actionSource;
-        private final MachineEnergyContainer<?> energyContainer;
-
-        public RecipeEnergyView(AeBackedEnergyContainer<?> energyContainer) {
-            this(energyContainer.aeMachine, energyContainer.actionSource, energyContainer);
-        }
-
-        public RecipeEnergyView(MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer) {
-            this.aeMachine = aeMachine;
-            this.actionSource = actionSource;
-            this.energyContainer = energyContainer;
-        }
-
-        @Override
-        public long getEnergy() {
-            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.aeMachine.getGrid(), this.actionSource);
-        }
-
-        @Override
-        public void setEnergy(long energy) {
-            this.energyContainer.setEnergy(energy);
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this.energyContainer, this.aeMachine.getGrid(), this.actionSource, amount, action, automationType);
-        }
-
-        @Override
-        public long getMaxEnergy() {
-            return this.energyContainer.getMaxEnergy();
-        }
-
-        @Override
-        public void onContentsChanged() {
-            this.energyContainer.onContentsChanged();
-        }
-
-        @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-            return this.energyContainer.serializeNBT(provider);
-        }
-
-        @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
-            this.energyContainer.deserializeNBT(provider, nbt);
-        }
-    }
-
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
             MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
         return energyContainer instanceof AeBackedEnergyContainer<?> aeBackedEnergyContainer
@@ -550,7 +499,8 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
             MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
-        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick, new RecipeEnergyView(aeMachine, actionSource, energyContainer));
+        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick,
+                MeNetworkEnergyHelper.recipeEnergyView(energyContainer, aeMachine::getGrid, actionSource));
     }
 
     private enum NodeListener implements IGridNodeListener<TileEntityMekanism> {

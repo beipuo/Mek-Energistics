@@ -44,6 +44,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeFormulaicAssemblicatorBlockEntity extends TileEntityFormulaicAssemblicator implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeFormulaicAssemblicatorBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeFormulaicAssemblicatorBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

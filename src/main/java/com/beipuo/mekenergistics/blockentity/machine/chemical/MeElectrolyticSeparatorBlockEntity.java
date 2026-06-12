@@ -41,6 +41,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeElectrolyticSeparatorBlockEntity extends TileEntityElectrolyticSeparator implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeElectrolyticSeparatorBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeElectrolyticSeparatorBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

@@ -46,6 +46,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondensentrator implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeRotaryCondensentratorBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeRotaryCondensentratorBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

@@ -46,6 +46,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeNutritionalLiquifierBlockEntity extends TileEntityNutritionalLiquifier implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeNutritionalLiquifierBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeNutritionalLiquifierBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

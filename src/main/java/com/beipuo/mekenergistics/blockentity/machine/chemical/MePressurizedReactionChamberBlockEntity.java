@@ -24,7 +24,6 @@ import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
-import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
@@ -40,13 +39,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MePressurizedReactionChamberBlockEntity extends TileEntityPressurizedReactionChamber implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MePressurizedReactionChamberBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MePressurizedReactionChamberBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
@@ -86,43 +89,19 @@ public class MePressurizedReactionChamberBlockEntity extends TileEntityPressuriz
         if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
             return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
         }
-        ItemStack itemInput = ItemStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        FluidStack fluidInput = FluidStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            } else if (input.isFluid()) {
-                if (!fluidInput.isEmpty()) {
-                    return false;
-                }
-                fluidInput = input.fluid();
-            }
-        }
-        if (itemInput.isEmpty() || chemicalInput.isEmpty() || fluidInput.isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || input.fluid().isEmpty()) {
             return false;
         }
         InputInventorySlot inputSlot = ((TileEntityPressurizedReactionChamberAccessor) this).mekenergistics$getInputSlot();
-        if (!inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                || this.inputGasTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount() != 0
-                || this.inputFluidTank.fill(fluidInput.copy(), FluidAction.SIMULATE) != fluidInput.getAmount()) {
+        if (!inputSlot.insertItem(input.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
+                || this.inputGasTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount() != 0
+                || this.inputFluidTank.fill(input.fluid().copy(), FluidAction.SIMULATE) != input.fluid().getAmount()) {
             return false;
         }
-        inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
-        this.inputGasTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-        this.inputFluidTank.fill(fluidInput, FluidAction.EXECUTE);
+        inputSlot.insertItem(input.item(), Action.EXECUTE, AutomationType.INTERNAL);
+        this.inputGasTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
+        this.inputFluidTank.fill(input.fluid(), FluidAction.EXECUTE);
         setChanged();
         return true;
     }

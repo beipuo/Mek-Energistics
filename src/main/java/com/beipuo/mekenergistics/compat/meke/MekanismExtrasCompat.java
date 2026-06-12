@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.compat.meke;
 
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+
 import com.beipuo.mekenergistics.block.attribute.MeUpgradeableAttribute;
 import com.beipuo.mekenergistics.block.attribute.MeExtraUpgradeableAttribute;
 import com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraAlloyingFactoryBlockEntity;
@@ -166,6 +168,6 @@ public final class MekanismExtrasCompat {
     public static void registerGridNodeHost(
             RegisterCapabilitiesEvent event,
             TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder) {
-        ModBlockEntities.registerGridNodeHost(event, holder, com.beipuo.mekenergistics.blockentity.compat.meke.factory.MeExtraFactoryAeMachine.class);
+        ModBlockEntities.registerGridNodeHost(event, holder, com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine.class);
     }
 }

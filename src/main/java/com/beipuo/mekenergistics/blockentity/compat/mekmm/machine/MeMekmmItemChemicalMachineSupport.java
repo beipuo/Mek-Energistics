@@ -101,34 +101,15 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
         if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
             return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
         }
-        ItemStack itemInput = ItemStack.EMPTY;
-        var chemicalInput = mekanism.api.chemical.ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            } else {
-                return false;
-            }
-        }
-        if (itemInput.isEmpty() || chemicalInput.isEmpty() || this.inputSlot == null || this.chemicalTank == null
-                || !this.inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                || !this.chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()
+                || this.inputSlot == null || this.chemicalTank == null
+                || !this.inputSlot.insertItem(input.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
+                || !this.chemicalTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
             return false;
         }
-        this.inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
-        this.chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        this.inputSlot.insertItem(input.item(), Action.EXECUTE, AutomationType.INTERNAL);
+        this.chemicalTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
         this.owner.setChanged();
         return true;
     }

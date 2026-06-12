@@ -44,6 +44,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeIsotopicCentrifugeBlockEntity extends TileEntityIsotopicCentrifuge implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeIsotopicCentrifugeBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeIsotopicCentrifugeBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

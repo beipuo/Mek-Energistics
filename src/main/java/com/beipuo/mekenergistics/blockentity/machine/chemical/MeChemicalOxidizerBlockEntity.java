@@ -45,6 +45,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeChemicalOxidizerBlockEntity extends TileEntityChemicalOxidizer implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeChemicalOxidizerBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeChemicalOxidizerBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

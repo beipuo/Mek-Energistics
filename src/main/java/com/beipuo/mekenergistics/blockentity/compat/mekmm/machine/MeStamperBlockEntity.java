@@ -39,6 +39,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeStamperBlockEntity extends TileEntityStamper implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeStamperBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
     private InputInventorySlot meItemInputSlot;
     private InputInventorySlot meMoldInputSlot;

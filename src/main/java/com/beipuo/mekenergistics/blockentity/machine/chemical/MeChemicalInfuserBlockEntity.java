@@ -44,6 +44,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeChemicalInfuserBlockEntity extends TileEntityChemicalInfuser implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeChemicalInfuserBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeChemicalInfuserBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

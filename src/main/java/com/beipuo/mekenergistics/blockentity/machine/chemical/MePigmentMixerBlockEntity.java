@@ -44,6 +44,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MePigmentMixerBlockEntity extends TileEntityPigmentMixer implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MePigmentMixerBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MePigmentMixerBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

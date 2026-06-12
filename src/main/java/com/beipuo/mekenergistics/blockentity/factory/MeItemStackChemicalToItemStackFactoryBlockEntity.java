@@ -115,32 +115,14 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
-        ItemStack itemInput = ItemStack.EMPTY;
-        mekanism.api.chemical.ChemicalStack chemicalInput = mekanism.api.chemical.ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            }
-        }
-        if (itemInput.isEmpty() || chemicalInput.isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()) {
             return false;
         }
-        if (MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, itemInput)
-                && getChemicalTank().insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-            MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, itemInput);
-            getChemicalTank().insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, input.item())
+                && getChemicalTank().insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, input.item());
+            getChemicalTank().insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
             setChanged();
             return true;
         }

@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
 
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+
 import com.beipuo.mekenergistics.blockentity.compat.shared.MeExternalFactorySupport;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
@@ -22,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MeExtraItemStackToItemStackFactoryBlockEntity extends TileEntityExtraItemStackToItemStackFactory implements MeExtraFactoryAeMachine, MeExternalFactorySupport.Owner {
+public class MeExtraItemStackToItemStackFactoryBlockEntity extends TileEntityExtraItemStackToItemStackFactory implements MeExternalFactorySupport.Owner {
     private final MeMekanismMachine machine;
     private MeFactoryAeSupport aeSupport;
 
@@ -61,7 +63,7 @@ public class MeExtraItemStackToItemStackFactoryBlockEntity extends TileEntityExt
     @Override public void clearRemoved() { super.clearRemoved(); MeExternalFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { getAeSupport().destroy(); super.onChunkUnloaded(); }
-    @Nullable @Override public appeng.api.networking.IGridNode getGridNode(Direction dir) { return MeExtraFactoryAeMachine.super.getGridNode(dir); }
+    @Nullable @Override public appeng.api.networking.IGridNode getGridNode(Direction dir) { return MeExternalFactorySupport.Owner.super.getGridNode(dir); }
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); MeExternalFactorySupport.save(getAeSupport(), tag, registries); }
     @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); MeExternalFactorySupport.load(getAeSupport(), tag, registries); }
 }

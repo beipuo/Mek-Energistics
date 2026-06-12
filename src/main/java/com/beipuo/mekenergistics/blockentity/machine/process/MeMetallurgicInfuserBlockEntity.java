@@ -24,7 +24,6 @@ import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
-import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -48,6 +47,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeMetallurgicInfuserBlockEntity extends TileEntityMetallurgicInfuser implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeMetallurgicInfuserBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeMetallurgicInfuserBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
@@ -102,29 +106,17 @@ public class MeMetallurgicInfuserBlockEntity extends TileEntityMetallurgicInfuse
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
-        ItemStack itemInput = ItemStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                itemInput = input.item();
-            } else if (input.isChemical()) {
-                chemicalInput = input.chemical();
-            }
-        }
-        if (itemInput.isEmpty() || chemicalInput.isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()) {
             return false;
         }
         InputInventorySlot inputSlot = ((TileEntityMetallurgicInfuserAccessor) this).mekenergistics$getInputSlot();
-        if (!inputSlot.insertItem(itemInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                || this.infusionTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount() != 0) {
+        if (!inputSlot.insertItem(input.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
+                || this.infusionTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).getAmount() != 0) {
             return false;
         }
-        inputSlot.insertItem(itemInput, Action.EXECUTE, AutomationType.INTERNAL);
-        this.infusionTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        inputSlot.insertItem(input.item(), Action.EXECUTE, AutomationType.INTERNAL);
+        this.infusionTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
         setChanged();
         return true;
     }

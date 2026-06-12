@@ -30,7 +30,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
 
 public final class MeExternalFactorySupport {
@@ -93,32 +92,14 @@ public final class MeExternalFactorySupport {
         if (inputHolder == null || inputHolder.length != 2) {
             return false;
         }
-        ItemStack itemInput = ItemStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            }
-        }
-        if (itemInput.isEmpty() || chemicalInput.isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()) {
             return false;
         }
-        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), itemInput)
-                && chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), itemInput);
-            chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), input.item())
+                && chemicalTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), input.item());
+            chemicalTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
             owner.saveChanges();
             return true;
         }
@@ -168,34 +149,14 @@ public final class MeExternalFactorySupport {
         if (inputHolder == null || inputHolder.length != 2) {
             return false;
         }
-        FluidStack fluidInput = FluidStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isFluid()) {
-                if (!fluidInput.isEmpty()) {
-                    return false;
-                }
-                fluidInput = input.fluid();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            } else {
-                return false;
-            }
-        }
-        if (fluidInput.isEmpty() || chemicalInput.isEmpty()
-                || !fluidTank.insert(fluidInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                || !chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || !input.item().isEmpty() || input.fluid().isEmpty() || input.chemical().isEmpty()
+                || !fluidTank.insert(input.fluid().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
+                || !chemicalTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
             return false;
         }
-        fluidTank.insert(fluidInput, Action.EXECUTE, AutomationType.INTERNAL);
-        chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        fluidTank.insert(input.fluid(), Action.EXECUTE, AutomationType.INTERNAL);
+        chemicalTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
         owner.saveChanges();
         return true;
     }
@@ -221,42 +182,16 @@ public final class MeExternalFactorySupport {
         if (inputHolder == null || inputHolder.length != 3) {
             return false;
         }
-        ItemStack itemInput = ItemStack.EMPTY;
-        FluidStack fluidInput = FluidStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (input.isFluid()) {
-                if (!fluidInput.isEmpty()) {
-                    return false;
-                }
-                fluidInput = input.fluid();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            } else {
-                return false;
-            }
-        }
-        if (itemInput.isEmpty() || fluidInput.isEmpty() || chemicalInput.isEmpty()
-                || !fluidTank.insert(fluidInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
-                || !chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.fluid().isEmpty() || input.chemical().isEmpty()
+                || !fluidTank.insert(input.fluid().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()
+                || !chemicalTank.insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
             return false;
         }
-        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), itemInput)) {
-            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), itemInput);
-            fluidTank.insert(fluidInput, Action.EXECUTE, AutomationType.INTERNAL);
-            chemicalTank.insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        if (MeFactoryInventoryInsert.canInsertAcrossSlots(owner.meInputSlots(), input.item())) {
+            MeFactoryInventoryInsert.insertAcrossSlots(owner.meInputSlots(), input.item());
+            fluidTank.insert(input.fluid(), Action.EXECUTE, AutomationType.INTERNAL);
+            chemicalTank.insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
             owner.saveChanges();
             return true;
         }

@@ -46,6 +46,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MePrecisionSawmillBlockEntity extends TileEntityPrecisionSawmill implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MePrecisionSawmillBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MePrecisionSawmillBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {

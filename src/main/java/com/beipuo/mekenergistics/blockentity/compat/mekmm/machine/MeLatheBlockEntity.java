@@ -44,6 +44,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeLatheBlockEntity extends TileEntityLathe implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeRecipeMachineAeSupport<MeLatheBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+
+    @Override
+    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+        return this.aeSupport;
+    }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeLatheBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
