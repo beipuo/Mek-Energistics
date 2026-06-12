@@ -9,8 +9,12 @@ import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import java.util.function.Supplier;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
+import mekanism.api.IContentsListener;
 import mekanism.api.energy.IEnergyContainer;
+import mekanism.api.functions.ConstantPredicates;
+import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.fml.ModList;
@@ -82,6 +86,35 @@ public final class MeNetworkEnergyHelper {
 
     public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier, IActionSource source) {
         return new NetworkRecipeEnergyView(energyContainer, gridSupplier, source);
+    }
+
+    public static class NetworkBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
+            implements LocalEnergyBuffer {
+        private final Supplier<IGrid> gridSupplier;
+        private final IActionSource actionSource;
+
+        public NetworkBackedEnergyContainer(TILE owner, IContentsListener listener, Supplier<IGrid> gridSupplier, IActionSource actionSource) {
+            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
+                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
+            this.gridSupplier = gridSupplier;
+            this.actionSource = actionSource;
+        }
+
+        @Override
+        public long extract(long amount, Action action, AutomationType automationType) {
+            IGrid grid = this.gridSupplier == null ? null : this.gridSupplier.get();
+            return extractWithLocalBuffer(this, grid, this.actionSource, amount, action, automationType);
+        }
+
+        @Override
+        public long getLocalEnergy() {
+            return super.getEnergy();
+        }
+
+        @Override
+        public long extractLocal(long amount, Action action, AutomationType automationType) {
+            return super.extract(amount, action, automationType);
+        }
     }
 
     private static long extractAeEnergyAsFe(IGrid grid, long requestedFe, Actionable action) {

@@ -41,10 +41,8 @@ import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.fluid.IExtendedFluidTank;
 import mekanism.api.inventory.IInventorySlot;
-import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
-import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
@@ -453,35 +451,15 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         updatePatterns();
     }
 
-    public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
-            implements MeNetworkEnergyHelper.LocalEnergyBuffer {
+    public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism>
+            extends MeNetworkEnergyHelper.NetworkBackedEnergyContainer<TILE> {
         private final MeAeMachine aeMachine;
         private final IActionSource actionSource;
 
         public AeBackedEnergyContainer(TILE owner, MeRecipeMachineAeSupport<?> support, IContentsListener listener) {
-            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
-                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
+            super(owner, listener, support::getGrid, support.actionSource);
             this.aeMachine = (MeAeMachine) owner;
-            this.actionSource = IActionSource.ofMachine((IActionHost) owner);
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.aeMachine.getGrid(), this.actionSource, amount, action, automationType);
-        }
-
-        @Override
-        public long getLocalEnergy() {
-            return super.getEnergy();
-        }
-
-        @Override
-        public long extractLocal(long amount, Action action, AutomationType automationType) {
-            return super.extract(amount, action, automationType);
-        }
-
-        private long extractAeAsFe(long requestedFe, Action action) {
-            return MeNetworkEnergyHelper.extractNetworkFe(this.aeMachine.getGrid(), this.actionSource, requestedFe, action);
+            this.actionSource = support.actionSource;
         }
     }
 

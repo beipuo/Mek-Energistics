@@ -36,17 +36,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import mekanism.api.Action;
-import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.fluid.IExtendedFluidTank;
-import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
-import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -537,45 +534,21 @@ public final class MeFactoryAeSupport {
         }
     }
 
-    public static final class AeBackedFactoryEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
-            implements MeNetworkEnergyHelper.LocalEnergyBuffer {
+    public static final class AeBackedFactoryEnergyContainer<TILE extends TileEntityMekanism>
+            extends MeNetworkEnergyHelper.NetworkBackedEnergyContainer<TILE> {
         private final TILE owner;
 
         public AeBackedFactoryEnergyContainer(TILE owner, IContentsListener listener) {
-            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
-                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
+            super(owner, listener, () -> factoryGrid(owner), factoryActionSource(owner));
             this.owner = owner;
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            if (!(this.owner instanceof MeFactoryAeMachine aeMachine)) {
-                return super.extract(amount, action, automationType);
-            }
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, aeMachine.getAeSupport().getGrid(), aeMachine.getAeSupport().actionSource,
-                    amount, action, automationType);
-        }
-
-        @Override
-        public long getLocalEnergy() {
-            return super.getEnergy();
-        }
-
-        @Override
-        public long extractLocal(long amount, Action action, AutomationType automationType) {
-            return super.extract(amount, action, automationType);
-        }
-
-        private long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {
-            return MeFactoryAeSupport.extractAeAsFe(aeMachine, requestedFe, action);
         }
     }
 
-    private static long extractAeAsFe(MeFactoryAeMachine aeMachine, long requestedFe, Action action) {
-        IGrid grid = aeMachine.getAeSupport().getGrid();
-        if (grid == null) {
-            return 0;
-        }
-        return MeNetworkEnergyHelper.extractNetworkFe(grid, aeMachine.getAeSupport().actionSource, requestedFe, action);
+    private static IGrid factoryGrid(TileEntityMekanism owner) {
+        return owner instanceof MeFactoryAeMachine aeMachine ? aeMachine.getAeSupport().getGrid() : null;
+    }
+
+    private static IActionSource factoryActionSource(TileEntityMekanism owner) {
+        return owner instanceof MeFactoryAeMachine aeMachine ? aeMachine.getAeSupport().actionSource : null;
     }
 }
