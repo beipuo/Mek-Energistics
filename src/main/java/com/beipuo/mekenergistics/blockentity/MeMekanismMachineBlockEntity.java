@@ -3,9 +3,9 @@ package com.beipuo.mekenergistics.blockentity;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
+import com.beipuo.mekenergistics.blockentity.support.MeLegacyMachineAeHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
-import com.beipuo.mekenergistics.blockentity.support.MePatternDecodeHelper;
 import com.beipuo.mekenergistics.blockentity.support.MePatternTerminalNames;
 import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
@@ -758,20 +758,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     boolean processSmartPatternWork() {
-        boolean wasEnabled = this.smartPatternMultiplication.isEnabled();
-        this.smartPatternMultiplication.setEnabled(false);
-        try {
-            boolean changed = this.smartPatternMultiplication.processNext(this.patterns, this::pushPattern);
-            if (changed) {
-                setChanged();
-                if (this.smartPatternMultiplication.hasPendingWork()) {
-                    this.aeOutput.alertTicker();
-                }
-            }
-            return changed;
-        } finally {
-            this.smartPatternMultiplication.setEnabled(wasEnabled);
-        }
+        return MeLegacyMachineAeHelper.processSmartPatternWork(this.smartPatternMultiplication, this.patterns,
+                this::pushPattern, this::setChanged, this.aeOutput::alertTicker);
     }
 
     @Override
@@ -781,12 +769,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
 
         if (this.smartPatternMultiplication.isEnabled()) {
-            boolean enqueued = this.smartPatternMultiplication.enqueue(patternDetails, inputHolder);
-            if (enqueued) {
-                this.aeOutput.alertTicker();
-                setChanged();
-            }
-            return enqueued;
+            return MeLegacyMachineAeHelper.enqueueSmartPattern(this.smartPatternMultiplication, patternDetails,
+                    inputHolder, this::setChanged, this.aeOutput::alertTicker);
         }
         return MeMekanismMachinePatternInput.push(this, patternDetails, inputHolder);
     }
@@ -797,19 +781,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     private void updatePatterns() {
-        this.patterns.clear();
-        for (int i = PATTERN_SLOTS_START; i <= patternSlotsEnd(); i++) {
-            ItemStack stack = getStack(i);
-            if (!stack.isEmpty()) {
-                IPatternDetails pattern = MePatternDecodeHelper.safeDecode(stack, this.level, this.worldPosition, this.machine.name());
-                if (pattern != null) {
-                    this.patterns.add(pattern);
-                }
-            }
-        }
-        if (this.mainNode.getNode() != null) {
-            ICraftingProvider.requestUpdate(this.mainNode);
-        }
+        MeLegacyMachineAeHelper.updatePatterns(this.patterns, this::getStack, PATTERN_SLOTS_START, patternSlotsEnd(),
+                this.level, this.worldPosition, this.machine.name(), this.mainNode);
     }
 
     @Override
@@ -818,10 +791,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
         tag.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
         tag.remove(TAG_PATTERN_TERMINAL_NAME);
-        this.smartPatternMultiplication.saveConfig(tag);
-        this.smartPatternMultiplication.savePending(tag, registries);
         tag.putInt(SerializationConstants.PROGRESS, this.operatingTicks);
-        this.mainNode.saveToNBT(tag);
+        MeLegacyMachineAeHelper.saveAeState(tag, registries, this.smartPatternMultiplication, this.mainNode);
     }
 
     @Override
@@ -833,10 +804,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
         this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
         this.patternTerminalName = MePatternTerminalNames.migrateLegacy(this, tag.getString(TAG_PATTERN_TERMINAL_NAME));
-        this.smartPatternMultiplication.loadConfig(tag);
-        this.smartPatternMultiplication.loadPending(tag, registries);
         this.operatingTicks = tag.getInt(SerializationConstants.PROGRESS);
-        this.mainNode.loadFromNBT(tag);
+        MeLegacyMachineAeHelper.loadAeState(tag, registries, this.smartPatternMultiplication, this.mainNode);
         this.updatePatterns();
     }
 
