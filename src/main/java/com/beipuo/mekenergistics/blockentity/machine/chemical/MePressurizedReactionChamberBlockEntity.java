@@ -83,6 +83,9 @@ public class MePressurizedReactionChamberBlockEntity extends TileEntityPressuriz
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 3) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         ItemStack itemInput = ItemStack.EMPTY;
         ChemicalStack chemicalInput = ChemicalStack.EMPTY;
         FluidStack fluidInput = FluidStack.EMPTY;

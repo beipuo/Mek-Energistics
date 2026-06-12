@@ -93,6 +93,9 @@ public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondense
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         MeFactoryPatternInput input = MeFactoryPatternInput.single(inputHolder[0]);
         if (input == null) {
             return false;

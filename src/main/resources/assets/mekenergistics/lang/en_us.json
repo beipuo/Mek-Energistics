@@ -3,6 +3,8 @@
   "gui.mekenergistics.me_patterns.title": "ME Patterns",
   "gui.mekenergistics.me_patterns.button": "Patterns",
   "gui.mekenergistics.me_patterns.rename": "Rename pattern assembly",
+  "gui.mekenergistics.me_patterns.smart_multiplication.on": "Smart pattern multiplication: On",
+  "gui.mekenergistics.me_patterns.smart_multiplication.off": "Smart pattern multiplication: Off",
   "config.jade.plugin_mekenergistics.ae_status": "AE Network Status",
   "tooltip.mekenergistics.ae_status.online": "AE Network: Online",
   "tooltip.mekenergistics.ae_status.offline": "AE Network: Offline",

@@ -87,6 +87,13 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
+        return pushPatternInputs(inputHolder);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder) {
         MeFactoryPatternInput first = MeFactoryPatternInput.single(inputHolder[0]);
         MeFactoryPatternInput second = MeFactoryPatternInput.single(inputHolder[1]);
         if (first == null || second == null || !first.isItem() || !second.isItem()) {
@@ -108,7 +115,8 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
     @Override public boolean isBusy() { return false; }
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
+        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
         return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
     }

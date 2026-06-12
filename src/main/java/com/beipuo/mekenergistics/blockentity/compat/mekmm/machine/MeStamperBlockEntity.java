@@ -91,6 +91,9 @@ public class MeStamperBlockEntity extends TileEntityStamper implements ICrafting
                 || this.meMoldInputSlot == null || this.meMoldInputSlot.getStack().isEmpty()) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         return this.meItemInputSlot != null && this.aeSupport.pushSingleItem(inputHolder, this.meItemInputSlot);
     }
 

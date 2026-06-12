@@ -138,6 +138,10 @@ public final class EvolvedMekanismExtrasCompat {
         return targetTier == installer.getToTier() ? target : null;
     }
 
+    public static boolean isInstaller(ItemStack stack) {
+        return stack.getItem() instanceof EMExtraItemTierInstaller;
+    }
+
     @Nullable
     private static MeMekanismMachine getFirstEmExtraFactoryTarget(MeMekanismMachine current, EMExtraTier toTier) {
         if (!isTerminalEvolvedFactory(current)) {

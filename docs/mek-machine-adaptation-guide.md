@@ -4,6 +4,8 @@
 
 后续适配 Mekanism More Machine、Mekanism Extras 或其它机器模组时，也应沿用同一套拆分方式：先把机器元数据放进统一枚举，再选择/新增 BlockEntity 模板，最后补注册、菜单、客户端、JEI、安装器和资源。
 
+如果只是给整合包作者开放批量修改 ME 机器合成配方的能力，不需要新增 Java 侧 KubeJS 硬依赖。当前配方大多是 datapack 原生 shapeless recipe，可直接用 KubeJS `ServerEvents.recipes` 移除并重建。脚本模板和维护规则见 `docs/kubejs-recipe-customization.md`。
+
 ## 1. 先判断机器类型
 
 新增机器前，先给机器分型。分型决定复用哪个模板，也决定后面要补哪些槽位、tank、mixin accessor 和输出回网逻辑。

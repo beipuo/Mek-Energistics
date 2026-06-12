@@ -91,6 +91,9 @@ public class MeAlloyerBlockEntity extends TileEntityAlloyer implements ICrafting
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 3) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         ItemStack first = itemInput(inputHolder[0]);
         ItemStack second = itemInput(inputHolder[1]);
         ItemStack third = itemInput(inputHolder[2]);

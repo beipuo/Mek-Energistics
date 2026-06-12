@@ -88,6 +88,9 @@ public class MeRecyclerBlockEntity extends TileEntityRecycler implements ICrafti
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         MeFactoryPatternInput input = MeFactoryPatternInput.single(inputHolder[0]);
         if (input == null || !input.isItem() || this.meInputSlot == null
                 || !this.meInputSlot.insertItem(input.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {

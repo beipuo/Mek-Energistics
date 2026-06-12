@@ -28,6 +28,7 @@ final class MeMekanismMachineAeOutput implements IGridTickable {
 
     boolean process() {
         boolean hadWork = hasWork();
+        this.owner.processSmartPatternWork();
         processPendingCraftingOutputs();
         processPendingKeyOutputs();
         insertOutputSlotIntoNetwork(MeMekanismMachineBlockEntity.OUTPUT_SLOT);
@@ -41,6 +42,9 @@ final class MeMekanismMachineAeOutput implements IGridTickable {
     }
 
     boolean hasWork() {
+        if (this.owner.hasSmartPatternWork()) {
+            return true;
+        }
         if (!this.pendingCraftingOutputs.isEmpty() || !this.pendingKeyOutputs.isEmpty()) {
             return true;
         }
@@ -163,7 +167,7 @@ final class MeMekanismMachineAeOutput implements IGridTickable {
         }
     }
 
-    private void alertTicker() {
+    void alertTicker() {
         this.owner.getManagedNode().ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
     }
 

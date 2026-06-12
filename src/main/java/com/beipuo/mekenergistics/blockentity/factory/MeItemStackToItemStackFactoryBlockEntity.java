@@ -101,6 +101,13 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
+        return pushPatternInputs(inputHolder);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder) {
         ItemStack input = getSingleItemInput(inputHolder[0]);
         if (input.isEmpty()) {
             return false;
@@ -141,7 +148,8 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
 
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
+        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
         return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
     }

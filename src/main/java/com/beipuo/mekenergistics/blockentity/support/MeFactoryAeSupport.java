@@ -71,6 +71,7 @@ public final class MeFactoryAeSupport {
     private final List<IInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
+    private final MeSmartPatternMultiplication smartPatternMultiplication = new MeSmartPatternMultiplication();
     private int patternPriority;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
     private String patternTerminalName = "";
@@ -119,6 +120,60 @@ public final class MeFactoryAeSupport {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
         this.owner.saveChanges();
+    }
+
+    public boolean isSmartPatternMultiplicationEnabled() {
+        return this.smartPatternMultiplication.isEnabled();
+    }
+
+    public void setSmartPatternMultiplicationEnabled(boolean enabled) {
+        if (this.smartPatternMultiplication.isEnabled() == enabled) {
+            return;
+        }
+        this.smartPatternMultiplication.setEnabled(enabled);
+        this.owner.saveChanges();
+        alertAeTicker();
+    }
+
+    public boolean enqueueSmartPattern(IPatternDetails patternDetails, appeng.api.stacks.KeyCounter[] inputHolder) {
+        if (!this.smartPatternMultiplication.enqueue(patternDetails, inputHolder)) {
+            return false;
+        }
+        this.owner.saveChanges();
+        alertAeTicker();
+        return true;
+    }
+
+    public boolean processSmartPattern(MeSmartPatternMultiplication.Feeder feeder) {
+        boolean changed = this.smartPatternMultiplication.processNext(feeder);
+        if (changed) {
+            this.owner.saveChanges();
+            if (this.smartPatternMultiplication.hasPendingWork()) {
+                alertAeTicker();
+            }
+        }
+        return changed;
+    }
+
+    private boolean processSmartPatternViaOwner() {
+        boolean wasEnabled = this.smartPatternMultiplication.isEnabled();
+        this.smartPatternMultiplication.setEnabled(false);
+        try {
+            return processSmartPatternWithPattern(this.owner::pushPattern);
+        } finally {
+            this.smartPatternMultiplication.setEnabled(wasEnabled);
+        }
+    }
+
+    private boolean processSmartPatternWithPattern(MeSmartPatternMultiplication.PatternFeeder feeder) {
+        boolean changed = this.smartPatternMultiplication.processNext(this.patterns, feeder);
+        if (changed) {
+            this.owner.saveChanges();
+            if (this.smartPatternMultiplication.hasPendingWork()) {
+                alertAeTicker();
+            }
+        }
+        return changed;
     }
 
     public AeOutputMode getAeOutputMode() {
@@ -278,11 +333,12 @@ public final class MeFactoryAeSupport {
                 return true;
             }
         }
-        return false;
+        return this.smartPatternMultiplication.hasPendingWork();
     }
 
     private boolean processAeOutputWork() {
         boolean hadWork = hasAeOutputWork();
+        processSmartPatternViaOwner();
         insertOutputSlotsIntoNetwork(this.knownOutputSlots);
         for (IChemicalTank tank : this.knownChemicalOutputTanks) {
             insertChemicalTankIntoNetwork(tank);
@@ -349,6 +405,7 @@ public final class MeFactoryAeSupport {
     public void save(CompoundTag tag) {
         tag.putInt("PatternPriority", this.patternPriority);
         tag.putInt("AeOutputMode", this.aeOutputMode.ordinal());
+        this.smartPatternMultiplication.saveConfig(tag);
         if (this.patternTerminalName.isEmpty()) {
             tag.remove(TAG_PATTERN_TERMINAL_NAME);
         } else {
@@ -360,6 +417,7 @@ public final class MeFactoryAeSupport {
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
         this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
+        this.smartPatternMultiplication.loadConfig(tag);
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
@@ -387,6 +445,7 @@ public final class MeFactoryAeSupport {
         for (int i = 0; i < this.patternSlots.size(); i++) {
             tag.put("MePatternSlot" + i, this.patternSlots.get(i).serializeNBT(registries));
         }
+        this.smartPatternMultiplication.savePending(tag, registries);
     }
 
     public void loadSlots(CompoundTag tag, HolderLookup.Provider registries) {
@@ -395,6 +454,7 @@ public final class MeFactoryAeSupport {
                 this.patternSlots.get(i).deserializeNBT(registries, tag.getCompound("MePatternSlot" + i));
             }
         }
+        this.smartPatternMultiplication.loadPending(tag, registries);
         updatePatterns();
     }
 

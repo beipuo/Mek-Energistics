@@ -39,7 +39,7 @@ public class MeExtraAdvancedChemicalToItemFactoryBlockEntity extends TileEntityE
     @Override public Level getOwnerLevel() { return getLevel(); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return MeExtraFactoryBridge.getAvailablePatterns(getAeSupport()); }
     @Override public int getPatternPriority() { return getAeSupport().getPatternPriority(); }
-    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExtraFactoryBridge.pushChemical(this, inputHolder, this.inputChemicalTanks); }
+    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExtraFactoryBridge.pushChemical(this, patternDetails, inputHolder, this.inputChemicalTanks); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.ChemicalCrystallizerRecipe> createNewCachedRecipe(@NotNull mekanism.api.recipes.ChemicalCrystallizerRecipe recipe, int cacheIndex) { return MeExtraFactoryBridge.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }

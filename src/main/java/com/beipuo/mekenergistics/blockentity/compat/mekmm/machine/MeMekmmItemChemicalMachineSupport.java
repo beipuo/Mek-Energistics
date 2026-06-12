@@ -98,6 +98,9 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         ItemStack itemInput = ItemStack.EMPTY;
         var chemicalInput = mekanism.api.chemical.ChemicalStack.EMPTY;
         for (KeyCounter counter : inputHolder) {

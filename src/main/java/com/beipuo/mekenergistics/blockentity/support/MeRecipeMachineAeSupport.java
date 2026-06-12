@@ -68,6 +68,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     private final List<OutputInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
+    private final MeSmartPatternMultiplication smartPatternMultiplication = new MeSmartPatternMultiplication();
     private int patternPriority;
     private String patternTerminalName = "";
 
@@ -115,6 +116,60 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
             ICraftingProvider.requestUpdate(this.mainNode);
         }
         this.owner.setChanged();
+    }
+
+    public boolean isSmartPatternMultiplicationEnabled() {
+        return this.smartPatternMultiplication.isEnabled();
+    }
+
+    public void setSmartPatternMultiplicationEnabled(boolean enabled) {
+        if (this.smartPatternMultiplication.isEnabled() == enabled) {
+            return;
+        }
+        this.smartPatternMultiplication.setEnabled(enabled);
+        this.owner.setChanged();
+        alertAeTicker();
+    }
+
+    public boolean enqueueSmartPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+        if (!this.smartPatternMultiplication.enqueue(patternDetails, inputHolder)) {
+            return false;
+        }
+        this.owner.setChanged();
+        alertAeTicker();
+        return true;
+    }
+
+    public boolean processSmartPattern(MeSmartPatternMultiplication.Feeder feeder) {
+        boolean changed = this.smartPatternMultiplication.processNext(feeder);
+        if (changed) {
+            this.owner.setChanged();
+            if (this.smartPatternMultiplication.hasPendingWork()) {
+                alertAeTicker();
+            }
+        }
+        return changed;
+    }
+
+    private boolean processSmartPatternViaOwner() {
+        boolean wasEnabled = this.smartPatternMultiplication.isEnabled();
+        this.smartPatternMultiplication.setEnabled(false);
+        try {
+            return processSmartPatternWithPattern(this.owner::pushPattern);
+        } finally {
+            this.smartPatternMultiplication.setEnabled(wasEnabled);
+        }
+    }
+
+    private boolean processSmartPatternWithPattern(MeSmartPatternMultiplication.PatternFeeder feeder) {
+        boolean changed = this.smartPatternMultiplication.processNext(this.patterns, feeder);
+        if (changed) {
+            this.owner.setChanged();
+            if (this.smartPatternMultiplication.hasPendingWork()) {
+                alertAeTicker();
+            }
+        }
+        return changed;
     }
 
     public void create(Level level, BlockPos pos) {
@@ -282,11 +337,12 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
                 }
             }
         }
-        return false;
+        return this.smartPatternMultiplication.hasPendingWork();
     }
 
     private boolean processAeOutputWork() {
         boolean hadWork = hasAeOutputWork();
+        processSmartPatternViaOwner();
         AeOutputMode mode = this.owner.getAeOutputMode();
         for (OutputInventorySlot slot : this.knownOutputSlots) {
             insertOutputSlotIntoNetwork(slot, mode);
@@ -369,6 +425,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public void save(CompoundTag tag) {
         tag.putInt("PatternPriority", this.patternPriority);
+        this.smartPatternMultiplication.saveConfig(tag);
         if (this.patternTerminalName.isEmpty()) {
             tag.remove(TAG_PATTERN_TERMINAL_NAME);
         } else {
@@ -379,6 +436,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
+        this.smartPatternMultiplication.loadConfig(tag);
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
@@ -388,6 +446,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         for (int i = 0; i < this.patternSlots.size(); i++) {
             tag.put("MePatternSlot" + i, this.patternSlots.get(i).serializeNBT(registries));
         }
+        this.smartPatternMultiplication.savePending(tag, registries);
     }
 
     public void loadSlots(CompoundTag tag, HolderLookup.Provider registries) {
@@ -396,6 +455,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
                 this.patternSlots.get(i).deserializeNBT(registries, tag.getCompound("MePatternSlot" + i));
             }
         }
+        this.smartPatternMultiplication.loadPending(tag, registries);
         updatePatterns();
     }
 

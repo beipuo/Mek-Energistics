@@ -131,6 +131,10 @@ public final class MekanismExtrasCompat {
         return targetTier == toTier ? target : null;
     }
 
+    public static boolean isInstaller(ItemStack stack) {
+        return stack.getItem() instanceof ItemExtraTierInstaller;
+    }
+
     @Nullable
     private static MeMekanismMachine getFirstExtraFactoryTarget(MeMekanismMachine current, AdvancedTier toTier) {
         if (current.factoryTier() != mekanism.common.tier.FactoryTier.ULTIMATE && !isTerminalEvolvedFactory(current)) {
