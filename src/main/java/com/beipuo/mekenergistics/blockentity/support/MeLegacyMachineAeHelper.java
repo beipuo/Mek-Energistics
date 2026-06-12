@@ -1,11 +1,13 @@
 package com.beipuo.mekenergistics.blockentity.support;
 
 import appeng.api.crafting.IPatternDetails;
+import appeng.api.networking.GridHelper;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.stacks.KeyCounter;
 import java.util.List;
 import java.util.function.IntFunction;
+import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -61,6 +63,18 @@ public final class MeLegacyMachineAeHelper {
         } finally {
             smartPatternMultiplication.setEnabled(wasEnabled);
         }
+    }
+
+    public static <TILE extends TileEntityMekanism> void createOnFirstTick(TILE owner, IManagedGridNode mainNode,
+            Runnable updatePatterns) {
+        GridHelper.onFirstTick(owner, blockEntity -> {
+            mainNode.create(blockEntity.getLevel(), blockEntity.getBlockPos());
+            updatePatterns.run();
+        });
+    }
+
+    public static void destroyNode(IManagedGridNode mainNode) {
+        mainNode.destroy();
     }
 
     public static void saveAeState(CompoundTag tag, HolderLookup.Provider registries,

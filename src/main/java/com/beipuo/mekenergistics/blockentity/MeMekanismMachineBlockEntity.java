@@ -5,7 +5,6 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeLegacyMachineAeHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
-import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MePatternTerminalNames;
 import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
@@ -67,12 +66,10 @@ import mekanism.common.tile.prefab.TileEntityConfigurableMachine;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.util.MekanismUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -284,10 +281,6 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
 
     public BooleanSupplier getWarningCheck(RecipeError error) {
         return () -> false;
-    }
-
-    public void setOwner(ServerPlayer player) {
-        MeOwnerHelper.setOwner(this, this.mainNode, player);
     }
 
     @Override
@@ -669,34 +662,24 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        GridHelper.onFirstTick(this, blockEntity -> {
-            blockEntity.mainNode.create(blockEntity.getLevel(), blockEntity.getBlockPos());
-            blockEntity.updatePatterns();
-        });
+        MeLegacyMachineAeHelper.createOnFirstTick(this, this.mainNode, this::updatePatterns);
     }
 
     @Override
     public void setRemoved() {
-        this.mainNode.destroy();
+        MeLegacyMachineAeHelper.destroyNode(this.mainNode);
         super.setRemoved();
     }
 
     @Override
     public void onChunkUnloaded() {
-        this.mainNode.destroy();
+        MeLegacyMachineAeHelper.destroyNode(this.mainNode);
         super.onChunkUnloaded();
     }
 
-    @Nullable
     @Override
-    public IGridNode getGridNode(Direction dir) {
-        return this.mainNode.getNode();
-    }
-
-    @Nullable
-    @Override
-    public IGridNode getActionableNode() {
-        return this.mainNode.getNode();
+    public IManagedGridNode getMainNode() {
+        return this.mainNode;
     }
 
     IManagedGridNode getManagedNode() {
