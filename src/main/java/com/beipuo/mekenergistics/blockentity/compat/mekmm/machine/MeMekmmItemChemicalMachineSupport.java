@@ -1,9 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.compat.mekmm.machine;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGrid;
-import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.KeyCounter;
@@ -11,7 +9,6 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
-import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
@@ -33,18 +30,15 @@ import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.InputInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.tile.base.TileEntityMekanism;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & MeAeMachine & ICraftingProvider & IActionHost> {
     private final TILE owner;
     private final MeMekanismMachine machine;
-    private final MeRecipeMachineAeSupport<TILE> aeSupport;
+    private MeRecipeMachineAeSupport<TILE> aeSupport;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
     private InputInventorySlot inputSlot;
     private OutputInventorySlot outputSlot;
@@ -54,16 +48,23 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
     MeMekmmItemChemicalMachineSupport(TILE owner, MeMekanismMachine machine) {
         this.owner = owner;
         this.machine = machine;
-        this.aeSupport = new MeRecipeMachineAeSupport<>(owner);
     }
 
     IInventorySlotHolder withPatternSlots(IInventorySlotHolder original) {
         captureSlots(original);
+        MeRecipeMachineAeSupport<TILE> support = aeSupport();
         return side -> {
             List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
+            slots.addAll(support.getPatternSlots());
             return slots;
         };
+    }
+
+    MeRecipeMachineAeSupport<TILE> aeSupport() {
+        if (this.aeSupport == null) {
+            this.aeSupport = new MeRecipeMachineAeSupport<>(this.owner);
+        }
+        return this.aeSupport;
     }
 
     IChemicalTankHolder captureChemicalTank(IChemicalTankHolder original) {
@@ -89,8 +90,9 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
     }
 
     boolean drainOutputs(boolean sendUpdatePacket) {
-        boolean changed = this.aeSupport.insertOutputSlotIntoNetwork(this.outputSlot, this.aeOutputMode);
-        changed |= this.aeSupport.insertOutputSlotIntoNetwork(this.secondaryOutputSlot, this.aeOutputMode);
+        MeRecipeMachineAeSupport<TILE> support = aeSupport();
+        boolean changed = support.insertOutputSlotIntoNetwork(this.outputSlot, this.aeOutputMode);
+        changed |= support.insertOutputSlotIntoNetwork(this.secondaryOutputSlot, this.aeOutputMode);
         return changed || sendUpdatePacket;
     }
 
@@ -98,8 +100,8 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
-        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
-            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        if (aeSupport().isSmartPatternMultiplicationEnabled()) {
+            return aeSupport().enqueueSmartPattern(patternDetails, inputHolder);
         }
         MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
         if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()
@@ -115,25 +117,22 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
     }
 
     public boolean isBusy() { return false; }
-    public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
-    public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
-    public String getCustomPatternTerminalName() { return this.aeSupport.getPatternTerminalName(); }
-    public void setCustomPatternTerminalName(String name) { this.aeSupport.setPatternTerminalName(name); }
-    public List<BasicInventorySlot> getPatternSlots() { return this.aeSupport.getPatternSlots(); }
+    public List<IPatternDetails> getAvailablePatterns() { return aeSupport().getAvailablePatterns(); }
+    public int getPatternPriority() { return aeSupport().getPatternPriority(); }
+    public String getCustomPatternTerminalName() { return aeSupport().getPatternTerminalName(); }
+    public void setCustomPatternTerminalName(String name) { aeSupport().setPatternTerminalName(name); }
+    public List<BasicInventorySlot> getPatternSlots() { return aeSupport().getPatternSlots(); }
     public MeMekanismMachine getMachine() { return this.machine; }
     public ItemStack getTerminalIconStack() { return new ItemStack(ModBlocks.getMachineBlock(getMachine()).get()); }
-    public IGrid getGrid() { return this.aeSupport.getGrid(); }
-    public appeng.api.networking.IManagedGridNode getMainNode() { return this.aeSupport.getMainNode(); }
-    public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this.owner, getMainNode(), player); }
-    @Nullable public IGridNode getGridNode(Direction dir) { return getMainNode().getNode(); }
-    @Nullable public IGridNode getActionableNode() { return getMainNode().getNode(); }
+    public IGrid getGrid() { return aeSupport().getGrid(); }
+    public appeng.api.networking.IManagedGridNode getMainNode() { return aeSupport().getMainNode(); }
     public AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
     public void cycleAeOutputMode() { this.aeOutputMode = this.aeOutputMode.next(); this.owner.setChanged(); }
-    public <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) { return this.aeSupport.wrapRecipeEnergy(energyContainer, cachedRecipe); }
-    void clearRemoved() { this.aeSupport.createOnFirstTick(); }
-    void setRemoved() { this.aeSupport.destroyNode(); }
-    void onChunkUnloaded() { this.aeSupport.destroyNode(); }
-    void addContainerTrackers(MekanismContainer container) { this.aeSupport.addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, false); }
-    void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeSupport.saveAeState(tag, registries, this.aeOutputMode); }
-    void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeOutputMode = this.aeSupport.loadAeState(tag, registries); }
+    public <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) { return aeSupport().wrapRecipeEnergy(energyContainer, cachedRecipe); }
+    void clearRemoved() { aeSupport().createOnFirstTick(); }
+    void setRemoved() { aeSupport().destroyNode(); }
+    void onChunkUnloaded() { aeSupport().destroyNode(); }
+    void addContainerTrackers(MekanismContainer container) { aeSupport().addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, false); }
+    void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { aeSupport().saveAeState(tag, registries, this.aeOutputMode); }
+    void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeOutputMode = aeSupport().loadAeState(tag, registries); }
 }

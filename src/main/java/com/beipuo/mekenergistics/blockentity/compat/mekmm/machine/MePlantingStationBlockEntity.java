@@ -2,7 +2,6 @@ package com.beipuo.mekenergistics.blockentity.compat.mekmm.machine;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.IGrid;
-import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.KeyCounter;
@@ -18,10 +17,8 @@ import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -32,18 +29,21 @@ public class MePlantingStationBlockEntity extends TileEntityPlantingStation impl
 
     public MePlantingStationBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(pos, state);
+        meSupport();
     }
 
     @NotNull
     @Override
     public IChemicalTankHolder getInitialChemicalTanks(IContentsListener listener, IContentsListener recipeCacheListener, IContentsListener recipeCacheUnpauseListener) {
-        return this.meSupport().captureChemicalTank(super.getInitialChemicalTanks(listener, recipeCacheListener, recipeCacheUnpauseListener));
+        IChemicalTankHolder original = super.getInitialChemicalTanks(listener, recipeCacheListener, recipeCacheUnpauseListener);
+        return this.meSupport().captureChemicalTank(original);
     }
 
     @Nullable
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener, IContentsListener recipeCacheListener, IContentsListener recipeCacheUnpauseListener) {
-        return this.meSupport().withPatternSlots(super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener));
+        IInventorySlotHolder original = super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener);
+        return this.meSupport().withPatternSlots(original);
     }
 
     @Override
@@ -75,9 +75,6 @@ public class MePlantingStationBlockEntity extends TileEntityPlantingStation impl
     @Override public ItemStack getTerminalIconStack() { return this.meSupport().getTerminalIconStack(); }
     @Override public IGrid getGrid() { return this.meSupport().getGrid(); }
     public appeng.api.networking.IManagedGridNode getMainNode() { return this.meSupport().getMainNode(); }
-    @Override public void setOwner(ServerPlayer player) { this.meSupport().setOwner(player); }
-    @Nullable @Override public IGridNode getGridNode(Direction dir) { return this.meSupport().getGridNode(dir); }
-    @Nullable @Override public IGridNode getActionableNode() { return this.meSupport().getActionableNode(); }
     @Override public AeOutputMode getAeOutputMode() { return this.meSupport().getAeOutputMode(); }
     @Override public void cycleAeOutputMode() { this.meSupport().cycleAeOutputMode(); }
     @Override public void clearRemoved() { super.clearRemoved(); this.meSupport().clearRemoved(); }
