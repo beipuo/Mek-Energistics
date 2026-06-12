@@ -1,7 +1,6 @@
 package com.beipuo.mekenergistics.blockentity.compat.eme.factory;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.GridHelper;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.compat.shared.MeExternalFactorySupport;
@@ -11,7 +10,6 @@ import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismRecipeViewerTypes;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import fr.iglee42.evolvedmekanism.recipes.AlloyerRecipe;
 import fr.iglee42.evolvedmekanism.tiles.factory.TileEntityAlloyingFactory;
-import java.util.ArrayList;
 import java.util.List;
 import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
 import mekanism.api.IContentsListener;
@@ -22,7 +20,6 @@ import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -56,12 +53,7 @@ public class MeAlloyingFactoryBlockEntity extends TileEntityAlloyingFactory impl
     @NotNull
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
-        IInventorySlotHolder original = super.getInitialInventory(listener);
-        return side -> {
-            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
-            return slots;
-        };
+        return MeExternalFactorySupport.withPatternSlots(super.getInitialInventory(listener), this);
     }
 
     @Override public MeFactoryAeSupport getAeSupport() { return this.aeSupport; }
@@ -75,10 +67,10 @@ public class MeAlloyingFactoryBlockEntity extends TileEntityAlloyingFactory impl
     @Nullable @Override public IRecipeViewerRecipeType<AlloyerRecipe> recipeViewerType() { return EvolvedMekanismRecipeViewerTypes.ALLOYING; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public CachedRecipe<AlloyerRecipe> createNewCachedRecipe(@NotNull AlloyerRecipe recipe, int cacheIndex) { return MeFactoryAeSupport.withAeRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
-    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots); sendUpdatePacket |= super.onUpdateServer(); return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket; }
-    @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
+    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExternalFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeExternalFactorySupport.updateServer(this, sendUpdatePacket); }
+    @Override public void clearRemoved() { super.clearRemoved(); MeExternalFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
-    @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
-    @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
+    @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); MeExternalFactorySupport.save(getAeSupport(), tag, registries); }
+    @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); MeExternalFactorySupport.load(getAeSupport(), tag, registries); }
 }
