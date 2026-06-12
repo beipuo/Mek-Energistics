@@ -1,5 +1,7 @@
 # Mek-Energistics 重构计划
 
+> Status: superseded by `docs/PLAN6.md`. The low-risk phases in this plan have largely landed; remaining aggressive ideas such as `MeAeSupportBase`, `MeMekanismMachine` Builder conversion, full `MeMekanismMachineBlockEntity` splitting, and optional compat class merging remain deferred.
+
 ## Summary
 
 这份计划建议替换当前 `docs/plan.md`。现有计划找到了不少真实重复，但优先级偏激进：不应一开始就抽 `MeAeSupportBase` 大基类，也不应把 `MeMekanismMachine` 枚举 Builder 化放进核心阶段。重构目标应先降低 AE 支持路径的不一致性，再清理低风险重复。

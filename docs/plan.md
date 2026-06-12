@@ -1,5 +1,7 @@
 # Mek-Energistics 代码结构优化分析
 
+> Status: superseded by `docs/PLAN6.md`. This early analysis includes directions that are now complete or deliberately deferred, including immediate `MeAeSupportBase` extraction, `MeMekanismMachine` Builder conversion, and full `MeMekanismMachineBlockEntity` splitting. Use PLAN6 as the current cleanup route.
+
 > 基于项目 238 个 Java 源文件的全面审查，识别需要合并、拆分和优化的代码。
 
 ---

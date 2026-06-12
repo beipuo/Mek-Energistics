@@ -1,6 +1,5 @@
 package com.beipuo.mekenergistics.client;
 
-import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.client.compat.eme.EvolvedMekanismExtrasClientScreens;
 import com.beipuo.mekenergistics.client.compat.meke.MekanismExtrasAdvancedClientScreens;
 import com.beipuo.mekenergistics.client.compat.meke.MekanismExtrasClientScreens;
@@ -77,20 +76,20 @@ import mekanism.common.tile.machine.TileEntityRotaryCondensentrator;
 import mekanism.common.tile.machine.TileEntitySeismicVibrator;
 import mekanism.common.tile.machine.TileEntitySolarNeutronActivator;
 import mekanism.common.tile.factory.TileEntityFactory;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.inventory.MenuType;
 
-@EventBusSubscriber(modid = MekEnergistics.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ClientSetup {
     private ClientSetup() {
     }
 
-    @SubscribeEvent
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(ClientSetup::registerScreens);
+    }
+
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.ME_ELECTRIC_MACHINE.get(), MeElectricMachineScreen::new);
         event.register(ModMenuTypes.ME_GENERIC_MACHINE.get(), MeGenericMachineScreen::new);
