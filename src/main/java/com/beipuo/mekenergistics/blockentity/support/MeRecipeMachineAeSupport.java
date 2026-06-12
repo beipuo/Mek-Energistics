@@ -454,19 +454,21 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism>
             extends MeNetworkEnergyHelper.NetworkBackedEnergyContainer<TILE> {
         private final MeAeMachine aeMachine;
-        private final IActionSource actionSource;
 
         public AeBackedEnergyContainer(TILE owner, MeRecipeMachineAeSupport<?> support, IContentsListener listener) {
-            super(owner, listener, support::getGrid, support.actionSource);
+            super(owner, listener, () -> ((MeAeMachine) owner).getGrid(), () -> recipeActionSource((MeAeMachine) owner));
             this.aeMachine = (MeAeMachine) owner;
-            this.actionSource = support.actionSource;
+        }
+
+        private IActionSource actionSource() {
+            return recipeActionSource(this.aeMachine);
         }
     }
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
             MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
         return energyContainer instanceof AeBackedEnergyContainer<?> aeBackedEnergyContainer
-                ? withAeRecipeEnergy(aeBackedEnergyContainer.aeMachine, aeBackedEnergyContainer.actionSource, energyContainer, cachedRecipe)
+                ? withAeRecipeEnergy(aeBackedEnergyContainer.aeMachine, aeBackedEnergyContainer.actionSource(), energyContainer, cachedRecipe)
                 : cachedRecipe;
     }
 
@@ -479,6 +481,11 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
             MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
         return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick,
                 MeNetworkEnergyHelper.recipeEnergyView(energyContainer, aeMachine::getGrid, actionSource));
+    }
+
+    private static IActionSource recipeActionSource(MeAeMachine aeMachine) {
+        MeRecipeMachineAeSupport<?> support = aeMachine.getRecipeAeSupport();
+        return support == null ? null : support.actionSource;
     }
 
     private enum NodeListener implements IGridNodeListener<TileEntityMekanism> {

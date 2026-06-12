@@ -91,19 +91,24 @@ public final class MeNetworkEnergyHelper {
     public static class NetworkBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
             implements LocalEnergyBuffer {
         private final Supplier<IGrid> gridSupplier;
-        private final IActionSource actionSource;
+        private final Supplier<IActionSource> actionSourceSupplier;
 
         public NetworkBackedEnergyContainer(TILE owner, IContentsListener listener, Supplier<IGrid> gridSupplier, IActionSource actionSource) {
+            this(owner, listener, gridSupplier, () -> actionSource);
+        }
+
+        public NetworkBackedEnergyContainer(TILE owner, IContentsListener listener, Supplier<IGrid> gridSupplier, Supplier<IActionSource> actionSourceSupplier) {
             super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
                     BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
             this.gridSupplier = gridSupplier;
-            this.actionSource = actionSource;
+            this.actionSourceSupplier = actionSourceSupplier;
         }
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
             IGrid grid = this.gridSupplier == null ? null : this.gridSupplier.get();
-            return extractWithLocalBuffer(this, grid, this.actionSource, amount, action, automationType);
+            IActionSource actionSource = this.actionSourceSupplier == null ? null : this.actionSourceSupplier.get();
+            return extractWithLocalBuffer(this, grid, actionSource, amount, action, automationType);
         }
 
         @Override

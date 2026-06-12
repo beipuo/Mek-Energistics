@@ -539,16 +539,18 @@ public final class MeFactoryAeSupport {
         private final TILE owner;
 
         public AeBackedFactoryEnergyContainer(TILE owner, IContentsListener listener) {
-            super(owner, listener, () -> factoryGrid(owner), factoryActionSource(owner));
+            super(owner, listener, () -> factoryGrid(owner), () -> factoryActionSource(owner));
             this.owner = owner;
         }
     }
 
     private static IGrid factoryGrid(TileEntityMekanism owner) {
-        return owner instanceof MeFactoryAeMachine aeMachine ? aeMachine.getAeSupport().getGrid() : null;
+        MeFactoryAeSupport support = owner instanceof MeFactoryAeMachine aeMachine ? aeMachine.getAeSupport() : null;
+        return support == null ? null : support.getGrid();
     }
 
     private static IActionSource factoryActionSource(TileEntityMekanism owner) {
-        return owner instanceof MeFactoryAeMachine aeMachine ? aeMachine.getAeSupport().actionSource : null;
+        MeFactoryAeSupport support = owner instanceof MeFactoryAeMachine aeMachine ? aeMachine.getAeSupport() : null;
+        return support == null ? null : support.actionSource;
     }
 }
