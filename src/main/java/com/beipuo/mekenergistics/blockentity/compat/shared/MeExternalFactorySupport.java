@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.blockentity.compat.shared;
 
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.networking.GridHelper;
+import appeng.api.networking.IGridNode;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
@@ -26,11 +27,13 @@ import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.interfaces.ISideConfiguration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class MeExternalFactorySupport {
     private MeExternalFactorySupport() {
@@ -42,6 +45,22 @@ public final class MeExternalFactorySupport {
         List<IInventorySlot> meOutputSlots();
 
         void unpauseRecipeMonitors();
+
+        @Override
+        default List<IPatternDetails> getAvailablePatterns() {
+            return getAeSupport().getAvailablePatterns();
+        }
+
+        @Override
+        default int getPatternPriority() {
+            return getAeSupport().getPatternPriority();
+        }
+
+        @Nullable
+        @Override
+        default IGridNode getGridNode(Direction dir) {
+            return getMainNode().getNode();
+        }
     }
 
     public static <TILE extends TileEntityMekanism & ISideConfiguration> IEnergyContainerHolder energyContainers(
