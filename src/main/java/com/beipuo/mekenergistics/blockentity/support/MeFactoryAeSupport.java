@@ -45,6 +45,7 @@ import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.tile.base.TileEntityMekanism;
 import me.ramidzkh.mekae2.ae2.MekanismKey;
@@ -93,6 +94,14 @@ public final class MeFactoryAeSupport {
 
     public List<BasicInventorySlot> getPatternSlots() {
         return Collections.unmodifiableList(this.patternSlots);
+    }
+
+    public IInventorySlotHolder withPatternSlots(IInventorySlotHolder original) {
+        return side -> {
+            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
+            slots.addAll(this.patternSlots);
+            return slots;
+        };
     }
 
     public List<IPatternDetails> getAvailablePatterns() {
@@ -396,6 +405,10 @@ public final class MeFactoryAeSupport {
         updatePatterns();
     }
 
+    public void createNodeOnFirstTick(TileEntityMekanism tile) {
+        GridHelper.onFirstTick(tile, blockEntity -> create(blockEntity.getLevel(), blockEntity.getBlockPos()));
+    }
+
     public void destroy() {
         this.mainNode.destroy();
     }
@@ -443,6 +456,11 @@ public final class MeFactoryAeSupport {
         this.smartPatternMultiplication.savePending(tag, registries);
     }
 
+    public void saveAll(CompoundTag tag, HolderLookup.Provider registries) {
+        save(tag);
+        saveSlots(tag, registries);
+    }
+
     public void loadSlots(CompoundTag tag, HolderLookup.Provider registries) {
         for (int i = 0; i < this.patternSlots.size(); i++) {
             if (tag.contains("MePatternSlot" + i)) {
@@ -451,6 +469,11 @@ public final class MeFactoryAeSupport {
         }
         this.smartPatternMultiplication.loadPending(tag, registries);
         updatePatterns();
+    }
+
+    public void loadAll(CompoundTag tag, HolderLookup.Provider registries) {
+        load(tag);
+        loadSlots(tag, registries);
     }
 
     private final class PatternSlotOwner implements MeAeMachine {

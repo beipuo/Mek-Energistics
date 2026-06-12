@@ -4,16 +4,11 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
-import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.GridHelper;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
-import java.util.ArrayList;
-import java.util.List;
 import mekanism.api.IContentsListener;
-import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.SawmillRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -22,24 +17,21 @@ import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.tile.factory.TileEntitySawingFactory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implements MeFactoryAeMachine {
     private final MeMekanismMachine machine;
-    private final MeFactoryAeSupport aeSupport;
+    private MeFactoryAeSupport aeSupport;
 
     public MeSawingFactoryBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state);
         this.machine = machine;
-        this.aeSupport = new MeFactoryAeSupport(this);
+        getAeSupport();
     }
 
     @NotNull
@@ -58,20 +50,12 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
     @NotNull
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
-        IInventorySlotHolder original = super.getInitialInventory(listener);
-        return side -> {
-            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
-            return slots;
-        };
+        return getAeSupport().withPatternSlots(super.getInitialInventory(listener));
     }
 
-    @Override public MeFactoryAeSupport getAeSupport() { return this.aeSupport; }
+    @Override public MeFactoryAeSupport getAeSupport() { if (this.aeSupport == null) this.aeSupport = new MeFactoryAeSupport(this); return this.aeSupport; }
     @Override public MeMekanismMachine getMachine() { return this.machine; }
     @Override public Level getOwnerLevel() { return getLevel(); }
-    public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
-    @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
-    @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
 
     @NotNull
     @Override
@@ -110,11 +94,10 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
         sendUpdatePacket |= super.onUpdateServer();
         return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
     }
-    @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
+    @Override public void clearRemoved() { super.clearRemoved(); this.aeSupport.createNodeOnFirstTick(this); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
-    @Nullable @Override public appeng.api.networking.IGridNode getGridNode(Direction dir) { return MeFactoryAeMachine.super.getGridNode(dir); }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
-    @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
-    @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
+    @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.saveAll(tag, registries); }
+    @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.loadAll(tag, registries); }
 }

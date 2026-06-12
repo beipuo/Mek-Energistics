@@ -1,11 +1,9 @@
 package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.IGridNode;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.compat.shared.MeExternalFactorySupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
-import java.util.List;
 import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
@@ -13,11 +11,9 @@ import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 final class MeExtraFactoryBridge {
     private MeExtraFactoryBridge() {
@@ -134,19 +130,9 @@ final class MeExtraFactoryBridge {
         MeExternalFactorySupport.load(support, tag, registries);
     }
 
-    static List<IPatternDetails> getAvailablePatterns(MeFactoryAeSupport support) {
-        return MeExternalFactorySupport.getAvailablePatterns(support);
-    }
-
     static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(
             Owner owner, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
         return MeFactoryAeSupport.withAeRecipeEnergy(owner, energyContainer, cachedRecipe);
     }
-
-    @Nullable
-    static IGridNode gridNode(Owner owner, Direction dir) {
-        return owner.getMainNode().getNode();
-    }
-
 }
 
