@@ -8,6 +8,7 @@ import mekanism.api.tier.BaseTier;
 import mekanism.common.config.MekanismConfig;
 import mekanism.common.content.blocktype.FactoryType;
 import mekanism.common.tier.FactoryTier;
+import net.minecraft.network.chat.TextColor;
 
 public enum MeMekanismMachine {
     ENRICHMENT_CHAMBER(FactoryType.ENRICHING, "enrichment_chamber", "ME Enrichment Chamber"),
@@ -748,6 +749,18 @@ public enum MeMekanismMachine {
             return "description.mekanism." + baseName;
         }
         return "description.mekenergistics.machine";
+    }
+
+    @Nullable
+    public TextColor nameColor() {
+        if (extraFactoryTierName != null) {
+            return OptionalCompatClasses.getMekanismExtrasTierColor(extraFactoryTierName);
+        }
+        if (emExtraFactoryTierName != null) {
+            return OptionalCompatClasses.getEvolvedMekanismExtrasTierColor(emExtraFactoryTierName);
+        }
+        BaseTier tier = baseTier();
+        return tier == null ? null : tier.getColor();
     }
 
     public String serializedName() {

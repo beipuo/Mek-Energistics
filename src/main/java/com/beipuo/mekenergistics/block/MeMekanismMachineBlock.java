@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.text.ILangEntry;
 import mekanism.api.security.IBlockSecurityUtils;
+import mekanism.api.text.TextComponentUtil;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeCustomShape;
 import mekanism.common.block.attribute.AttributeGui;
@@ -37,6 +38,8 @@ import mekanism.common.tile.base.TileEntityUpdateable;
 import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.WorldUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.server.level.ServerPlayer;
@@ -106,6 +109,12 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
     @Override
     public ILangEntry getDescription() {
         return MeLangEntry.of(this.machine.descriptionKey());
+    }
+
+    @Override
+    public MutableComponent getName() {
+        TextColor color = this.machine.nameColor();
+        return color == null ? super.getName() : TextComponentUtil.build(color, super.getName());
     }
 
     @Override

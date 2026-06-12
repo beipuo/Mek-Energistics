@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import mekanism.api.Upgrade;
 import mekanism.api.text.EnumColor;
+import mekanism.api.text.TextComponentUtil;
 import mekanism.client.key.MekKeyHandler;
 import mekanism.client.key.MekanismKeyHandler;
 import mekanism.common.MekanismLang;
@@ -20,6 +21,7 @@ import mekanism.common.util.WorldUtils;
 import mekanism.common.util.text.BooleanStateDisplay.YesNo;
 import mekanism.common.util.text.UpgradeDisplay;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -44,6 +46,18 @@ public class MeMachineBlockItem extends BlockItem {
         }
         return hasBounding.handle(context.getLevel(), context.getClickedPos(), state, context,
                 (level, pos, ctx) -> WorldUtils.isValidReplaceableBlock(level, ctx, pos)) && super.placeBlock(context, state);
+    }
+
+    @NotNull
+    @Override
+    public Component getName(@NotNull ItemStack stack) {
+        if (getBlock() instanceof MeMekanismMachineBlock block) {
+            TextColor color = block.getMachine().nameColor();
+            if (color != null) {
+                return TextComponentUtil.build(color, super.getName(stack));
+            }
+        }
+        return super.getName(stack);
     }
 
     @Override

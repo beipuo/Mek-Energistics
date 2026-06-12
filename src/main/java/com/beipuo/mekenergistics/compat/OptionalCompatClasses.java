@@ -2,6 +2,7 @@ package com.beipuo.mekenergistics.compat;
 
 import net.neoforged.fml.ModList;
 import mekanism.common.tier.FactoryTier;
+import net.minecraft.network.chat.TextColor;
 import org.jetbrains.annotations.Nullable;
 
 public final class OptionalCompatClasses {
@@ -60,6 +61,27 @@ public final class OptionalCompatClasses {
         }
     }
 
+    @Nullable
+    public static TextColor getMekanismExtrasTierColor(String tierName) {
+        if (!hasMekanismExtras()) {
+            return null;
+        }
+        try {
+            Object tier = Class.forName("com.jerry.mekextras.common.tier.ExtraFactoryTier")
+                    .getField(tierName.toUpperCase(java.util.Locale.ROOT))
+                    .get(null);
+            return invokeTextColor(invoke(tier, "getAdvanceTier"), "getColor");
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    public static TextColor getEvolvedMekanismExtrasTierColor(String tierName) {
+        Object tier = getEvolvedMekanismExtrasFactoryTier(tierName);
+        return tier == null ? null : invokeTextColor(invoke(tier, "getEMExtraTier"), "getColor");
+    }
+
     public static boolean hasMekmmAdvancedFactories() {
         return hasMekmm() && hasClassResource(MEKAF_ITEM_TO_CHEMICAL_FACTORY);
     }
@@ -78,5 +100,23 @@ public final class OptionalCompatClasses {
             loader = OptionalCompatClasses.class.getClassLoader();
         }
         return loader.getResource(path) != null;
+    }
+
+    @Nullable
+    private static Object invoke(Object target, String methodName) {
+        if (target == null) {
+            return null;
+        }
+        try {
+            return target.getClass().getMethod(methodName).invoke(target);
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    private static TextColor invokeTextColor(Object target, String methodName) {
+        Object value = invoke(target, methodName);
+        return value instanceof TextColor color ? color : null;
     }
 }
