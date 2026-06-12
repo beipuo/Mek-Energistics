@@ -423,7 +423,8 @@ public final class MeFactoryAeSupport {
         for (BasicInventorySlot patternSlot : this.patternSlots) {
             ItemStack stack = patternSlot.getStack();
             if (!stack.isEmpty()) {
-                IPatternDetails pattern = PatternDetailsHelper.decodePattern(stack, level);
+                IPatternDetails pattern = MePatternDecodeHelper.safeDecode(stack, level,
+                        ((TileEntityMekanism) this.owner).getBlockPos(), this.owner.getMachine().name());
                 if (pattern != null) {
                     this.patterns.add(pattern);
                 }

@@ -433,7 +433,8 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         for (BasicInventorySlot patternSlot : this.patternSlots) {
             ItemStack stack = patternSlot.getStack();
             if (!stack.isEmpty()) {
-                IPatternDetails pattern = PatternDetailsHelper.decodePattern(stack, this.owner.getLevel());
+                IPatternDetails pattern = MePatternDecodeHelper.safeDecode(stack, this.owner.getLevel(), this.owner.getBlockPos(),
+                        this.owner.getBlockState().getBlock().getDescriptionId());
                 if (pattern != null) {
                     this.patterns.add(pattern);
                 }

@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MePatternDecodeHelper;
 import com.beipuo.mekenergistics.blockentity.support.MePatternTerminalNames;
 import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
@@ -800,7 +801,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         for (int i = PATTERN_SLOTS_START; i <= patternSlotsEnd(); i++) {
             ItemStack stack = getStack(i);
             if (!stack.isEmpty()) {
-                IPatternDetails pattern = PatternDetailsHelper.decodePattern(stack, this.level);
+                IPatternDetails pattern = MePatternDecodeHelper.safeDecode(stack, this.level, this.worldPosition, this.machine.name());
                 if (pattern != null) {
                     this.patterns.add(pattern);
                 }
