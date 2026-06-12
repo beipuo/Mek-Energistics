@@ -14,7 +14,6 @@ import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
 import java.util.List;
-import mekanism.api.MekanismItemAbilities;
 import mekanism.api.security.IBlockSecurityUtils;
 import mekanism.common.block.attribute.Attribute;
 import mekanism.common.block.attribute.AttributeCustomShape;
@@ -32,12 +31,9 @@ import mekanism.common.resource.BlockResourceInfo;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.base.TileEntityUpdateable;
-import mekanism.common.tags.MekanismTags;
+import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.WorldUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,7 +43,6 @@ import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -70,7 +65,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<TileEntityMekanism> {
     private static final List<AttributeState> STATE_ATTRIBUTES = List.of(new AttributeStateFacing(), (AttributeState) Attributes.ACTIVE);
-    private static final TagKey<Item> COMMON_WRENCHES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "tools/wrench"));
     private final MeMekanismMachine machine;
 
     public MeMekanismMachineBlock(MeMekanismMachine machine) {
@@ -211,7 +205,7 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         if (wrenchResult.consumesAction()) {
             return wrenchResult;
         }
-        if (shouldDropPatterns && stack.is(COMMON_WRENCHES)) {
+        if (shouldDropPatterns && MekanismUtils.canUseAsWrench(stack)) {
             WorldUtils.dismantleBlock(state, level, pos, mekanismTile, player, stack);
             return ItemInteractionResult.SUCCESS;
         }
@@ -253,18 +247,7 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     }
 
     private static boolean canDismantle(ItemStack stack) {
-        if (stack.canPerformAction(MekanismItemAbilities.WRENCH_DISMANTLE)) {
-            return true;
-        }
-        if (stack.is(COMMON_WRENCHES)) {
-            return true;
-        }
-        if (stack.canPerformAction(MekanismItemAbilities.WRENCH_ROTATE)
-                || stack.canPerformAction(MekanismItemAbilities.WRENCH_EMPTY)
-                || stack.canPerformAction(MekanismItemAbilities.WRENCH_CONFIGURE)) {
-            return false;
-        }
-        return stack.is(MekanismTags.Items.CONFIGURATORS);
+        return MekanismUtils.canUseAsWrench(stack);
     }
 
     @Override
