@@ -25,7 +25,8 @@
     "TileEntityAntiprotonicNucleosynthesizerAccessor",
     "TileEntityFormulaicAssemblicatorAccessor",
     "TileEntityPressurizedReactionChamberAccessor",
-    "TileEntityUpdateableMixin"
+    "TileEntityUpdateableMixin",
+    "extendedae.ContainerRenamerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

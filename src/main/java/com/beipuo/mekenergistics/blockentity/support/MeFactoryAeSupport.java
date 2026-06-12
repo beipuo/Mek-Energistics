@@ -107,19 +107,18 @@ public final class MeFactoryAeSupport {
     }
 
     public String getPatternTerminalName() {
-        return this.patternTerminalName;
+        return MePatternTerminalNames.get((TileEntityMekanism) this.owner, this.patternTerminalName);
     }
 
     public void setPatternTerminalName(String name) {
-        String sanitized = MeAeMachine.sanitizePatternTerminalName(name);
-        if (this.patternTerminalName.equals(sanitized)) {
+        TileEntityMekanism tile = (TileEntityMekanism) this.owner;
+        if (!MePatternTerminalNames.set(tile, name, this.patternTerminalName)) {
             return;
         }
-        this.patternTerminalName = sanitized;
+        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(name);
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
-        this.owner.saveChanges();
     }
 
     public boolean isSmartPatternMultiplicationEnabled() {
@@ -201,9 +200,10 @@ public final class MeFactoryAeSupport {
     public PatternContainerGroup getTerminalGroup() {
         ItemStack iconStack = new ItemStack(ModBlocks.getMachineBlock(this.owner.getMachine()).get());
         AEItemKey icon = iconStack.isEmpty() ? null : AEItemKey.of(iconStack);
-        Component name = this.patternTerminalName.isBlank()
+        String terminalName = getPatternTerminalName();
+        Component name = terminalName.isBlank()
                 ? Component.translatable(this.owner.getMachine().translationKey())
-                : Component.literal(this.patternTerminalName);
+                : Component.literal(terminalName);
         return new PatternContainerGroup(icon, name, List.of());
     }
 
@@ -406,11 +406,7 @@ public final class MeFactoryAeSupport {
         tag.putInt("PatternPriority", this.patternPriority);
         tag.putInt("AeOutputMode", this.aeOutputMode.ordinal());
         this.smartPatternMultiplication.saveConfig(tag);
-        if (this.patternTerminalName.isEmpty()) {
-            tag.remove(TAG_PATTERN_TERMINAL_NAME);
-        } else {
-            tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
-        }
+        tag.remove(TAG_PATTERN_TERMINAL_NAME);
         this.mainNode.saveToNBT(tag);
     }
 
@@ -418,7 +414,7 @@ public final class MeFactoryAeSupport {
         this.patternPriority = tag.getInt("PatternPriority");
         this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
         this.smartPatternMultiplication.loadConfig(tag);
-        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
+        this.patternTerminalName = MePatternTerminalNames.migrateLegacy((TileEntityMekanism) this.owner, tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }

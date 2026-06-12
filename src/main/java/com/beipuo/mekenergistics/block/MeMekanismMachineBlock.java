@@ -9,10 +9,15 @@ import com.beipuo.mekenergistics.common.MeLangEntry;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismCompat;
 import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.extendedae.ExtendedAeRenamerCompat;
 import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.item.MeInstallerUpgradeHandler;
 import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
+import appeng.core.definitions.AEItems;
+import appeng.menu.MenuOpener;
+import appeng.menu.implementations.QuartzKnifeMenu;
+import appeng.menu.locator.MenuLocators;
 import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.text.ILangEntry;
@@ -41,6 +46,7 @@ import mekanism.common.util.WorldUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.server.level.ServerPlayer;
@@ -51,6 +57,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.BlockGetter;
@@ -195,6 +202,9 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
         if (stack.isEmpty()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
+        if (isQuartzCuttingKnife(stack)) {
+            return quartzCuttingKnifeInteraction(level, pos, player, hand, hitResult);
+        }
         BlockEntity tile = level.getBlockEntity(pos);
         if (!(tile instanceof TileEntityMekanism mekanismTile)) {
             return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
@@ -249,6 +259,28 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
         return ModList.get().isLoaded("emextras") && EvolvedMekanismExtrasCompat.isInstaller(stack);
     }
 
+    private static boolean isQuartzCuttingKnife(ItemStack stack) {
+        return stack.is(AEItems.CERTUS_QUARTZ_KNIFE.asItem()) || stack.is(AEItems.NETHER_QUARTZ_KNIFE.asItem());
+    }
+
+    private static ItemInteractionResult quartzCuttingKnifeInteraction(Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (ModList.get().isLoaded("extendedae") && !player.isShiftKeyDown()) {
+            if (level.isClientSide) {
+                return ItemInteractionResult.SUCCESS;
+            }
+            BlockEntity tile = level.getBlockEntity(pos);
+            if (tile instanceof TileEntityMekanism mekanismTile && ExtendedAeRenamerCompat.openRenamer(player, mekanismTile)) {
+                return ItemInteractionResult.CONSUME;
+            }
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (level.isClientSide) {
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+        MenuOpener.open(QuartzKnifeMenu.TYPE, player, MenuLocators.forItemUseContext(new UseOnContext(player, hand, hitResult)));
+        return ItemInteractionResult.CONSUME;
+    }
+
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         List<ItemStack> drops = super.getDrops(state, params);
@@ -257,6 +289,9 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
             for (ItemStack drop : drops) {
                 if (drop.is(this.asItem())) {
                     drop.applyComponents(updateable.collectComponents());
+                    if (tile instanceof TileEntityMekanism mekanismTile && mekanismTile.getCustomName() != null) {
+                        drop.set(DataComponents.CUSTOM_NAME, mekanismTile.getCustomName());
+                    }
                 }
             }
         }

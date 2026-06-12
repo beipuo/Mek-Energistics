@@ -103,19 +103,17 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     public String getPatternTerminalName() {
-        return this.patternTerminalName;
+        return MePatternTerminalNames.get(this.owner, this.patternTerminalName);
     }
 
     public void setPatternTerminalName(String name) {
-        String sanitized = MeAeMachine.sanitizePatternTerminalName(name);
-        if (this.patternTerminalName.equals(sanitized)) {
+        if (!MePatternTerminalNames.set(this.owner, name, this.patternTerminalName)) {
             return;
         }
-        this.patternTerminalName = sanitized;
+        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(name);
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
-        this.owner.setChanged();
     }
 
     public boolean isSmartPatternMultiplicationEnabled() {
@@ -426,18 +424,14 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     public void save(CompoundTag tag) {
         tag.putInt("PatternPriority", this.patternPriority);
         this.smartPatternMultiplication.saveConfig(tag);
-        if (this.patternTerminalName.isEmpty()) {
-            tag.remove(TAG_PATTERN_TERMINAL_NAME);
-        } else {
-            tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
-        }
+        tag.remove(TAG_PATTERN_TERMINAL_NAME);
         this.mainNode.saveToNBT(tag);
     }
 
     public void load(CompoundTag tag) {
         this.patternPriority = tag.getInt("PatternPriority");
         this.smartPatternMultiplication.loadConfig(tag);
-        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
+        this.patternTerminalName = MePatternTerminalNames.migrateLegacy(this.owner, tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }
