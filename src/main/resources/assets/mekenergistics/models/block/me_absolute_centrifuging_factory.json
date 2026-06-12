@@ -1,5 +1,6 @@
 {
   "loader": "neoforge:composite",
+  "gui_light": "side",
   "parent": "block/block",
   "textures": {
     "particle": "mekanism:block/factory/factory_front_back"
