@@ -14,11 +14,15 @@ public final class MePatternDecodeHelper {
 
     @Nullable
     public static IPatternDetails safeDecode(ItemStack stack, @Nullable Level level, BlockPos pos, String ownerName) {
+        return safeDecode(stack, level, ownerName + " at " + pos);
+    }
+
+    @Nullable
+    public static IPatternDetails safeDecode(ItemStack stack, @Nullable Level level, String ownerName) {
         try {
             return PatternDetailsHelper.decodePattern(stack, level);
         } catch (RuntimeException exception) {
-            MekEnergistics.LOGGER.warn("Skipping invalid encoded pattern in {} at {}: {}", ownerName, pos,
-                    stack.getHoverName().getString(), exception);
+            MekEnergistics.LOGGER.warn("Skipping invalid encoded pattern in {}: {}", ownerName, stack.getHoverName().getString(), exception);
             return null;
         }
     }
