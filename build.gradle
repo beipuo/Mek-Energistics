@@ -128,23 +128,26 @@ configurations {
 dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:19.2.16"
     implementation "curse.maven:mekanism-268560:7904058"
-    implementation "curse.maven:iglee-library-541199:7000755"
-    implementation "curse.maven:evolved-mekanism-1230085:7599592"
-    implementation "curse.maven:evolved-mekanism-extras-1268159:8118026"
+    implementation "curse.maven:applied-mekanistics-574300:7096962"
 
     compileOnly "curse.maven:jei-238222:7420587"
-    compileOnly "curse.maven:applied-mekanistics-574300:7096962"
+    compileOnly "curse.maven:iglee-library-541199:7000755"
+    compileOnly "curse.maven:evolved-mekanism-1230085:7599592"
+    compileOnly "curse.maven:evolved-mekanism-extras-1268159:8118026"
     compileOnly "curse.maven:mekanism-extras-1026040:7921191"
     compileOnly "curse.maven:mekanism-more-machine-1275257:7919872"
     compileOnly "curse.maven:jade-324717:7545219"
     compileOnly "curse.maven:glodium-957920:5821676"
     compileOnly "curse.maven:applied-flux-965012:7429565"
+    compileOnly "curse.maven:ex-pattern-provider-892005:8025439"
 
     localRuntime "org.appliedenergistics:guideme:2.5.1"
     localRuntime "curse.maven:mekanism-generators-268566:7904061"
     localRuntime "curse.maven:jei-238222:7420587"
     localRuntime "curse.maven:ae2-jei-integration-1074338:7727898"
-    localRuntime "curse.maven:applied-mekanistics-574300:7096962"
+    localRuntime "curse.maven:iglee-library-541199:7000755"
+    localRuntime "curse.maven:evolved-mekanism-1230085:7599592"
+    localRuntime "curse.maven:evolved-mekanism-extras-1268159:8118026"
     localRuntime "curse.maven:mekanism-extras-1026040:7921191"
     localRuntime "curse.maven:mekanism-more-machine-1275257:7919872"
     localRuntime "curse.maven:jade-324717:7545219"
@@ -155,6 +158,8 @@ dependencies {
     localRuntime "curse.maven:geckolib-388172:7707149"
     localRuntime "curse.maven:glodium-957920:5821676"
     localRuntime "curse.maven:applied-flux-965012:7429565"
+    localRuntime "curse.maven:ex-pattern-provider-892005:8025439"
+    localRuntime "curse.maven:extendedae-plus-1337639:8141724"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

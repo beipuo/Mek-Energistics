@@ -22,6 +22,9 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.endsWith(".TileEntityAlloyerAccessor")) {
             return isModLoaded("evolvedmekanism");
         }
+        if (mixinClassName.endsWith(".extendedae.ContainerRenamerMixin")) {
+            return isModLoaded("extendedae");
+        }
         return true;
     }
 

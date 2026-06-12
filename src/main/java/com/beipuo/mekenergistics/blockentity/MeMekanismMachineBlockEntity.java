@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MePatternTerminalNames;
 import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
@@ -722,20 +723,18 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
 
     @Override
     public String getCustomPatternTerminalName() {
-        return this.patternTerminalName;
+        return MePatternTerminalNames.get(this, this.patternTerminalName);
     }
 
     @Override
     public void setCustomPatternTerminalName(String name) {
-        String sanitized = MeAeMachine.sanitizePatternTerminalName(name);
-        if (this.patternTerminalName.equals(sanitized)) {
+        if (!MePatternTerminalNames.set(this, name, this.patternTerminalName)) {
             return;
         }
-        this.patternTerminalName = sanitized;
+        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(name);
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
         }
-        setChanged();
     }
 
     @Override
@@ -817,11 +816,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
         tag.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
-        if (this.patternTerminalName.isEmpty()) {
-            tag.remove(TAG_PATTERN_TERMINAL_NAME);
-        } else {
-            tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
-        }
+        tag.remove(TAG_PATTERN_TERMINAL_NAME);
         this.smartPatternMultiplication.saveConfig(tag);
         this.smartPatternMultiplication.savePending(tag, registries);
         tag.putInt(SerializationConstants.PROGRESS, this.operatingTicks);
@@ -836,7 +831,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
         this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
-        this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
+        this.patternTerminalName = MePatternTerminalNames.migrateLegacy(this, tag.getString(TAG_PATTERN_TERMINAL_NAME));
         this.smartPatternMultiplication.loadConfig(tag);
         this.smartPatternMultiplication.loadPending(tag, registries);
         this.operatingTicks = tag.getInt(SerializationConstants.PROGRESS);
