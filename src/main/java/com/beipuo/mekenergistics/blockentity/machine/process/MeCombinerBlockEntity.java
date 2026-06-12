@@ -75,7 +75,8 @@ public class MeCombinerBlockEntity extends TileEntityCombiner implements ICrafti
 
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = super.onUpdateServer();
+        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
+        sendUpdatePacket |= super.onUpdateServer();
         OutputInventorySlot output = ((TileEntityCombinerAccessor) this).mekenergistics$getOutputSlot();
         return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket, output);
     }
@@ -92,6 +93,13 @@ public class MeCombinerBlockEntity extends TileEntityCombiner implements ICrafti
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
+        return pushPatternInputs(inputHolder);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder) {
         MeFactoryPatternInput first = MeFactoryPatternInput.single(inputHolder[0]);
         MeFactoryPatternInput second = MeFactoryPatternInput.single(inputHolder[1]);
         if (first == null || second == null || !first.isItem() || !second.isItem()) {
@@ -114,6 +122,8 @@ public class MeCombinerBlockEntity extends TileEntityCombiner implements ICrafti
     @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
     @Override public String getCustomPatternTerminalName() { return this.aeSupport.getPatternTerminalName(); }
     @Override public void setCustomPatternTerminalName(String name) { this.aeSupport.setPatternTerminalName(name); }
+    @Override public boolean isSmartPatternMultiplicationEnabled() { return this.aeSupport.isSmartPatternMultiplicationEnabled(); }
+    @Override public void setSmartPatternMultiplicationEnabled(boolean enabled) { this.aeSupport.setSmartPatternMultiplicationEnabled(enabled); }
     @Override public List<BasicInventorySlot> getPatternSlots() { return this.aeSupport.getPatternSlots(); }
     @Override public MeMekanismMachine getMachine() { return MeMekanismMachine.COMBINER; }
     @Override public ItemStack getTerminalIconStack() { return new ItemStack(ModBlocks.getMachineBlock(getMachine()).get()); }
@@ -127,7 +137,7 @@ public class MeCombinerBlockEntity extends TileEntityCombiner implements ICrafti
     @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
-    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); }
+    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); container.track(mekanism.common.inventory.container.sync.SyncableBoolean.create(this::isSmartPatternMultiplicationEnabled, this::setSmartPatternMultiplicationEnabled)); }
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); tag.putInt("AeOutputMode", this.aeOutputMode.ordinal()); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
     @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
 }

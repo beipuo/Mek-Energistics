@@ -89,6 +89,9 @@ public class MePigmentMixerBlockEntity extends TileEntityPigmentMixer implements
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         ChemicalStack first = getChemical(inputHolder[0]);
         ChemicalStack second = getChemical(inputHolder[1]);
         if (first.isEmpty() || second.isEmpty()) {

@@ -5,6 +5,7 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
@@ -97,6 +98,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     private final IActionSource actionSource;
     private final List<IPatternDetails> patterns = new ArrayList<>();
     private final MeMekanismMachineAeOutput aeOutput;
+    private final MeSmartPatternMultiplication smartPatternMultiplication = new MeSmartPatternMultiplication();
     private final MeMekanismMachine machine;
     private IChemicalTank chemicalTank;
     private MachineEnergyContainer<MeMekanismMachineBlockEntity> energyContainer;
@@ -737,11 +739,55 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     @Override
+    public boolean isSmartPatternMultiplicationEnabled() {
+        return this.smartPatternMultiplication.isEnabled();
+    }
+
+    @Override
+    public void setSmartPatternMultiplicationEnabled(boolean enabled) {
+        if (this.smartPatternMultiplication.isEnabled() == enabled) {
+            return;
+        }
+        this.smartPatternMultiplication.setEnabled(enabled);
+        this.aeOutput.alertTicker();
+        setChanged();
+    }
+
+    boolean hasSmartPatternWork() {
+        return this.smartPatternMultiplication.hasPendingWork();
+    }
+
+    boolean processSmartPatternWork() {
+        boolean wasEnabled = this.smartPatternMultiplication.isEnabled();
+        this.smartPatternMultiplication.setEnabled(false);
+        try {
+            boolean changed = this.smartPatternMultiplication.processNext(this.patterns, this::pushPattern);
+            if (changed) {
+                setChanged();
+                if (this.smartPatternMultiplication.hasPendingWork()) {
+                    this.aeOutput.alertTicker();
+                }
+            }
+            return changed;
+        } finally {
+            this.smartPatternMultiplication.setEnabled(wasEnabled);
+        }
+    }
+
+    @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (!this.mainNode.isActive() || !this.patterns.contains(patternDetails)) {
             return false;
         }
 
+        if (this.smartPatternMultiplication.isEnabled()) {
+            boolean enqueued = this.smartPatternMultiplication.enqueue(patternDetails, inputHolder);
+            if (enqueued) {
+                this.aeOutput.alertTicker();
+                setChanged();
+            }
+            return enqueued;
+        }
         return MeMekanismMachinePatternInput.push(this, patternDetails, inputHolder);
     }
 
@@ -776,6 +822,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         } else {
             tag.putString(TAG_PATTERN_TERMINAL_NAME, this.patternTerminalName);
         }
+        this.smartPatternMultiplication.saveConfig(tag);
+        this.smartPatternMultiplication.savePending(tag, registries);
         tag.putInt(SerializationConstants.PROGRESS, this.operatingTicks);
         this.mainNode.saveToNBT(tag);
     }
@@ -789,6 +837,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
         this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(tag.getString(TAG_PATTERN_TERMINAL_NAME));
+        this.smartPatternMultiplication.loadConfig(tag);
+        this.smartPatternMultiplication.loadPending(tag, registries);
         this.operatingTicks = tag.getInt(SerializationConstants.PROGRESS);
         this.mainNode.loadFromNBT(tag);
         this.updatePatterns();
@@ -844,7 +894,11 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
     }
 
     ItemStack insertItem(int slot, ItemStack stack) {
-        return slots()[slot] == null ? stack : slots()[slot].insertItem(stack, Action.EXECUTE, AutomationType.INTERNAL);
+        return insertItem(slot, stack, Action.EXECUTE);
+    }
+
+    ItemStack insertItem(int slot, ItemStack stack, Action action) {
+        return slots()[slot] == null ? stack : slots()[slot].insertItem(stack, action, AutomationType.INTERNAL);
     }
 
     private IInventorySlot[] slots() {
@@ -881,6 +935,7 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         container.track(SyncableInt.create(() -> this.operatingTicks, ticks -> this.operatingTicks = ticks));
         container.track(SyncableInt.create(() -> this.ticksRequired, ticks -> this.ticksRequired = ticks));
         container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode)));
+        container.track(mekanism.common.inventory.container.sync.SyncableBoolean.create(this::isSmartPatternMultiplicationEnabled, this::setSmartPatternMultiplicationEnabled));
         container.track(SyncableLong.create(() -> getChemicalStack().getAmount(), amount -> {
             if (this.chemicalTank != null && !this.chemicalTank.isEmpty()) {
                 ChemicalStack stack = this.chemicalTank.getStack().copy();

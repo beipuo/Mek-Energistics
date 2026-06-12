@@ -9,6 +9,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import com.beipuo.mekenergistics.blockentity.slot.MePatternInventorySlot;
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
@@ -87,6 +88,7 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
     private final IActionSource actionSource;
     private List<BasicInventorySlot> patternSlots;
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final MeSmartPatternMultiplication smartPatternMultiplication = new MeSmartPatternMultiplication();
     private int patternPriority;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
@@ -206,11 +208,15 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
 
     private boolean hasAeOutputWork() {
         OutputInventorySlot outputSlot = ((TileEntityAdvancedElectricMachineAccessor) this).mekenergistics$getOutputSlot();
+        if (this.smartPatternMultiplication.hasPendingWork()) {
+            return true;
+        }
         return this.aeOutputMode.items() && outputSlot != null && !outputSlot.getStack().isEmpty();
     }
 
     private boolean processAeOutputWork() {
         boolean hadWork = hasAeOutputWork();
+        processSmartPatternWork();
         insertOutputSlotIntoNetwork();
         boolean hasWork = hasAeOutputWork();
         if (hasWork) {
@@ -221,6 +227,23 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
 
     private void alertAeTicker() {
         this.mainNode.ifPresent((grid, node) -> grid.getTickManager().alertDevice(node));
+    }
+
+    private boolean processSmartPatternWork() {
+        boolean wasEnabled = this.smartPatternMultiplication.isEnabled();
+        this.smartPatternMultiplication.setEnabled(false);
+        try {
+            boolean changed = this.smartPatternMultiplication.processNext(this.patterns, this::pushPattern);
+            if (changed) {
+                setChanged();
+                if (this.smartPatternMultiplication.hasPendingWork()) {
+                    alertAeTicker();
+                }
+            }
+            return changed;
+        } finally {
+            this.smartPatternMultiplication.setEnabled(wasEnabled);
+        }
     }
 
     private long insertIntoNetwork(ItemStack stack) {
@@ -299,6 +322,18 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         if (!this.mainNode.isActive() || !this.patterns.contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
+        if (this.smartPatternMultiplication.isEnabled()) {
+            boolean enqueued = this.smartPatternMultiplication.enqueue(patternDetails, inputHolder);
+            if (enqueued) {
+                setChanged();
+                alertAeTicker();
+            }
+            return enqueued;
+        }
+        return pushPatternInputs(inputHolder);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder) {
         ItemStack itemInput = ItemStack.EMPTY;
         ChemicalStack chemicalInput = ChemicalStack.EMPTY;
         for (KeyCounter counter : inputHolder) {
@@ -340,6 +375,21 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         return false;
     }
 
+    @Override
+    public boolean isSmartPatternMultiplicationEnabled() {
+        return this.smartPatternMultiplication.isEnabled();
+    }
+
+    @Override
+    public void setSmartPatternMultiplicationEnabled(boolean enabled) {
+        if (this.smartPatternMultiplication.isEnabled() == enabled) {
+            return;
+        }
+        this.smartPatternMultiplication.setEnabled(enabled);
+        setChanged();
+        alertAeTicker();
+    }
+
     private void updatePatterns() {
         this.patterns.clear();
         for (BasicInventorySlot patternSlot : this.patternSlots) {
@@ -361,6 +411,8 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_PATTERN_PRIORITY, this.patternPriority);
         tag.putInt(TAG_AE_OUTPUT_MODE, this.aeOutputMode.ordinal());
+        this.smartPatternMultiplication.saveConfig(tag);
+        this.smartPatternMultiplication.savePending(tag, registries);
         this.mainNode.saveToNBT(tag);
     }
 
@@ -369,6 +421,8 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         super.loadAdditional(tag, registries);
         this.patternPriority = tag.getInt(TAG_PATTERN_PRIORITY);
         this.aeOutputMode = AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE));
+        this.smartPatternMultiplication.loadConfig(tag);
+        this.smartPatternMultiplication.loadPending(tag, registries);
         this.mainNode.loadFromNBT(tag);
         updatePatterns();
     }
@@ -378,6 +432,8 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
         super.addContainerTrackers(container);
         container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(),
                 mode -> this.aeOutputMode = AeOutputMode.byId(mode)));
+        container.track(mekanism.common.inventory.container.sync.SyncableBoolean.create(this::isSmartPatternMultiplicationEnabled,
+                this::setSmartPatternMultiplicationEnabled));
     }
 
     @Override

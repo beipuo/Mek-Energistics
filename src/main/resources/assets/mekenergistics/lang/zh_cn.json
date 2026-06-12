@@ -3,6 +3,8 @@
   "gui.mekenergistics.me_patterns.title": "ME 样板",
   "gui.mekenergistics.me_patterns.button": "样板",
   "gui.mekenergistics.me_patterns.rename": "重命名样板总成",
+  "gui.mekenergistics.me_patterns.smart_multiplication.on": "智能样板倍增：开",
+  "gui.mekenergistics.me_patterns.smart_multiplication.off": "智能样板倍增：关",
   "config.jade.plugin_mekenergistics.ae_status": "AE 网络状态",
   "tooltip.mekenergistics.ae_status.online": "AE 网络：在线",
   "tooltip.mekenergistics.ae_status.offline": "AE 网络：离线",

@@ -75,7 +75,7 @@ public final class MeInstallerUpgradeHandler {
     @Nullable
     private static MeMekanismMachine getTarget(MeMekanismMachine current, ItemStack stack) {
         if (stack.getItem() instanceof MeTierInstallerItem) {
-            return getMeInstallerTarget(current);
+            return null;
         }
         if (stack.getItem() instanceof ItemTierInstaller installer) {
             return getMekanismTarget(current, installer.getFromTier(), installer.getToTier());
@@ -90,11 +90,6 @@ public final class MeInstallerUpgradeHandler {
             return EvolvedMekanismExtrasCompat.getInstallerTarget(current, stack);
         }
         return null;
-    }
-
-    @Nullable
-    private static MeMekanismMachine getMeInstallerTarget(MeMekanismMachine current) {
-        return current.isFactory() ? current.getNextFactory() : current.getBasicFactory();
     }
 
     @Nullable

@@ -40,36 +40,72 @@ final class MeExtraFactoryBridge {
         return MeExternalFactorySupport.pushSingleItem(adapt(owner), inputHolder);
     }
 
+    static boolean pushSingleItem(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+        return MeExternalFactorySupport.pushSingleItem(adapt(owner), patternDetails, inputHolder);
+    }
+
     static boolean pushSingleItemWithRequiredExtraSlot(Owner owner, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
         return MeExternalFactorySupport.pushSingleItemWithRequiredExtraSlot(adapt(owner), inputHolder, extraSlot);
+    }
+
+    static boolean pushSingleItemWithRequiredExtraSlot(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
+        return MeExternalFactorySupport.pushSingleItemWithRequiredExtraSlot(adapt(owner), patternDetails, inputHolder, extraSlot);
     }
 
     static boolean pushTwoItems(Owner owner, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
         return MeExternalFactorySupport.pushTwoItems(adapt(owner), inputHolder, extraSlot);
     }
 
+    static boolean pushTwoItems(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
+        return MeExternalFactorySupport.pushTwoItems(adapt(owner), patternDetails, inputHolder, extraSlot);
+    }
+
     static boolean pushItemChemical(Owner owner, KeyCounter[] inputHolder, mekanism.api.chemical.IChemicalTank chemicalTank) {
         return MeExternalFactorySupport.pushItemChemical(adapt(owner), inputHolder, chemicalTank);
+    }
+
+    static boolean pushItemChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, mekanism.api.chemical.IChemicalTank chemicalTank) {
+        return MeExternalFactorySupport.pushItemChemical(adapt(owner), patternDetails, inputHolder, chemicalTank);
     }
 
     static boolean pushChemical(Owner owner, KeyCounter[] inputHolder, mekanism.api.chemical.IChemicalTank chemicalTank) {
         return MeExternalFactorySupport.pushChemical(adapt(owner), inputHolder, chemicalTank);
     }
 
+    static boolean pushChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, mekanism.api.chemical.IChemicalTank chemicalTank) {
+        return MeExternalFactorySupport.pushChemical(adapt(owner), patternDetails, inputHolder, chemicalTank);
+    }
+
     static boolean pushChemical(Owner owner, KeyCounter[] inputHolder, java.util.List<mekanism.api.chemical.IChemicalTank> chemicalTanks) {
         return MeExternalFactorySupport.pushChemical(adapt(owner), inputHolder, chemicalTanks);
+    }
+
+    static boolean pushChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, java.util.List<mekanism.api.chemical.IChemicalTank> chemicalTanks) {
+        return MeExternalFactorySupport.pushChemical(adapt(owner), patternDetails, inputHolder, chemicalTanks);
     }
 
     static boolean pushFluidChemical(Owner owner, KeyCounter[] inputHolder, mekanism.api.fluid.IExtendedFluidTank fluidTank, mekanism.api.chemical.IChemicalTank chemicalTank) {
         return MeExternalFactorySupport.pushFluidChemical(adapt(owner), inputHolder, fluidTank, chemicalTank);
     }
 
+    static boolean pushFluidChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, mekanism.api.fluid.IExtendedFluidTank fluidTank, mekanism.api.chemical.IChemicalTank chemicalTank) {
+        return MeExternalFactorySupport.pushFluidChemical(adapt(owner), patternDetails, inputHolder, fluidTank, chemicalTank);
+    }
+
     static boolean pushFluidChemical(Owner owner, KeyCounter[] inputHolder, mekanism.api.fluid.IExtendedFluidTank fluidTank, java.util.List<mekanism.api.chemical.IChemicalTank> chemicalTanks) {
         return MeExternalFactorySupport.pushFluidChemical(adapt(owner), inputHolder, fluidTank, chemicalTanks);
     }
 
+    static boolean pushFluidChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, mekanism.api.fluid.IExtendedFluidTank fluidTank, java.util.List<mekanism.api.chemical.IChemicalTank> chemicalTanks) {
+        return MeExternalFactorySupport.pushFluidChemical(adapt(owner), patternDetails, inputHolder, fluidTank, chemicalTanks);
+    }
+
     static boolean pushItemFluidChemical(Owner owner, KeyCounter[] inputHolder, mekanism.api.fluid.IExtendedFluidTank fluidTank, mekanism.api.chemical.IChemicalTank chemicalTank) {
         return MeExternalFactorySupport.pushItemFluidChemical(adapt(owner), inputHolder, fluidTank, chemicalTank);
+    }
+
+    static boolean pushItemFluidChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, mekanism.api.fluid.IExtendedFluidTank fluidTank, mekanism.api.chemical.IChemicalTank chemicalTank) {
+        return MeExternalFactorySupport.pushItemFluidChemical(adapt(owner), patternDetails, inputHolder, fluidTank, chemicalTank);
     }
 
     static boolean updateServer(Owner owner, boolean sendUpdatePacket) {

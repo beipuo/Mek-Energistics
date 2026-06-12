@@ -6,7 +6,11 @@ import com.beipuo.mekenergistics.blockentity.support.MeMemoryCardSettings;
 import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismCompat;
+import com.beipuo.mekenergistics.compat.eme.EvolvedMekanismExtrasCompat;
+import com.beipuo.mekenergistics.compat.meke.MekanismExtrasCompat;
 import com.beipuo.mekenergistics.item.MeInstallerUpgradeHandler;
+import com.beipuo.mekenergistics.item.MeTierInstallerItem;
 import com.beipuo.mekenergistics.registry.ModBlockTypes;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +27,7 @@ import mekanism.common.block.interfaces.IHasTileEntity;
 import mekanism.common.block.interfaces.ITypeBlock;
 import mekanism.common.content.blocktype.BlockType;
 import mekanism.common.content.blocktype.BlockTypeTile;
+import mekanism.common.item.ItemTierInstaller;
 import mekanism.common.resource.BlockResourceInfo;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -56,9 +61,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTileEntity<TileEntityMekanism> {
@@ -84,7 +91,10 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
                 attribute.adjustProperties(properties);
             }
         }
-        return machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER ? properties.noOcclusion() : properties;
+        if (machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER || blockType != null && blockType.has(AttributeCustomShape.class)) {
+            properties.noOcclusion();
+        }
+        return properties;
     }
 
     public MeMekanismMachine getMachine() {
@@ -138,6 +148,11 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
     }
 
     @Override
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
+        return !Attribute.has(state, AttributeCustomShape.class) && super.isPathfindable(state, pathComputationType);
+    }
+
+    @Override
     public BlockState rotate(BlockState state, LevelAccessor level, BlockPos pos, Rotation rotation) {
         return AttributeStateFacing.rotate(state, level, pos, rotation);
     }
@@ -176,9 +191,14 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
         if (memoryCardResult.consumesAction()) {
             return memoryCardResult;
         }
-        ItemInteractionResult installerResult = MeInstallerUpgradeHandler.tryUpgrade(stack, state, level, pos, player);
-        if (installerResult.consumesAction()) {
-            return installerResult;
+        if (!player.isShiftKeyDown() && isInstaller(stack)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (player.isShiftKeyDown()) {
+            ItemInteractionResult installerResult = MeInstallerUpgradeHandler.tryUpgrade(stack, state, level, pos, player);
+            if (installerResult.consumesAction()) {
+                return installerResult;
+            }
         }
         if (level.isClientSide) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -196,6 +216,19 @@ public class MeMekanismMachineBlock extends Block implements ITypeBlock, IHasTil
             return ItemInteractionResult.SUCCESS;
         }
         return wrenchResult;
+    }
+
+    private static boolean isInstaller(ItemStack stack) {
+        if (stack.getItem() instanceof MeTierInstallerItem || stack.getItem() instanceof ItemTierInstaller) {
+            return true;
+        }
+        if (ModList.get().isLoaded("mekanism_extras") && MekanismExtrasCompat.isInstaller(stack)) {
+            return true;
+        }
+        if (ModList.get().isLoaded("evolvedmekanism") && EvolvedMekanismCompat.isInstaller(stack)) {
+            return true;
+        }
+        return ModList.get().isLoaded("emextras") && EvolvedMekanismExtrasCompat.isInstaller(stack);
     }
 
     @Override

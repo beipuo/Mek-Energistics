@@ -74,11 +74,19 @@ public final class MeExternalFactorySupport {
         return input != null && input.isItem() && insertItem(owner, input.item());
     }
 
+    public static boolean pushSingleItem(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushSingleItem(owner, inputs));
+    }
+
     public static boolean pushSingleItemWithRequiredExtraSlot(Owner owner, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
         if (extraSlot == null || extraSlot.getStack().isEmpty()) {
             return false;
         }
         return pushSingleItem(owner, inputHolder);
+    }
+
+    public static boolean pushSingleItemWithRequiredExtraSlot(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushSingleItemWithRequiredExtraSlot(owner, inputs, extraSlot));
     }
 
     public static boolean pushItemChemical(Owner owner, KeyCounter[] inputHolder, IChemicalTank chemicalTank) {
@@ -117,6 +125,10 @@ public final class MeExternalFactorySupport {
         return false;
     }
 
+    public static boolean pushItemChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IChemicalTank chemicalTank) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushItemChemical(owner, inputs, chemicalTank));
+    }
+
     public static boolean pushChemical(Owner owner, KeyCounter[] inputHolder, IChemicalTank chemicalTank) {
         if (inputHolder == null || inputHolder.length != 1) {
             return false;
@@ -126,6 +138,10 @@ public final class MeExternalFactorySupport {
             return false;
         }
         return insertChemical(owner, input.chemical(), chemicalTank);
+    }
+
+    public static boolean pushChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IChemicalTank chemicalTank) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushChemical(owner, inputs, chemicalTank));
     }
 
     public static boolean pushChemical(Owner owner, KeyCounter[] inputHolder, List<IChemicalTank> chemicalTanks) {
@@ -142,6 +158,10 @@ public final class MeExternalFactorySupport {
             }
         }
         return false;
+    }
+
+    public static boolean pushChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, List<IChemicalTank> chemicalTanks) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushChemical(owner, inputs, chemicalTanks));
     }
 
     public static boolean pushFluidChemical(Owner owner, KeyCounter[] inputHolder, IExtendedFluidTank fluidTank, IChemicalTank chemicalTank) {
@@ -180,6 +200,10 @@ public final class MeExternalFactorySupport {
         return true;
     }
 
+    public static boolean pushFluidChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IExtendedFluidTank fluidTank, IChemicalTank chemicalTank) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushFluidChemical(owner, inputs, fluidTank, chemicalTank));
+    }
+
     public static boolean pushFluidChemical(Owner owner, KeyCounter[] inputHolder, IExtendedFluidTank fluidTank, List<IChemicalTank> chemicalTanks) {
         for (IChemicalTank chemicalTank : chemicalTanks) {
             if (pushFluidChemical(owner, inputHolder, fluidTank, chemicalTank)) {
@@ -187,6 +211,10 @@ public final class MeExternalFactorySupport {
             }
         }
         return false;
+    }
+
+    public static boolean pushFluidChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IExtendedFluidTank fluidTank, List<IChemicalTank> chemicalTanks) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushFluidChemical(owner, inputs, fluidTank, chemicalTanks));
     }
 
     public static boolean pushItemFluidChemical(Owner owner, KeyCounter[] inputHolder, IExtendedFluidTank fluidTank, IChemicalTank chemicalTank) {
@@ -235,6 +263,10 @@ public final class MeExternalFactorySupport {
         return false;
     }
 
+    public static boolean pushItemFluidChemical(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IExtendedFluidTank fluidTank, IChemicalTank chemicalTank) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushItemFluidChemical(owner, inputs, fluidTank, chemicalTank));
+    }
+
     private static boolean insertChemical(Owner owner, ChemicalStack chemicalInput, IChemicalTank chemicalTank) {
         if (chemicalTank == null || chemicalInput.isEmpty()
                 || !chemicalTank.insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
@@ -264,6 +296,10 @@ public final class MeExternalFactorySupport {
         return false;
     }
 
+    public static boolean pushTwoItems(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IInventorySlot extraSlot) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushTwoItems(owner, inputs, extraSlot));
+    }
+
     public static boolean pushThreeItems(Owner owner, KeyCounter[] inputHolder, IInventorySlot secondSlot, IInventorySlot thirdSlot) {
         if (inputHolder == null || inputHolder.length != 3) {
             return false;
@@ -284,6 +320,10 @@ public final class MeExternalFactorySupport {
             return true;
         }
         return false;
+    }
+
+    public static boolean pushThreeItems(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder, IInventorySlot secondSlot, IInventorySlot thirdSlot) {
+        return pushSmartPattern(owner, patternDetails, inputHolder, inputs -> pushThreeItems(owner, inputs, secondSlot, thirdSlot));
     }
 
     public static boolean insertItem(Owner owner, ItemStack input) {
@@ -312,6 +352,14 @@ public final class MeExternalFactorySupport {
 
     public static boolean drainOutputs(Owner owner) {
         return owner.getAeSupport().insertOutputSlotsIntoNetwork(owner.meOutputSlots());
+    }
+
+    private static boolean pushSmartPattern(Owner owner, IPatternDetails patternDetails, KeyCounter[] inputHolder,
+            java.util.function.Function<KeyCounter[], Boolean> feeder) {
+        if (!owner.isSmartPatternMultiplicationEnabled()) {
+            return feeder.apply(inputHolder);
+        }
+        return owner.getAeSupport().enqueueSmartPattern(patternDetails, inputHolder);
     }
 
     public static void createNodeOnFirstTick(TileEntityMekanism tile, MeFactoryAeSupport support, Level level, BlockPos pos) {

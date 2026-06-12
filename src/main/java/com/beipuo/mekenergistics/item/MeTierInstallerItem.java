@@ -39,13 +39,16 @@ public class MeTierInstallerItem extends Item {
     @NotNull
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if (context.getPlayer() == null) {
+        if (context.getPlayer() == null || !context.getPlayer().isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
         return tryInstall(context.getItemInHand(), context.getLevel(), context.getClickedPos(), context.getPlayer());
     }
 
     public static InteractionResult tryInstall(ItemStack stack, Level level, BlockPos pos, Player player) {
+        if (!player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
+        }
         BlockState state = level.getBlockState(pos);
         if (state.is(MekanismBlocks.BOUNDING_BLOCK)) {
             BlockPos mainPos = BlockBounding.getMainBlockPos(level, pos);

@@ -62,9 +62,19 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
         getAeSupport().cycleAeOutputMode(type);
     }
 
+    default boolean isSmartPatternMultiplicationEnabled() {
+        return getAeSupport().isSmartPatternMultiplicationEnabled();
+    }
+
+    default void setSmartPatternMultiplicationEnabled(boolean enabled) {
+        getAeSupport().setSmartPatternMultiplicationEnabled(enabled);
+    }
+
     default void addAeOutputModeTracker(MekanismContainer container) {
         container.track(SyncableInt.create(() -> getAeOutputMode().ordinal(),
                 mode -> getAeSupport().setAeOutputMode(AeOutputMode.byId(mode))));
+        container.track(mekanism.common.inventory.container.sync.SyncableBoolean.create(
+                this::isSmartPatternMultiplicationEnabled, this::setSmartPatternMultiplicationEnabled));
     }
 
     default void setOwner(ServerPlayer player) {

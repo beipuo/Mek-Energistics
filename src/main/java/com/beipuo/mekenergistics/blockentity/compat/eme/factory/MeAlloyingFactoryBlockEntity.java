@@ -72,7 +72,7 @@ public class MeAlloyingFactoryBlockEntity extends TileEntityAlloyingFactory impl
     @Override public void unpauseRecipeMonitors() { for (var monitor : this.recipeCacheLookupMonitors) monitor.unpause(); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
     @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
-    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushThreeItems(this, inputHolder, getExtraSlot(), getSecondExtraSlot()); }
+    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushThreeItems(this, patternDetails, inputHolder, getExtraSlot(), getSecondExtraSlot()); }
     @Override public boolean isBusy() { return false; }
     @Nullable @Override public IRecipeViewerRecipeType<AlloyerRecipe> recipeViewerType() { return EvolvedMekanismRecipeViewerTypes.ALLOYING; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }

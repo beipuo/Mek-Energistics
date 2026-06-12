@@ -92,6 +92,9 @@ public class MeChemicalWasherBlockEntity extends TileEntityChemicalWasher implem
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 2) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         ChemicalStack chemicalInput = ChemicalStack.EMPTY;
         FluidStack fluidInput = FluidStack.EMPTY;
         for (KeyCounter counter : inputHolder) {

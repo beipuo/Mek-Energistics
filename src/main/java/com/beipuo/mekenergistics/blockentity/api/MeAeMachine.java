@@ -6,6 +6,7 @@ import appeng.api.networking.IGrid;
 import appeng.api.stacks.AEItemKey;
 import appeng.helpers.patternprovider.PatternContainer;
 import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
+import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import java.util.List;
@@ -44,6 +45,21 @@ public interface MeAeMachine extends PatternContainer {
     default void setCustomPatternTerminalName(String name) {
     }
 
+    default boolean isSmartPatternMultiplicationEnabled() {
+        MeRecipeMachineAeSupport<?> support = getRecipeMachineAeSupport();
+        if (support != null) {
+            return support.isSmartPatternMultiplicationEnabled();
+        }
+        return true;
+    }
+
+    default void setSmartPatternMultiplicationEnabled(boolean enabled) {
+        MeRecipeMachineAeSupport<?> support = getRecipeMachineAeSupport();
+        if (support != null) {
+            support.setSmartPatternMultiplicationEnabled(enabled);
+        }
+    }
+
     default Component getPatternTerminalDisplayName() {
         String customName = getCustomPatternTerminalName();
         return customName.isBlank() ? Component.translatable(getMachine().translationKey()) : Component.literal(customName);
@@ -75,5 +91,25 @@ public interface MeAeMachine extends PatternContainer {
         }
         String sanitized = name.trim();
         return sanitized.length() > MAX_PATTERN_TERMINAL_NAME_LENGTH ? sanitized.substring(0, MAX_PATTERN_TERMINAL_NAME_LENGTH) : sanitized;
+    }
+
+    private MeRecipeMachineAeSupport<?> getRecipeMachineAeSupport() {
+        Class<?> type = getClass();
+        while (type != null && type != Object.class) {
+            try {
+                java.lang.reflect.Field field = type.getDeclaredField("aeSupport");
+                if (MeRecipeMachineAeSupport.class.isAssignableFrom(field.getType())) {
+                    field.setAccessible(true);
+                    return (MeRecipeMachineAeSupport<?>) field.get(this);
+                }
+            } catch (NoSuchFieldException ignored) {
+                type = type.getSuperclass();
+                continue;
+            } catch (IllegalAccessException ignored) {
+                return null;
+            }
+            break;
+        }
+        return null;
     }
 }

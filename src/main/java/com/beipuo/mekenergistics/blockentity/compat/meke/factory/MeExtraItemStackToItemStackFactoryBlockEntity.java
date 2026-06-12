@@ -53,7 +53,7 @@ public class MeExtraItemStackToItemStackFactoryBlockEntity extends TileEntityExt
     @Override public Level getOwnerLevel() { return getLevel(); }
     @Override public List<IPatternDetails> getAvailablePatterns() { return MeExternalFactorySupport.getAvailablePatterns(getAeSupport()); }
     @Override public int getPatternPriority() { return getAeSupport().getPatternPriority(); }
-    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushSingleItem(this, inputHolder); }
+    @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushSingleItem(this, patternDetails, inputHolder); }
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.ItemStackToItemStackRecipe> createNewCachedRecipe(@NotNull mekanism.api.recipes.ItemStackToItemStackRecipe recipe, int cacheIndex) { return MeExternalFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }

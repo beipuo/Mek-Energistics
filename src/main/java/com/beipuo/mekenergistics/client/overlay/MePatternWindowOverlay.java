@@ -10,6 +10,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.network.packet.SetPatternTerminalNamePacket;
+import com.beipuo.mekenergistics.network.packet.SetSmartPatternMultiplicationPacket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -55,6 +56,8 @@ public final class MePatternWindowOverlay {
     private static final Component PATTERN_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.button");
     private static final Component PATTERN_WINDOW_TITLE = Component.translatable("gui.mekenergistics.me_patterns.title");
     private static final Component RENAME_BUTTON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.rename");
+    private static final Component SMART_MULTIPLICATION_ON_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.smart_multiplication.on");
+    private static final Component SMART_MULTIPLICATION_OFF_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.smart_multiplication.off");
     private static final int TAB_X = 0;
     private static final int TAB_Y = 62;
     private static final int TAB_SIZE = 26;
@@ -132,10 +135,12 @@ public final class MePatternWindowOverlay {
             return null;
         }
         if (container.getTileEntity() instanceof MeAeMachine machine) {
-            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName));
+            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName),
+                    new SmartMultiplicationAccess(machine::isSmartPatternMultiplicationEnabled, machine::setSmartPatternMultiplicationEnabled));
         }
         if (container.getTileEntity() instanceof MeFactoryAeMachine machine) {
-            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName));
+            return new Target(gui, container, machine.getPatternSlots(), new NameAccess(machine::getCustomPatternTerminalName, machine::setCustomPatternTerminalName),
+                    new SmartMultiplicationAccess(machine::isSmartPatternMultiplicationEnabled, machine::setSmartPatternMultiplicationEnabled));
         }
         return null;
     }
@@ -172,7 +177,8 @@ public final class MePatternWindowOverlay {
         }
     }
 
-    private record Target(GuiMekanism<?> gui, MekanismTileContainer<?> container, List<BasicInventorySlot> patternSlots, NameAccess nameAccess) {
+    private record Target(GuiMekanism<?> gui, MekanismTileContainer<?> container, List<BasicInventorySlot> patternSlots, NameAccess nameAccess,
+                          SmartMultiplicationAccess smartMultiplicationAccess) {
     }
 
     private record NameAccess(Supplier<String> getter, Consumer<String> setter) {
@@ -182,6 +188,16 @@ public final class MePatternWindowOverlay {
 
         private void set(String name) {
             this.setter.accept(name);
+        }
+    }
+
+    private record SmartMultiplicationAccess(Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        private boolean get() {
+            return Boolean.TRUE.equals(this.getter.get());
+        }
+
+        private void set(boolean enabled) {
+            this.setter.accept(enabled);
         }
     }
 
@@ -211,9 +227,11 @@ public final class MePatternWindowOverlay {
         private final Target target;
         private final List<PatternGuiVirtualSlot> slots = new ArrayList<>(SLOTS_PER_PAGE);
         private final GuiTextField nameField;
+        private final MekanismImageButton smartMultiplicationButton;
         private int currentPage;
         private boolean nameEditorOpen;
         private String lastSavedName;
+        private boolean smartMultiplicationEnabled;
 
         private MePatternWindow(IGuiWrapper gui, int x, int y, Target target) {
             super(gui, x, y, WINDOW_WIDTH, WINDOW_HEIGHT, SelectedWindowData.UNSPECIFIED);
@@ -226,6 +244,10 @@ public final class MePatternWindowOverlay {
                             getPatternContainerSlot(index))));
                 }
             }
+            this.smartMultiplicationEnabled = this.target.smartMultiplicationAccess().get();
+            this.smartMultiplicationButton = addChild(new MekanismImageButton(gui, relativeX + 18, relativeY + 4, 12, CHECK_BUTTON,
+                    (element, mouseX, mouseY) -> toggleSmartPatternMultiplication()));
+            updateSmartMultiplicationTooltip();
             addChild(new MekanismImageButton(gui, relativeX + 158, relativeY + 4, 12, CHECK_BUTTON, (element, mouseX, mouseY) -> toggleNameEditor()))
                     .setTooltip(Tooltip.create(RENAME_BUTTON_TOOLTIP));
             this.lastSavedName = this.target.nameAccess().get();
@@ -236,6 +258,18 @@ public final class MePatternWindowOverlay {
             setNameFieldVisible(false);
             addChild(new MekanismImageButton(gui, relativeX + 8, relativeY + 94, 12, LEFT_BUTTON, (element, mouseX, mouseY) -> previousPage()));
             addChild(new MekanismImageButton(gui, relativeX + width - 20, relativeY + 94, 12, RIGHT_BUTTON, (element, mouseX, mouseY) -> nextPage()));
+        }
+
+        private boolean toggleSmartPatternMultiplication() {
+            this.smartMultiplicationEnabled = !this.smartMultiplicationEnabled;
+            this.target.smartMultiplicationAccess().set(this.smartMultiplicationEnabled);
+            PacketDistributor.sendToServer(new SetSmartPatternMultiplicationPacket(this.target.container().getTileEntity().getBlockPos(), this.smartMultiplicationEnabled));
+            updateSmartMultiplicationTooltip();
+            return true;
+        }
+
+        private void updateSmartMultiplicationTooltip() {
+            this.smartMultiplicationButton.setTooltip(Tooltip.create(this.smartMultiplicationEnabled ? SMART_MULTIPLICATION_ON_TOOLTIP : SMART_MULTIPLICATION_OFF_TOOLTIP));
         }
 
         private boolean toggleNameEditor() {
@@ -325,6 +359,11 @@ public final class MePatternWindowOverlay {
         @Override
         public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
             super.renderForeground(guiGraphics, mouseX, mouseY);
+            boolean syncedSmartMultiplication = this.target.smartMultiplicationAccess().get();
+            if (syncedSmartMultiplication != this.smartMultiplicationEnabled) {
+                this.smartMultiplicationEnabled = syncedSmartMultiplication;
+                updateSmartMultiplicationTooltip();
+            }
             drawTitleText(guiGraphics, PATTERN_WINDOW_TITLE, 6);
             drawScrollingString(guiGraphics, Component.literal((this.currentPage + 1) + "/" + pageCount()), 20, 99, TextAlignment.CENTER, titleTextColor(), width - 40, 0, false);
         }

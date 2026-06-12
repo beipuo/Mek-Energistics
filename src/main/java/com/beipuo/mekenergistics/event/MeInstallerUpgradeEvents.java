@@ -17,6 +17,9 @@ public final class MeInstallerUpgradeEvents {
 
     @SubscribeEvent
     public static void onRightClickBlock(RightClickBlock event) {
+        if (!event.getEntity().isShiftKeyDown()) {
+            return;
+        }
         ItemStack stack = event.getEntity().getItemInHand(event.getHand());
         if (!event.getLevel().isClientSide && stack.getItem() instanceof MeTierInstallerItem) {
             InteractionResult result = MeTierInstallerItem.tryInstall(stack, event.getLevel(), event.getPos(), event.getEntity());

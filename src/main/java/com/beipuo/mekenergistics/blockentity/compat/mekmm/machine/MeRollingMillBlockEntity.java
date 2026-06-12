@@ -88,6 +88,9 @@ public class MeRollingMillBlockEntity extends TileEntityRollingMill implements I
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
+        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
+            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        }
         MeFactoryPatternInput input = MeFactoryPatternInput.single(inputHolder[0]);
         var inputSlot = ((TileEntityElectricMachineAccessor) this).mekenergistics$getInputSlot();
         if (input == null || !input.isItem() || !inputSlot.insertItem(input.item().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {

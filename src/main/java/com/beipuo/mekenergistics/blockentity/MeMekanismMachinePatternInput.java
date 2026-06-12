@@ -73,10 +73,11 @@ final class MeMekanismMachinePatternInput {
             return false;
         }
 
-        ItemStack remainder = owner.insertItem(MeMekanismMachineBlockEntity.SECONDARY_INPUT_SLOT, input.copyWithCount(needed));
-        if (!remainder.isEmpty()) {
+        ItemStack stack = input.copyWithCount(needed);
+        if (!owner.insertItem(MeMekanismMachineBlockEntity.SECONDARY_INPUT_SLOT, stack.copy(), Action.SIMULATE).isEmpty()) {
             return false;
         }
+        owner.insertItem(MeMekanismMachineBlockEntity.SECONDARY_INPUT_SLOT, stack, Action.EXECUTE);
         owner.setChanged();
         return true;
     }
@@ -110,10 +111,11 @@ final class MeMekanismMachinePatternInput {
             return false;
         }
 
-        ItemStack itemRemainder = owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, itemInput);
-        if (!itemRemainder.isEmpty()) {
+        if (!owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, itemInput.copy(), Action.SIMULATE).isEmpty()
+                || !owner.getChemicalTank().insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
             return false;
         }
+        owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, itemInput, Action.EXECUTE);
         owner.getChemicalTank().insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
         owner.setChanged();
         return true;
