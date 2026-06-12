@@ -134,10 +134,10 @@ public class MeAlloyerBlockEntity extends TileEntityAlloyer implements ICrafting
     @Nullable @Override public IGridNode getActionableNode() { return getMainNode().getNode(); }
     @Override public AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
     @Override public void cycleAeOutputMode() { this.aeOutputMode = this.aeOutputMode.next(); setChanged(); }
-    @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
-    @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
-    @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
-    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); }
-    @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); tag.putInt("AeOutputMode", this.aeOutputMode.ordinal()); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
-    @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
+    @Override public void clearRemoved() { super.clearRemoved(); this.aeSupport.createOnFirstTick(); }
+    @Override public void setRemoved() { this.aeSupport.destroyNode(); super.setRemoved(); }
+    @Override public void onChunkUnloaded() { this.aeSupport.destroyNode(); super.onChunkUnloaded(); }
+    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); this.aeSupport.addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, false); }
+    @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.saveAeState(tag, registries, this.aeOutputMode); }
+    @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = this.aeSupport.loadAeState(tag, registries); }
 }

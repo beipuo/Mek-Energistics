@@ -130,10 +130,10 @@ final class MeMekmmItemChemicalMachineSupport<TILE extends TileEntityMekanism & 
     public AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
     public void cycleAeOutputMode() { this.aeOutputMode = this.aeOutputMode.next(); this.owner.setChanged(); }
     public <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapRecipeEnergy(MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) { return this.aeSupport.wrapRecipeEnergy(energyContainer, cachedRecipe); }
-    void clearRemoved() { GridHelper.onFirstTick(this.owner, be -> this.aeSupport.create(be.getLevel(), be.getBlockPos())); }
-    void setRemoved() { this.aeSupport.destroy(); }
-    void onChunkUnloaded() { this.aeSupport.destroy(); }
-    void addContainerTrackers(MekanismContainer container) { container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode))); }
-    void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { tag.putInt("AeOutputMode", this.aeOutputMode.ordinal()); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
-    void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode")); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
+    void clearRemoved() { this.aeSupport.createOnFirstTick(); }
+    void setRemoved() { this.aeSupport.destroyNode(); }
+    void onChunkUnloaded() { this.aeSupport.destroyNode(); }
+    void addContainerTrackers(MekanismContainer container) { this.aeSupport.addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, false); }
+    void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeSupport.saveAeState(tag, registries, this.aeOutputMode); }
+    void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { this.aeOutputMode = this.aeSupport.loadAeState(tag, registries); }
 }

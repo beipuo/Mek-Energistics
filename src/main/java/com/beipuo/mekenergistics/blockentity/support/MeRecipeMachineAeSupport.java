@@ -33,6 +33,8 @@ import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
@@ -44,6 +46,9 @@ import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.inventory.container.MekanismContainer;
+import mekanism.common.inventory.container.sync.SyncableBoolean;
+import mekanism.common.inventory.container.sync.SyncableInt;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -111,6 +116,27 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(name);
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
+        }
+    }
+
+    public void createOnFirstTick() {
+        GridHelper.onFirstTick(this.owner, tile -> {
+            MeRecipeMachineAeSupport<?> support = tile.getRecipeAeSupport();
+            if (support != null) {
+                support.create(tile.getLevel(), tile.getBlockPos());
+            }
+        });
+    }
+
+    public void destroyNode() {
+        destroy();
+    }
+
+    public void addAeTrackers(MekanismContainer container, Supplier<AeOutputMode> outputModeSupplier,
+            Consumer<AeOutputMode> outputModeSetter, boolean trackSmartPatternMultiplication) {
+        container.track(SyncableInt.create(() -> outputModeSupplier.get().ordinal(), mode -> outputModeSetter.accept(AeOutputMode.byId(mode))));
+        if (trackSmartPatternMultiplication) {
+            container.track(SyncableBoolean.create(this.owner::isSmartPatternMultiplicationEnabled, this.owner::setSmartPatternMultiplicationEnabled));
         }
     }
 
@@ -449,6 +475,19 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         }
         this.smartPatternMultiplication.loadPending(tag, registries);
         updatePatterns();
+    }
+
+    public void saveAeState(CompoundTag tag, HolderLookup.Provider registries, AeOutputMode aeOutputMode) {
+        tag.putInt("AeOutputMode", aeOutputMode.ordinal());
+        save(tag);
+        saveSlots(tag, registries);
+    }
+
+    public AeOutputMode loadAeState(CompoundTag tag, HolderLookup.Provider registries) {
+        AeOutputMode aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
+        load(tag);
+        loadSlots(tag, registries);
+        return aeOutputMode;
     }
 
     public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism>

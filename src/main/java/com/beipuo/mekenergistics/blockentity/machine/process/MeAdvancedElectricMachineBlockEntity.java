@@ -210,42 +210,36 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos()));
+        this.aeSupport.createOnFirstTick();
     }
 
     @Override
     public void setRemoved() {
-        this.aeSupport.destroy();
+        this.aeSupport.destroyNode();
         super.setRemoved();
     }
 
     @Override
     public void onChunkUnloaded() {
-        this.aeSupport.destroy();
+        this.aeSupport.destroyNode();
         super.onChunkUnloaded();
     }
 
     @Override
     public void addContainerTrackers(MekanismContainer container) {
         super.addContainerTrackers(container);
-        container.track(SyncableInt.create(() -> this.aeOutputMode.ordinal(), mode -> this.aeOutputMode = AeOutputMode.byId(mode)));
-        container.track(mekanism.common.inventory.container.sync.SyncableBoolean.create(
-              this::isSmartPatternMultiplicationEnabled, this::setSmartPatternMultiplicationEnabled));
+        this.aeSupport.addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, true);
     }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putInt("AeOutputMode", this.aeOutputMode.ordinal());
-        this.aeSupport.save(tag);
-        this.aeSupport.saveSlots(tag, registries);
+        this.aeSupport.saveAeState(tag, registries, this.aeOutputMode);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        this.aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
-        this.aeSupport.load(tag);
-        this.aeSupport.loadSlots(tag, registries);
+        this.aeOutputMode = this.aeSupport.loadAeState(tag, registries);
     }
 }
