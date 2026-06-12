@@ -128,5 +128,6 @@ public final class ModItems {
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
+        new MeItemCapabilityRegistrar(ModItems::getMachineItems).register(eventBus);
     }
 }
