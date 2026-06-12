@@ -27,7 +27,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class MeBlockDeferredRegister {
     private final DeferredRegister.Blocks blocks = DeferredRegister.createBlocks(MekEnergistics.MODID);
-    private final DeferredRegister.Items items = DeferredRegister.createItems(MekEnergistics.MODID);
+    private final MeItemDeferredRegister items = new MeItemDeferredRegister();
 
     public MeBlockRegistryObject<MeMekanismMachineBlock, MeMachineBlockItem> registerMachine(MeMekanismMachine machine) {
         return register(machine.registryName(), () -> new MeMekanismMachineBlock(machine),

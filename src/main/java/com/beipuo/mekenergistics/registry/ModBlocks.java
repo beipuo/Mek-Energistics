@@ -5,7 +5,6 @@ import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.item.MeMachineBlockItem;
 import java.util.EnumMap;
 import java.util.Map;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -34,18 +33,17 @@ public final class ModBlocks {
         return registryObject == null ? null : registryObject.blockHolder();
     }
 
-    public static DeferredItem<BlockItem> getMachineItem(MeMekanismMachine machine) {
+    public static DeferredItem<MeMachineBlockItem> getMachineItem(MeMekanismMachine machine) {
         MeBlockRegistryObject<MeMekanismMachineBlock, MeMachineBlockItem> registryObject = MACHINES.get(machine);
-        return registryObject == null ? null : (DeferredItem<BlockItem>) (DeferredItem<?>) registryObject.itemHolder();
+        return registryObject == null ? null : registryObject.itemHolder();
     }
 
     public static Iterable<DeferredBlock<MeMekanismMachineBlock>> getMachineBlocks() {
         return MACHINES.values().stream().map(MeBlockRegistryObject::blockHolder)::iterator;
     }
 
-    public static Iterable<DeferredItem<BlockItem>> getMachineItems() {
-        return MACHINES.values().stream()
-                .map(registryObject -> (DeferredItem<BlockItem>) (DeferredItem<?>) registryObject.itemHolder())::iterator;
+    public static Iterable<DeferredItem<MeMachineBlockItem>> getMachineItems() {
+        return MACHINES.values().stream().map(MeBlockRegistryObject::itemHolder)::iterator;
     }
 
     public static Block[] getMachineBlockArray() {

@@ -11,14 +11,14 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
-import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.NotNull;
 
 final class MeItemCapabilityRegistrar {
-    private final Supplier<? extends Iterable<? extends DeferredItem<? extends Item>>> items;
+    private final Supplier<? extends Iterable<? extends DeferredHolder<Item, ? extends Item>>> items;
 
-    MeItemCapabilityRegistrar(Supplier<? extends Iterable<? extends DeferredItem<? extends Item>>> items) {
+    MeItemCapabilityRegistrar(Supplier<? extends Iterable<? extends DeferredHolder<Item, ? extends Item>>> items) {
         this.items = items;
     }
 
@@ -64,7 +64,7 @@ final class MeItemCapabilityRegistrar {
     }
 
     private void forItems(ItemConsumer consumer) {
-        for (DeferredItem<? extends Item> itemHolder : items.get()) {
+        for (DeferredHolder<Item, ? extends Item> itemHolder : items.get()) {
             consumer.accept(itemHolder.get());
         }
     }
