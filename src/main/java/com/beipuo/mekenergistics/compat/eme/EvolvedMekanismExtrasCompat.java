@@ -32,6 +32,7 @@ import mekanism.common.content.blocktype.FactoryType;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.registration.impl.TileEntityTypeRegistryObject;
 import mekanism.common.tile.base.TileEntityMekanism;
+import mekanism.common.tier.FactoryTier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -144,7 +145,7 @@ public final class EvolvedMekanismExtrasCompat {
 
     @Nullable
     private static MeMekanismMachine getFirstEmExtraFactoryTarget(MeMekanismMachine current, EMExtraTier toTier) {
-        if (!isTerminalEvolvedFactory(current)) {
+        if (current.factoryTier() != FactoryTier.ULTIMATE && !isTerminalEvolvedFactory(current)) {
             return null;
         }
         return getEmExtraFactoryTarget(current, toTier);
