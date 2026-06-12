@@ -1,14 +1,17 @@
 package com.beipuo.mekenergistics.blockentity.api;
 
+import appeng.api.crafting.IPatternDetails;
 import appeng.api.implementations.blockentities.PatternContainerGroup;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.networking.IGrid;
+import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.KeyCounter;
 import appeng.helpers.patternprovider.PatternContainer;
-import com.beipuo.mekenergistics.blockentity.MeMekanismMachineBlockEntity;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.lib.transmitter.TransmissionType;
@@ -16,7 +19,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-public interface MeAeMachine extends PatternContainer {
+public interface MeAeMachine extends PatternContainer, ICraftingProvider {
     int MAX_PATTERN_TERMINAL_NAME_LENGTH = 64;
 
     AeOutputMode getAeOutputMode();
@@ -32,17 +35,27 @@ public interface MeAeMachine extends PatternContainer {
 
     void setOwner(ServerPlayer player);
 
-    List<BasicInventorySlot> getPatternSlots();
+    default List<BasicInventorySlot> getPatternSlots() {
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        return support == null ? List.of() : support.getPatternSlots();
+    }
 
     MeMekanismMachine getMachine();
 
-    ItemStack getTerminalIconStack();
+    default ItemStack getTerminalIconStack() {
+        return new ItemStack(ModBlocks.getMachineBlock(getMachine()).get());
+    }
 
     default String getCustomPatternTerminalName() {
-        return "";
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        return support == null ? "" : support.getPatternTerminalName();
     }
 
     default void setCustomPatternTerminalName(String name) {
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        if (support != null) {
+            support.setPatternTerminalName(name);
+        }
     }
 
     default boolean isSmartPatternMultiplicationEnabled() {
@@ -64,13 +77,36 @@ public interface MeAeMachine extends PatternContainer {
         return null;
     }
 
+    default List<IPatternDetails> getAvailablePatterns() {
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        return support == null ? List.of() : support.getAvailablePatterns();
+    }
+
+    default int getPatternPriority() {
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        return support == null ? 0 : support.getPatternPriority();
+    }
+
+    @Override
+    default boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
+        return false;
+    }
+
+    @Override
+    default boolean isBusy() {
+        return false;
+    }
+
     default Component getPatternTerminalDisplayName() {
         String customName = getCustomPatternTerminalName();
         return customName.isBlank() ? Component.translatable(getMachine().translationKey()) : Component.literal(customName);
     }
 
     @Override
-    IGrid getGrid();
+    default IGrid getGrid() {
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        return support == null ? null : support.getGrid();
+    }
 
     @Override
     default InternalInventory getTerminalPatternInventory() {

@@ -167,57 +167,12 @@ public class MeAdvancedElectricMachineBlockEntity extends TileEntityAdvancedElec
     }
 
     @Override
-    public List<IPatternDetails> getAvailablePatterns() {
-        return this.aeSupport.getAvailablePatterns();
-    }
-
-    @Override
-    public int getPatternPriority() {
-        return this.aeSupport.getPatternPriority();
-    }
-
-    @Override
-    public String getCustomPatternTerminalName() {
-        return this.aeSupport.getPatternTerminalName();
-    }
-
-    @Override
-    public void setCustomPatternTerminalName(String name) {
-        this.aeSupport.setPatternTerminalName(name);
-    }
-
-    @Override
-    public boolean isSmartPatternMultiplicationEnabled() {
-        return this.aeSupport.isSmartPatternMultiplicationEnabled();
-    }
-
-    @Override
-    public void setSmartPatternMultiplicationEnabled(boolean enabled) {
-        this.aeSupport.setSmartPatternMultiplicationEnabled(enabled);
-    }
-
-    @Override
-    public List<BasicInventorySlot> getPatternSlots() {
-        return this.aeSupport.getPatternSlots();
-    }
-
-    @Override
     public MeMekanismMachine getMachine() {
         return this.machine;
     }
 
     private MeMekanismMachine getMachineEarly() {
         return this.machine == null ? ModBlocks.getMachine(getBlockState().getBlock()) : this.machine;
-    }
-
-    @Override
-    public ItemStack getTerminalIconStack() {
-        return new ItemStack(ModBlocks.getMachineBlock(this.machine).get());
-    }
-
-    @Override
-    public IGrid getGrid() {
-        return this.aeSupport.getGrid();
     }
 
     public appeng.api.networking.IManagedGridNode getMainNode() {

@@ -110,14 +110,7 @@ public class MeIsotopicCentrifugeBlockEntity extends TileEntityIsotopicCentrifug
     }
 
     @Override public boolean isBusy() { return false; }
-    @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
-    @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
-    @Override public String getCustomPatternTerminalName() { return this.aeSupport.getPatternTerminalName(); }
-    @Override public void setCustomPatternTerminalName(String name) { this.aeSupport.setPatternTerminalName(name); }
-    @Override public List<BasicInventorySlot> getPatternSlots() { return this.aeSupport.getPatternSlots(); }
     @Override public MeMekanismMachine getMachine() { return MeMekanismMachine.ISOTOPIC_CENTRIFUGE; }
-    @Override public ItemStack getTerminalIconStack() { return new ItemStack(ModBlocks.getMachineBlock(getMachine()).get()); }
-    @Override public IGrid getGrid() { return this.aeSupport.getGrid(); }
     public appeng.api.networking.IManagedGridNode getMainNode() { return this.aeSupport.getMainNode(); }
     @Override public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
     @Nullable @Override public IGridNode getGridNode(Direction dir) { return getMainNode().getNode(); }
