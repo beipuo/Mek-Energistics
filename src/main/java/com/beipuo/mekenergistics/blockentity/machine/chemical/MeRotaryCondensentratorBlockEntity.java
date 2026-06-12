@@ -45,23 +45,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondensentrator implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
-    private final MeRecipeMachineAeSupport<MeRotaryCondensentratorBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+    private MeRecipeMachineAeSupport<MeRotaryCondensentratorBlockEntity> aeSupport;
 
     @Override
-    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+    public MeRecipeMachineAeSupport<MeRotaryCondensentratorBlockEntity> getRecipeAeSupport() {
+        if (this.aeSupport == null) {
+            this.aeSupport = new MeRecipeMachineAeSupport<>(this);
+        }
         return this.aeSupport;
     }
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeRotaryCondensentratorBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(pos, state);
+        getRecipeAeSupport();
     }
 
     @NotNull
     @Override
     protected IEnergyContainerHolder getInitialEnergyContainers(IContentsListener listener, IContentsListener recipeCacheListener, IContentsListener recipeCacheUnpauseListener) {
         EnergyContainerHelper builder = EnergyContainerHelper.forSideWithConfig(this);
-        var energy = new MeRecipeMachineAeSupport.AeBackedEnergyContainer<TileEntityRotaryCondensentrator>(this, this.aeSupport, recipeCacheUnpauseListener);
+        var energy = new MeRecipeMachineAeSupport.AeBackedEnergyContainer<TileEntityRotaryCondensentrator>(this, getRecipeAeSupport(), recipeCacheUnpauseListener);
         ((TileEntityRotaryCondensentratorAccessor) this).mekenergistics$setEnergyContainer(energy);
         builder.addContainer(energy);
         return builder.build();
@@ -70,27 +74,22 @@ public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondense
     @NotNull
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener, IContentsListener recipeCacheListener, IContentsListener recipeCacheUnpauseListener) {
-        IInventorySlotHolder original = super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener);
-        return side -> {
-            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
-            return slots;
-        };
+        return getRecipeAeSupport().withPatternSlots(super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener));
     }
 
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         return getMode()
-                ? this.aeSupport.drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.gasTank)
-                : this.aeSupport.drainFluidOutputs(this.aeOutputMode, sendUpdatePacket, this.fluidTank);
+                ? getRecipeAeSupport().drainChemicalOutputs(this.aeOutputMode, sendUpdatePacket, this.gasTank)
+                : getRecipeAeSupport().drainFluidOutputs(this.aeOutputMode, sendUpdatePacket, this.fluidTank);
     }
 
     @NotNull
     @Override
     public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.RotaryRecipe> createNewCachedRecipe(
             @NotNull mekanism.api.recipes.RotaryRecipe recipe, int cacheIndex) {
-        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+        return getRecipeAeSupport().wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
     }
 
     @Override
@@ -98,8 +97,8 @@ public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondense
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
-        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
-            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        if (getRecipeAeSupport().isSmartPatternMultiplicationEnabled()) {
+            return getRecipeAeSupport().enqueueSmartPattern(patternDetails, inputHolder);
         }
         MeFactoryPatternInput input = MeFactoryPatternInput.single(inputHolder[0]);
         if (input == null) {
@@ -139,17 +138,14 @@ public class MeRotaryCondensentratorBlockEntity extends TileEntityRotaryCondense
 
     @Override public boolean isBusy() { return false; }
     @Override public MeMekanismMachine getMachine() { return MeMekanismMachine.ROTARY_CONDENSENTRATOR; }
-    public appeng.api.networking.IManagedGridNode getMainNode() { return this.aeSupport.getMainNode(); }
-    @Override public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
-    @Nullable @Override public IGridNode getGridNode(Direction dir) { return getMainNode().getNode(); }
-    @Nullable @Override public IGridNode getActionableNode() { return getMainNode().getNode(); }
+    public appeng.api.networking.IManagedGridNode getMainNode() { return getRecipeAeSupport().getMainNode(); }
     @Override public AeOutputMode getAeOutputMode() { return this.aeOutputMode; }
     @Override public void cycleAeOutputMode() { this.aeOutputMode = this.aeOutputMode.next(); setChanged(); }
-    @Override public void clearRemoved() { super.clearRemoved(); this.aeSupport.createOnFirstTick(); }
-    @Override public void setRemoved() { this.aeSupport.destroyNode(); super.setRemoved(); }
-    @Override public void onChunkUnloaded() { this.aeSupport.destroyNode(); super.onChunkUnloaded(); }
-    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); this.aeSupport.addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, false); }
-    @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.saveAeState(tag, registries, this.aeOutputMode); }
-    @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = this.aeSupport.loadAeState(tag, registries); }
+    @Override public void clearRemoved() { super.clearRemoved(); getRecipeAeSupport().createOnFirstTick(); }
+    @Override public void setRemoved() { getRecipeAeSupport().destroyNode(); super.setRemoved(); }
+    @Override public void onChunkUnloaded() { getRecipeAeSupport().destroyNode(); super.onChunkUnloaded(); }
+    @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); getRecipeAeSupport().addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, false); }
+    @Override public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.saveAdditional(tag, registries); getRecipeAeSupport().saveAeState(tag, registries, this.aeOutputMode); }
+    @Override public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) { super.loadAdditional(tag, registries); this.aeOutputMode = getRecipeAeSupport().loadAeState(tag, registries); }
 }
 

@@ -1,24 +1,17 @@
 package com.beipuo.mekenergistics.blockentity.machine.process;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.GridHelper;
-import appeng.api.networking.IGrid;
-import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
-import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.mixin.TileEntityElectricMachineAccessor;
 import com.beipuo.mekenergistics.registry.ModBlocks;
-import java.util.ArrayList;
-import java.util.List;
 import mekanism.api.IContentsListener;
-import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.ItemStackToItemStackRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
@@ -27,37 +20,36 @@ import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
-import mekanism.common.inventory.container.sync.SyncableInt;
-import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.recipe.IMekanismRecipeTypeProvider;
 import mekanism.common.recipe.MekanismRecipeType;
 import mekanism.common.recipe.lookup.cache.InputRecipeCache.SingleItem;
 import mekanism.common.tile.prefab.TileEntityElectricMachine;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
         implements ICraftingProvider, MeSmartCableConnection, IActionHost, MeAeMachine {
     private final MeMekanismMachine machine;
-    private final MeRecipeMachineAeSupport<MeElectricMachineBlockEntity> aeSupport = new MeRecipeMachineAeSupport<>(this);
+    private MeRecipeMachineAeSupport<MeElectricMachineBlockEntity> aeSupport;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
 
     public MeElectricMachineBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state, BASE_TICKS_REQUIRED);
         this.machine = machine;
+        getRecipeAeSupport();
     }
 
     @Override
-    public MeRecipeMachineAeSupport<?> getRecipeAeSupport() {
+    public MeRecipeMachineAeSupport<MeElectricMachineBlockEntity> getRecipeAeSupport() {
+        if (this.aeSupport == null) {
+            this.aeSupport = new MeRecipeMachineAeSupport<>(this);
+        }
         return this.aeSupport;
     }
 
@@ -87,7 +79,7 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
     protected IEnergyContainerHolder getInitialEnergyContainers(IContentsListener listener, IContentsListener recipeCacheListener,
           IContentsListener recipeCacheUnpauseListener) {
         EnergyContainerHelper builder = EnergyContainerHelper.forSideWithConfig(this);
-        var energy = new MeRecipeMachineAeSupport.AeBackedEnergyContainer<TileEntityElectricMachine>(this, this.aeSupport, recipeCacheUnpauseListener);
+        var energy = new MeRecipeMachineAeSupport.AeBackedEnergyContainer<TileEntityElectricMachine>(this, getRecipeAeSupport(), recipeCacheUnpauseListener);
         ((TileEntityElectricMachineAccessor) this).mekenergistics$setEnergyContainer(energy);
         builder.addContainer(energy);
         return builder.build();
@@ -97,26 +89,21 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener, IContentsListener recipeCacheListener,
           IContentsListener recipeCacheUnpauseListener) {
-        IInventorySlotHolder original = super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener);
-        return side -> {
-            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
-            return slots;
-        };
+        return getRecipeAeSupport().withPatternSlots(super.getInitialInventory(listener, recipeCacheListener, recipeCacheUnpauseListener));
     }
 
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
+        boolean sendUpdatePacket = getRecipeAeSupport().processSmartPattern(this::pushPatternInputs);
         sendUpdatePacket |= super.onUpdateServer();
         OutputInventorySlot outputSlot = ((TileEntityElectricMachineAccessor) this).mekenergistics$getOutputSlot();
-        return this.aeSupport.drainOutputs(this.aeOutputMode, sendUpdatePacket, outputSlot);
+        return getRecipeAeSupport().drainOutputs(this.aeOutputMode, sendUpdatePacket, outputSlot);
     }
 
     @NotNull
     @Override
     public CachedRecipe<ItemStackToItemStackRecipe> createNewCachedRecipe(@NotNull ItemStackToItemStackRecipe recipe, int cacheIndex) {
-        return this.aeSupport.wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
+        return getRecipeAeSupport().wrapRecipeEnergy(getEnergyContainer(), super.createNewCachedRecipe(recipe, cacheIndex));
     }
 
     @Override
@@ -124,14 +111,14 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
         if (!getMainNode().isActive() || !getAvailablePatterns().contains(patternDetails) || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
-        if (this.aeSupport.isSmartPatternMultiplicationEnabled()) {
-            return this.aeSupport.enqueueSmartPattern(patternDetails, inputHolder);
+        if (getRecipeAeSupport().isSmartPatternMultiplicationEnabled()) {
+            return getRecipeAeSupport().enqueueSmartPattern(patternDetails, inputHolder);
         }
         return pushPatternInputs(inputHolder);
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
-        return this.aeSupport.pushSingleItem(inputHolder, ((TileEntityElectricMachineAccessor) this).mekenergistics$getInputSlot());
+        return getRecipeAeSupport().pushSingleItem(inputHolder, ((TileEntityElectricMachineAccessor) this).mekenergistics$getInputSlot());
     }
 
     @Override
@@ -142,27 +129,6 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
     @Override
     public MeMekanismMachine getMachine() {
         return this.machine;
-    }
-
-    public appeng.api.networking.IManagedGridNode getMainNode() {
-        return this.aeSupport.getMainNode();
-    }
-
-    @Override
-    public void setOwner(ServerPlayer player) {
-        MeOwnerHelper.setOwner(this, getMainNode(), player);
-    }
-
-    @Nullable
-    @Override
-    public IGridNode getGridNode(Direction dir) {
-        return getMainNode().getNode();
-    }
-
-    @Nullable
-    @Override
-    public IGridNode getActionableNode() {
-        return getMainNode().getNode();
     }
 
     @Override
@@ -179,36 +145,36 @@ public class MeElectricMachineBlockEntity extends TileEntityElectricMachine
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        this.aeSupport.createOnFirstTick();
+        getRecipeAeSupport().createOnFirstTick();
     }
 
     @Override
     public void setRemoved() {
-        this.aeSupport.destroyNode();
+        getRecipeAeSupport().destroyNode();
         super.setRemoved();
     }
 
     @Override
     public void onChunkUnloaded() {
-        this.aeSupport.destroyNode();
+        getRecipeAeSupport().destroyNode();
         super.onChunkUnloaded();
     }
 
     @Override
     public void addContainerTrackers(MekanismContainer container) {
         super.addContainerTrackers(container);
-        this.aeSupport.addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, true);
+        getRecipeAeSupport().addAeTrackers(container, this::getAeOutputMode, mode -> this.aeOutputMode = mode, true);
     }
 
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        this.aeSupport.saveAeState(tag, registries, this.aeOutputMode);
+        getRecipeAeSupport().saveAeState(tag, registries, this.aeOutputMode);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        this.aeOutputMode = this.aeSupport.loadAeState(tag, registries);
+        this.aeOutputMode = getRecipeAeSupport().loadAeState(tag, registries);
     }
 }

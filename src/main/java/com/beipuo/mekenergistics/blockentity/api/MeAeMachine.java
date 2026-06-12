@@ -4,22 +4,30 @@ import appeng.api.crafting.IPatternDetails;
 import appeng.api.implementations.blockentities.PatternContainerGroup;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.networking.IGrid;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
+import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.helpers.patternprovider.PatternContainer;
 import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
 import com.beipuo.mekenergistics.blockentity.slot.PatternSlotInternalInventory;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.List;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.lib.transmitter.TransmissionType;
+import mekanism.common.tile.base.TileEntityMekanism;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import org.jetbrains.annotations.Nullable;
 
-public interface MeAeMachine extends PatternContainer, ICraftingProvider {
+public interface MeAeMachine extends PatternContainer, ICraftingProvider, IActionHost, appeng.me.helpers.IGridConnectedBlockEntity {
     int MAX_PATTERN_TERMINAL_NAME_LENGTH = 64;
 
     AeOutputMode getAeOutputMode();
@@ -33,7 +41,30 @@ public interface MeAeMachine extends PatternContainer, ICraftingProvider {
         }
     }
 
-    void setOwner(ServerPlayer player);
+    @Override
+    default IManagedGridNode getMainNode() {
+        MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
+        return support == null ? null : support.getMainNode();
+    }
+
+    @Override
+    default void saveChanges() {
+        if (this instanceof BlockEntity blockEntity) {
+            blockEntity.setChanged();
+        }
+    }
+
+    default void setOwner(ServerPlayer player) {
+        IManagedGridNode node = getMainNode();
+        if (node == null) {
+            return;
+        }
+        if (this instanceof TileEntityMekanism tile) {
+            MeOwnerHelper.setOwner(tile, node, player);
+        } else {
+            node.setOwningPlayer(player);
+        }
+    }
 
     default List<BasicInventorySlot> getPatternSlots() {
         MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
@@ -106,6 +137,20 @@ public interface MeAeMachine extends PatternContainer, ICraftingProvider {
     default IGrid getGrid() {
         MeRecipeMachineAeSupport<?> support = getRecipeAeSupport();
         return support == null ? null : support.getGrid();
+    }
+
+    @Nullable
+    @Override
+    default IGridNode getActionableNode() {
+        IManagedGridNode node = getMainNode();
+        return node == null ? null : node.getNode();
+    }
+
+    @Nullable
+    @Override
+    default IGridNode getGridNode(Direction dir) {
+        IManagedGridNode node = getMainNode();
+        return node == null ? null : node.getNode();
     }
 
     @Override

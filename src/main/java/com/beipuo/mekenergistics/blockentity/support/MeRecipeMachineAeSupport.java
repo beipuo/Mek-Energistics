@@ -46,6 +46,7 @@ import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.sync.SyncableBoolean;
 import mekanism.common.inventory.container.sync.SyncableInt;
@@ -95,6 +96,14 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public List<BasicInventorySlot> getPatternSlots() {
         return Collections.unmodifiableList(this.patternSlots);
+    }
+
+    public IInventorySlotHolder withPatternSlots(IInventorySlotHolder original) {
+        return side -> {
+            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
+            slots.addAll(this.patternSlots);
+            return slots;
+        };
     }
 
     public List<IPatternDetails> getAvailablePatterns() {
