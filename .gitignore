@@ -42,3 +42,6 @@ repo/
 ### Project ###
 docs/kubejs-recipe-customization.md
 docs/multiblock-design-notes.md
+docs/PLAN2.md
+extendedae_plus.mixins.json
+libs/
