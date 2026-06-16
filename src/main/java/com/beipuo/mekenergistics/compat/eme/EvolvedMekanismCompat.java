@@ -1,5 +1,6 @@
 package com.beipuo.mekenergistics.compat.eme;
 
+import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import fr.iglee42.evolvedmekanism.items.ItemMaxTierInstaller;
 import fr.iglee42.evolvedmekanism.registries.EMFactoryType;
 import mekanism.common.block.attribute.AttributeFactoryType;
@@ -26,5 +27,9 @@ public final class EvolvedMekanismCompat {
 
     public static boolean isInstaller(ItemStack stack) {
         return stack.getItem() instanceof ItemMaxTierInstaller;
+    }
+
+    public static VoxelShape[] shapeFor(MeMekanismMachine machine) {
+        return null;
     }
 }

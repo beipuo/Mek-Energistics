@@ -112,6 +112,7 @@ public final class ModBlockTypes {
         }
         return switch (machine) {
             case METALLURGIC_INFUSER -> BlockShapes.METALLURGIC_INFUSER;
+            case SOLIDIFICATION_CHAMBER, THERMALIZER, CHEMIXER -> EvolvedMekanismCompat.shapeFor(machine);
             case PRESSURIZED_REACTION_CHAMBER -> BlockShapes.PRESSURIZED_REACTION_CHAMBER;
             case CHEMICAL_CRYSTALLIZER -> BlockShapes.CHEMICAL_CRYSTALLIZER;
             case CHEMICAL_DISSOLUTION_CHAMBER -> BlockShapes.CHEMICAL_DISSOLUTION_CHAMBER;
@@ -149,6 +150,12 @@ public final class ModBlockTypes {
         return switch (machine) {
             case PRESSURIZED_REACTION_CHAMBER ->
                     new TransmissionType[] {TransmissionType.ITEM, TransmissionType.CHEMICAL, TransmissionType.FLUID, TransmissionType.ENERGY};
+            case SOLIDIFICATION_CHAMBER ->
+                    new TransmissionType[] {TransmissionType.FLUID, TransmissionType.ITEM, TransmissionType.ENERGY};
+            case THERMALIZER ->
+                    new TransmissionType[] {TransmissionType.ITEM, TransmissionType.FLUID, TransmissionType.HEAT};
+            case CHEMIXER ->
+                    new TransmissionType[] {TransmissionType.ITEM, TransmissionType.ENERGY, TransmissionType.CHEMICAL};
             case CHEMICAL_INFUSER, ISOTOPIC_CENTRIFUGE, PIGMENT_MIXER ->
                     new TransmissionType[] {TransmissionType.CHEMICAL, TransmissionType.ITEM, TransmissionType.ENERGY};
             case CHEMICAL_WASHER, ROTARY_CONDENSENTRATOR ->

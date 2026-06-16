@@ -19,7 +19,10 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.endsWith(".TileEntityAlloyerAccessor")) {
+        if (mixinClassName.endsWith(".TileEntityAlloyerAccessor")
+                || mixinClassName.endsWith(".TileEntitySolidifierAccessor")
+                || mixinClassName.endsWith(".TileEntityMelterAccessor")
+                || mixinClassName.endsWith(".TileEntityChemixerAccessor")) {
             return isModLoaded("evolvedmekanism");
         }
         if (mixinClassName.endsWith(".extendedae.ContainerRenamerMixin")) {

@@ -19,6 +19,9 @@ public enum MeMekanismMachine {
     COMBINER(FactoryType.COMBINING, "combiner", "ME Combiner"),
     METALLURGIC_INFUSER(FactoryType.INFUSING, "metallurgic_infuser", "ME Metallurgic Infuser"),
     ALLOYER("alloyer", "alloying", "ME Alloyer", 'e'),
+    SOLIDIFICATION_CHAMBER("solidification_chamber", "solidifying", "ME Solidification Chamber", 'e'),
+    THERMALIZER("thermalizer", "melting", "ME Thermalizer", 'e'),
+    CHEMIXER("chemixer", "chemixing", "ME Chemical Mixer", 'e'),
     PURIFICATION_CHAMBER(FactoryType.PURIFYING, "purification_chamber", "ME Purification Chamber"),
     CHEMICAL_INJECTION_CHAMBER(FactoryType.INJECTING, "chemical_injection_chamber", "ME Chemical Injection Chamber"),
     PRESSURIZED_REACTION_CHAMBER((FactoryType) null, "pressurized_reaction_chamber", "ME Pressurized Reaction Chamber"),
@@ -768,14 +771,15 @@ public enum MeMekanismMachine {
     }
 
     public boolean hasSecondaryItemInput() {
-        return this.factoryType == FactoryType.COMBINING || this == CNC_STAMPER;
+        return this.factoryType == FactoryType.COMBINING || this == CNC_STAMPER || this == CHEMIXER;
     }
 
     public boolean hasChemicalInput() {
         return this.factoryType == FactoryType.COMPRESSING
                 || this.factoryType == FactoryType.INFUSING
                 || this.factoryType == FactoryType.INJECTING
-                || this.factoryType == FactoryType.PURIFYING;
+                || this.factoryType == FactoryType.PURIFYING
+                || this == CHEMIXER;
     }
 
     public boolean hasRecipeLogic() {
