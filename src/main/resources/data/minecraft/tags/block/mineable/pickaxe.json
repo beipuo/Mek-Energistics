@@ -1,328 +1,1297 @@
 {
   "replace": false,
   "values": [
-    "mekenergistics:me_enrichment_chamber",
-    "mekenergistics:me_crusher",
-    "mekenergistics:me_energized_smelter",
-    "mekenergistics:me_precision_sawmill",
-    "mekenergistics:me_osmium_compressor",
-    "mekenergistics:me_combiner",
-    "mekenergistics:me_metallurgic_infuser",
-    "mekenergistics:me_alloyer",
-    "mekenergistics:me_purification_chamber",
-    "mekenergistics:me_chemical_injection_chamber",
-    "mekenergistics:me_pressurized_reaction_chamber",
-    "mekenergistics:me_chemical_crystallizer",
-    "mekenergistics:me_chemical_dissolution_chamber",
-    "mekenergistics:me_chemical_infuser",
-    "mekenergistics:me_chemical_oxidizer",
-    "mekenergistics:me_chemical_washer",
-    "mekenergistics:me_rotary_condensentrator",
-    "mekenergistics:me_electrolytic_separator",
-    "mekenergistics:me_formulaic_assemblicator",
-    "mekenergistics:me_solar_neutron_activator",
-    "mekenergistics:me_seismic_vibrator",
-    "mekenergistics:me_isotopic_centrifuge",
-    "mekenergistics:me_nutritional_liquifier",
-    "mekenergistics:me_antiprotonic_nucleosynthesizer",
-    "mekenergistics:me_pigment_extractor",
-    "mekenergistics:me_pigment_mixer",
-    "mekenergistics:me_painting_machine",
-    "mekenergistics:me_recycler",
-    "mekenergistics:me_planting_station",
-    "mekenergistics:me_cnc_stamper",
-    "mekenergistics:me_cnc_lathe",
-    "mekenergistics:me_cnc_rolling_mill",
-    "mekenergistics:me_replicator",
-    "mekenergistics:me_basic_smelting_factory",
-    "mekenergistics:me_basic_enriching_factory",
-    "mekenergistics:me_basic_crushing_factory",
-    "mekenergistics:me_basic_compressing_factory",
-    "mekenergistics:me_basic_combining_factory",
-    "mekenergistics:me_basic_purifying_factory",
-    "mekenergistics:me_basic_injecting_factory",
-    "mekenergistics:me_basic_infusing_factory",
-    "mekenergistics:me_basic_sawing_factory",
-    "mekenergistics:me_advanced_smelting_factory",
-    "mekenergistics:me_advanced_enriching_factory",
-    "mekenergistics:me_advanced_crushing_factory",
-    "mekenergistics:me_advanced_compressing_factory",
-    "mekenergistics:me_advanced_combining_factory",
-    "mekenergistics:me_advanced_purifying_factory",
-    "mekenergistics:me_advanced_injecting_factory",
-    "mekenergistics:me_advanced_infusing_factory",
-    "mekenergistics:me_advanced_sawing_factory",
-    "mekenergistics:me_elite_smelting_factory",
-    "mekenergistics:me_elite_enriching_factory",
-    "mekenergistics:me_elite_crushing_factory",
-    "mekenergistics:me_elite_compressing_factory",
-    "mekenergistics:me_elite_combining_factory",
-    "mekenergistics:me_elite_purifying_factory",
-    "mekenergistics:me_elite_injecting_factory",
-    "mekenergistics:me_elite_infusing_factory",
-    "mekenergistics:me_elite_sawing_factory",
-    "mekenergistics:me_ultimate_smelting_factory",
-    "mekenergistics:me_ultimate_enriching_factory",
-    "mekenergistics:me_ultimate_crushing_factory",
-    "mekenergistics:me_ultimate_compressing_factory",
-    "mekenergistics:me_ultimate_combining_factory",
-    "mekenergistics:me_ultimate_purifying_factory",
-    "mekenergistics:me_ultimate_injecting_factory",
-    "mekenergistics:me_ultimate_infusing_factory",
-    "mekenergistics:me_ultimate_sawing_factory",
-    "mekenergistics:me_basic_alloying_factory",
-    "mekenergistics:me_advanced_alloying_factory",
-    "mekenergistics:me_elite_alloying_factory",
-    "mekenergistics:me_ultimate_alloying_factory",
-    "mekenergistics:me_overclocked_smelting_factory",
-    "mekenergistics:me_overclocked_enriching_factory",
-    "mekenergistics:me_overclocked_crushing_factory",
-    "mekenergistics:me_overclocked_compressing_factory",
-    "mekenergistics:me_overclocked_combining_factory",
-    "mekenergistics:me_overclocked_purifying_factory",
-    "mekenergistics:me_overclocked_injecting_factory",
-    "mekenergistics:me_overclocked_infusing_factory",
-    "mekenergistics:me_overclocked_sawing_factory",
-    "mekenergistics:me_quantum_smelting_factory",
-    "mekenergistics:me_quantum_enriching_factory",
-    "mekenergistics:me_quantum_crushing_factory",
-    "mekenergistics:me_quantum_compressing_factory",
-    "mekenergistics:me_quantum_combining_factory",
-    "mekenergistics:me_quantum_purifying_factory",
-    "mekenergistics:me_quantum_injecting_factory",
-    "mekenergistics:me_quantum_infusing_factory",
-    "mekenergistics:me_quantum_sawing_factory",
-    "mekenergistics:me_dense_smelting_factory",
-    "mekenergistics:me_dense_enriching_factory",
-    "mekenergistics:me_dense_crushing_factory",
-    "mekenergistics:me_dense_compressing_factory",
-    "mekenergistics:me_dense_combining_factory",
-    "mekenergistics:me_dense_purifying_factory",
-    "mekenergistics:me_dense_injecting_factory",
-    "mekenergistics:me_dense_infusing_factory",
-    "mekenergistics:me_dense_sawing_factory",
-    "mekenergistics:me_multiversal_smelting_factory",
-    "mekenergistics:me_multiversal_enriching_factory",
-    "mekenergistics:me_multiversal_crushing_factory",
-    "mekenergistics:me_multiversal_compressing_factory",
-    "mekenergistics:me_multiversal_combining_factory",
-    "mekenergistics:me_multiversal_purifying_factory",
-    "mekenergistics:me_multiversal_injecting_factory",
-    "mekenergistics:me_multiversal_infusing_factory",
-    "mekenergistics:me_multiversal_sawing_factory",
-    "mekenergistics:me_creative_smelting_factory",
-    "mekenergistics:me_creative_enriching_factory",
-    "mekenergistics:me_creative_crushing_factory",
-    "mekenergistics:me_creative_compressing_factory",
-    "mekenergistics:me_creative_combining_factory",
-    "mekenergistics:me_creative_purifying_factory",
-    "mekenergistics:me_creative_injecting_factory",
-    "mekenergistics:me_creative_infusing_factory",
-    "mekenergistics:me_creative_sawing_factory",
-    "mekenergistics:me_overclocked_alloying_factory",
-    "mekenergistics:me_quantum_alloying_factory",
-    "mekenergistics:me_dense_alloying_factory",
-    "mekenergistics:me_multiversal_alloying_factory",
-    "mekenergistics:me_creative_alloying_factory",
-    "mekenergistics:me_absolute_smelting_factory",
-    "mekenergistics:me_absolute_enriching_factory",
-    "mekenergistics:me_absolute_crushing_factory",
-    "mekenergistics:me_absolute_compressing_factory",
-    "mekenergistics:me_absolute_combining_factory",
-    "mekenergistics:me_absolute_purifying_factory",
-    "mekenergistics:me_absolute_injecting_factory",
-    "mekenergistics:me_absolute_infusing_factory",
-    "mekenergistics:me_absolute_sawing_factory",
-    "mekenergistics:me_supreme_smelting_factory",
-    "mekenergistics:me_supreme_enriching_factory",
-    "mekenergistics:me_supreme_crushing_factory",
-    "mekenergistics:me_supreme_compressing_factory",
-    "mekenergistics:me_supreme_combining_factory",
-    "mekenergistics:me_supreme_purifying_factory",
-    "mekenergistics:me_supreme_injecting_factory",
-    "mekenergistics:me_supreme_infusing_factory",
-    "mekenergistics:me_supreme_sawing_factory",
-    "mekenergistics:me_cosmic_smelting_factory",
-    "mekenergistics:me_cosmic_enriching_factory",
-    "mekenergistics:me_cosmic_crushing_factory",
-    "mekenergistics:me_cosmic_compressing_factory",
-    "mekenergistics:me_cosmic_combining_factory",
-    "mekenergistics:me_cosmic_purifying_factory",
-    "mekenergistics:me_cosmic_injecting_factory",
-    "mekenergistics:me_cosmic_infusing_factory",
-    "mekenergistics:me_cosmic_sawing_factory",
-    "mekenergistics:me_infinite_smelting_factory",
-    "mekenergistics:me_infinite_enriching_factory",
-    "mekenergistics:me_infinite_crushing_factory",
-    "mekenergistics:me_infinite_compressing_factory",
-    "mekenergistics:me_infinite_combining_factory",
-    "mekenergistics:me_infinite_purifying_factory",
-    "mekenergistics:me_infinite_injecting_factory",
-    "mekenergistics:me_infinite_infusing_factory",
-    "mekenergistics:me_infinite_sawing_factory",
-    "mekenergistics:me_absolute_alloying_factory",
-    "mekenergistics:me_supreme_alloying_factory",
-    "mekenergistics:me_cosmic_alloying_factory",
-    "mekenergistics:me_infinite_alloying_factory",
-    "mekenergistics:me_absolute_overclocked_smelting_factory",
-    "mekenergistics:me_absolute_overclocked_enriching_factory",
-    "mekenergistics:me_absolute_overclocked_crushing_factory",
-    "mekenergistics:me_absolute_overclocked_compressing_factory",
-    "mekenergistics:me_absolute_overclocked_combining_factory",
-    "mekenergistics:me_absolute_overclocked_purifying_factory",
-    "mekenergistics:me_absolute_overclocked_injecting_factory",
-    "mekenergistics:me_absolute_overclocked_infusing_factory",
-    "mekenergistics:me_absolute_overclocked_sawing_factory",
-    "mekenergistics:me_supreme_quantum_smelting_factory",
-    "mekenergistics:me_supreme_quantum_enriching_factory",
-    "mekenergistics:me_supreme_quantum_crushing_factory",
-    "mekenergistics:me_supreme_quantum_compressing_factory",
-    "mekenergistics:me_supreme_quantum_combining_factory",
-    "mekenergistics:me_supreme_quantum_purifying_factory",
-    "mekenergistics:me_supreme_quantum_injecting_factory",
-    "mekenergistics:me_supreme_quantum_infusing_factory",
-    "mekenergistics:me_supreme_quantum_sawing_factory",
-    "mekenergistics:me_cosmic_dense_smelting_factory",
-    "mekenergistics:me_cosmic_dense_enriching_factory",
-    "mekenergistics:me_cosmic_dense_crushing_factory",
-    "mekenergistics:me_cosmic_dense_compressing_factory",
-    "mekenergistics:me_cosmic_dense_combining_factory",
-    "mekenergistics:me_cosmic_dense_purifying_factory",
-    "mekenergistics:me_cosmic_dense_injecting_factory",
-    "mekenergistics:me_cosmic_dense_infusing_factory",
-    "mekenergistics:me_cosmic_dense_sawing_factory",
-    "mekenergistics:me_infinite_multiversal_smelting_factory",
-    "mekenergistics:me_infinite_multiversal_enriching_factory",
-    "mekenergistics:me_infinite_multiversal_crushing_factory",
-    "mekenergistics:me_infinite_multiversal_compressing_factory",
-    "mekenergistics:me_infinite_multiversal_combining_factory",
-    "mekenergistics:me_infinite_multiversal_purifying_factory",
-    "mekenergistics:me_infinite_multiversal_injecting_factory",
-    "mekenergistics:me_infinite_multiversal_infusing_factory",
-    "mekenergistics:me_infinite_multiversal_sawing_factory",
-    "mekenergistics:me_absolute_overclocked_alloying_factory",
-    "mekenergistics:me_supreme_quantum_alloying_factory",
-    "mekenergistics:me_cosmic_dense_alloying_factory",
-    "mekenergistics:me_infinite_multiversal_alloying_factory",
-    "mekenergistics:me_basic_recycling_factory",
-    "mekenergistics:me_basic_planting_factory",
-    "mekenergistics:me_basic_stamping_factory",
-    "mekenergistics:me_basic_lathing_factory",
-    "mekenergistics:me_basic_rolling_mill_factory",
-    "mekenergistics:me_basic_replicating_factory",
-    "mekenergistics:me_advanced_recycling_factory",
-    "mekenergistics:me_advanced_planting_factory",
-    "mekenergistics:me_advanced_stamping_factory",
-    "mekenergistics:me_advanced_lathing_factory",
-    "mekenergistics:me_advanced_rolling_mill_factory",
-    "mekenergistics:me_advanced_replicating_factory",
-    "mekenergistics:me_elite_recycling_factory",
-    "mekenergistics:me_elite_planting_factory",
-    "mekenergistics:me_elite_stamping_factory",
-    "mekenergistics:me_elite_lathing_factory",
-    "mekenergistics:me_elite_rolling_mill_factory",
-    "mekenergistics:me_elite_replicating_factory",
-    "mekenergistics:me_ultimate_recycling_factory",
-    "mekenergistics:me_ultimate_planting_factory",
-    "mekenergistics:me_ultimate_stamping_factory",
-    "mekenergistics:me_ultimate_lathing_factory",
-    "mekenergistics:me_ultimate_rolling_mill_factory",
-    "mekenergistics:me_ultimate_replicating_factory",
-    "mekenergistics:me_absolute_recycling_factory",
-    "mekenergistics:me_absolute_planting_factory",
-    "mekenergistics:me_absolute_stamping_factory",
-    "mekenergistics:me_absolute_lathing_factory",
-    "mekenergistics:me_absolute_rolling_mill_factory",
-    "mekenergistics:me_absolute_replicating_factory",
-    "mekenergistics:me_supreme_recycling_factory",
-    "mekenergistics:me_supreme_planting_factory",
-    "mekenergistics:me_supreme_stamping_factory",
-    "mekenergistics:me_supreme_lathing_factory",
-    "mekenergistics:me_supreme_rolling_mill_factory",
-    "mekenergistics:me_supreme_replicating_factory",
-    "mekenergistics:me_cosmic_recycling_factory",
-    "mekenergistics:me_cosmic_planting_factory",
-    "mekenergistics:me_cosmic_stamping_factory",
-    "mekenergistics:me_cosmic_lathing_factory",
-    "mekenergistics:me_cosmic_rolling_mill_factory",
-    "mekenergistics:me_cosmic_replicating_factory",
-    "mekenergistics:me_infinite_recycling_factory",
-    "mekenergistics:me_infinite_planting_factory",
-    "mekenergistics:me_infinite_stamping_factory",
-    "mekenergistics:me_infinite_lathing_factory",
-    "mekenergistics:me_infinite_rolling_mill_factory",
-    "mekenergistics:me_infinite_replicating_factory",
-    "mekenergistics:me_basic_oxidizing_factory",
-    "mekenergistics:me_basic_dissolving_factory",
-    "mekenergistics:me_basic_washing_factory",
-    "mekenergistics:me_basic_crystallizing_factory",
-    "mekenergistics:me_basic_pressurised_reacting_factory",
-    "mekenergistics:me_basic_centrifuging_factory",
-    "mekenergistics:me_basic_liquifying_factory",
-    "mekenergistics:me_basic_pigment_extracting_factory",
-    "mekenergistics:me_basic_painting_factory",
-    "mekenergistics:me_advanced_oxidizing_factory",
-    "mekenergistics:me_advanced_dissolving_factory",
-    "mekenergistics:me_advanced_washing_factory",
-    "mekenergistics:me_advanced_crystallizing_factory",
-    "mekenergistics:me_advanced_pressurised_reacting_factory",
-    "mekenergistics:me_advanced_centrifuging_factory",
-    "mekenergistics:me_advanced_liquifying_factory",
-    "mekenergistics:me_advanced_pigment_extracting_factory",
-    "mekenergistics:me_advanced_painting_factory",
-    "mekenergistics:me_elite_oxidizing_factory",
-    "mekenergistics:me_elite_dissolving_factory",
-    "mekenergistics:me_elite_washing_factory",
-    "mekenergistics:me_elite_crystallizing_factory",
-    "mekenergistics:me_elite_pressurised_reacting_factory",
-    "mekenergistics:me_elite_centrifuging_factory",
-    "mekenergistics:me_elite_liquifying_factory",
-    "mekenergistics:me_elite_pigment_extracting_factory",
-    "mekenergistics:me_elite_painting_factory",
-    "mekenergistics:me_ultimate_oxidizing_factory",
-    "mekenergistics:me_ultimate_dissolving_factory",
-    "mekenergistics:me_ultimate_washing_factory",
-    "mekenergistics:me_ultimate_crystallizing_factory",
-    "mekenergistics:me_ultimate_pressurised_reacting_factory",
-    "mekenergistics:me_ultimate_centrifuging_factory",
-    "mekenergistics:me_ultimate_liquifying_factory",
-    "mekenergistics:me_ultimate_pigment_extracting_factory",
-    "mekenergistics:me_ultimate_painting_factory",
-    "mekenergistics:me_absolute_oxidizing_factory",
-    "mekenergistics:me_absolute_dissolving_factory",
-    "mekenergistics:me_absolute_washing_factory",
-    "mekenergistics:me_absolute_crystallizing_factory",
-    "mekenergistics:me_absolute_pressurised_reacting_factory",
-    "mekenergistics:me_absolute_centrifuging_factory",
-    "mekenergistics:me_absolute_liquifying_factory",
-    "mekenergistics:me_absolute_pigment_extracting_factory",
-    "mekenergistics:me_absolute_painting_factory",
-    "mekenergistics:me_supreme_oxidizing_factory",
-    "mekenergistics:me_supreme_dissolving_factory",
-    "mekenergistics:me_supreme_washing_factory",
-    "mekenergistics:me_supreme_crystallizing_factory",
-    "mekenergistics:me_supreme_pressurised_reacting_factory",
-    "mekenergistics:me_supreme_centrifuging_factory",
-    "mekenergistics:me_supreme_liquifying_factory",
-    "mekenergistics:me_supreme_pigment_extracting_factory",
-    "mekenergistics:me_supreme_painting_factory",
-    "mekenergistics:me_cosmic_oxidizing_factory",
-    "mekenergistics:me_cosmic_dissolving_factory",
-    "mekenergistics:me_cosmic_washing_factory",
-    "mekenergistics:me_cosmic_crystallizing_factory",
-    "mekenergistics:me_cosmic_pressurised_reacting_factory",
-    "mekenergistics:me_cosmic_centrifuging_factory",
-    "mekenergistics:me_cosmic_liquifying_factory",
-    "mekenergistics:me_cosmic_pigment_extracting_factory",
-    "mekenergistics:me_cosmic_painting_factory",
-    "mekenergistics:me_infinite_oxidizing_factory",
-    "mekenergistics:me_infinite_dissolving_factory",
-    "mekenergistics:me_infinite_washing_factory",
-    "mekenergistics:me_infinite_crystallizing_factory",
-    "mekenergistics:me_infinite_pressurised_reacting_factory",
-    "mekenergistics:me_infinite_centrifuging_factory",
-    "mekenergistics:me_infinite_liquifying_factory",
-    "mekenergistics:me_infinite_pigment_extracting_factory",
-    "mekenergistics:me_infinite_painting_factory"
+    {
+      "id": "mekenergistics:me_enrichment_chamber",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_crusher",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_energized_smelter",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_precision_sawmill",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_osmium_compressor",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_combiner",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_metallurgic_infuser",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_alloyer",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_purification_chamber",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_chemical_injection_chamber",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_pressurized_reaction_chamber",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_chemical_crystallizer",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_chemical_dissolution_chamber",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_chemical_infuser",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_chemical_oxidizer",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_chemical_washer",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_rotary_condensentrator",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_electrolytic_separator",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_formulaic_assemblicator",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_solar_neutron_activator",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_seismic_vibrator",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_isotopic_centrifuge",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_nutritional_liquifier",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_antiprotonic_nucleosynthesizer",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_pigment_extractor",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_pigment_mixer",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_painting_machine",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_recycler",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_planting_station",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cnc_stamper",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cnc_lathe",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cnc_rolling_mill",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_replicator",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_overclocked_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_quantum_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_dense_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_multiversal_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_creative_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_smelting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_enriching_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_crushing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_compressing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_combining_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_purifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_injecting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_infusing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_sawing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_overclocked_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_quantum_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dense_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_multiversal_alloying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_recycling_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_planting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_stamping_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_lathing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_rolling_mill_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_replicating_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_basic_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_advanced_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_elite_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_ultimate_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_absolute_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_supreme_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_cosmic_painting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_oxidizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_dissolving_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_washing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_crystallizing_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_pressurised_reacting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_centrifuging_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_liquifying_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_pigment_extracting_factory",
+      "required": false
+    },
+    {
+      "id": "mekenergistics:me_infinite_painting_factory",
+      "required": false
+    }
   ]
 }
