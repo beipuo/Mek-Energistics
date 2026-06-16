@@ -36,6 +36,9 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
 
     @Override
     default void saveChanges() {
+        if (getAeSupport().suppressesFeedSaveChanges()) {
+            return;
+        }
         if (this instanceof net.minecraft.world.level.block.entity.BlockEntity blockEntity) {
             blockEntity.setChanged();
         }

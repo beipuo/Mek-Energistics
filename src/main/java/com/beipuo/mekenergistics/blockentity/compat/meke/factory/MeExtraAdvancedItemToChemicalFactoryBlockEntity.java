@@ -38,7 +38,7 @@ public class MeExtraAdvancedItemToChemicalFactoryBlockEntity extends TileEntityE
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.ItemStackToChemicalRecipe> createNewCachedRecipe(@NotNull mekanism.api.recipes.ItemStackToChemicalRecipe recipe, int cacheIndex) { return MeExtraFactoryBridge.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
-    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExtraFactoryBridge.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeExtraFactoryBridge.updateServer(this, sendUpdatePacket, this.outputChemicalTanks); }
+    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExtraFactoryBridge.processSingleItemSmartPatterns(this, this.outputChemicalTanks); sendUpdatePacket |= super.onUpdateServer(); return MeExtraFactoryBridge.updateServer(this, sendUpdatePacket, this.outputChemicalTanks, () -> MeExtraFactoryBridge.finishSingleItemSmartPatterns(this, this.outputChemicalTanks)); }
     @Override public void clearRemoved() { super.clearRemoved(); MeExtraFactoryBridge.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { getAeSupport().destroy(); super.onChunkUnloaded(); }

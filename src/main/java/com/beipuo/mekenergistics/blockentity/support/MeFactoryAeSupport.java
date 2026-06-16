@@ -70,6 +70,8 @@ public final class MeFactoryAeSupport {
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
     private final MeSmartPatternMultiplication smartPatternMultiplication = new MeSmartPatternMultiplication();
+    private boolean ownerHandlesSmartPatternProcessing;
+    private boolean suppressFeedSaveChanges;
     private int patternPriority;
     private AeOutputMode aeOutputMode = AeOutputMode.BOTH;
     private String patternTerminalName = "";
@@ -150,7 +152,14 @@ public final class MeFactoryAeSupport {
     }
 
     public boolean processSmartPattern(MeSmartPatternMultiplication.Feeder feeder) {
-        boolean changed = this.smartPatternMultiplication.processNext(feeder);
+        markOwnerHandlesSmartPatternProcessing();
+        boolean changed;
+        this.suppressFeedSaveChanges = true;
+        try {
+            changed = this.smartPatternMultiplication.processNext(feeder);
+        } finally {
+            this.suppressFeedSaveChanges = false;
+        }
         if (changed) {
             this.owner.saveChanges();
             if (this.smartPatternMultiplication.hasPendingWork()) {
@@ -158,6 +167,25 @@ public final class MeFactoryAeSupport {
             }
         }
         return changed;
+    }
+
+    public boolean processSmartPatternIfOutputsClear(MeSmartPatternMultiplication.Feeder feeder, List<IInventorySlot> outputSlots) {
+        markOwnerHandlesSmartPatternProcessing();
+        boolean changed = insertOutputSlotsIntoNetwork(outputSlots);
+        return hasItemOutputBacklog(outputSlots) ? changed : processSmartPattern(feeder) || changed;
+    }
+
+    public boolean processSmartPatternIfNoItemOutputBacklog(MeSmartPatternMultiplication.Feeder feeder, List<IInventorySlot> outputSlots) {
+        markOwnerHandlesSmartPatternProcessing();
+        return hasItemOutputBacklog(outputSlots) ? false : processSmartPattern(feeder);
+    }
+
+    public void markOwnerHandlesSmartPatternProcessing() {
+        this.ownerHandlesSmartPatternProcessing = true;
+    }
+
+    public boolean suppressesFeedSaveChanges() {
+        return this.suppressFeedSaveChanges;
     }
 
     private boolean processSmartPatternViaOwner() {
@@ -324,10 +352,8 @@ public final class MeFactoryAeSupport {
     }
 
     private boolean hasAeOutputWork() {
-        for (IInventorySlot outputSlot : this.knownOutputSlots) {
-            if (outputSlot != null && !outputSlot.getStack().isEmpty()) {
-                return true;
-            }
+        if (hasItemOutputBacklog(this.knownOutputSlots)) {
+            return true;
         }
         for (IChemicalTank tank : this.knownChemicalOutputTanks) {
             if (tank != null && !tank.isEmpty()) {
@@ -342,9 +368,20 @@ public final class MeFactoryAeSupport {
         return this.smartPatternMultiplication.hasPendingWork();
     }
 
+    private static boolean hasItemOutputBacklog(List<IInventorySlot> outputSlots) {
+        for (IInventorySlot outputSlot : outputSlots) {
+            if (outputSlot != null && !outputSlot.getStack().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean processAeOutputWork() {
         boolean hadWork = hasAeOutputWork();
-        processSmartPatternViaOwner();
+        if (!this.ownerHandlesSmartPatternProcessing) {
+            processSmartPatternViaOwner();
+        }
         insertOutputSlotsIntoNetwork(this.knownOutputSlots);
         for (IChemicalTank tank : this.knownChemicalOutputTanks) {
             insertChemicalTankIntoNetwork(tank);

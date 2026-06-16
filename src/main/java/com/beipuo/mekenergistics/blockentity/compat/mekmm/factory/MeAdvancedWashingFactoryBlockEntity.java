@@ -41,7 +41,7 @@ public class MeAdvancedWashingFactoryBlockEntity extends TileEntityWashingFactor
     @Override public boolean isBusy() { return false; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public mekanism.api.recipes.cache.CachedRecipe<mekanism.api.recipes.FluidChemicalToChemicalRecipe> createNewCachedRecipe(@NotNull mekanism.api.recipes.FluidChemicalToChemicalRecipe recipe, int cacheIndex) { return MeAdvancedFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
-    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeAdvancedFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeAdvancedFactorySupport.updateServer(this, sendUpdatePacket, this.outputChemicalTanks); }
+    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeAdvancedFactorySupport.processFluidChemicalSmartPatterns(this, this.fluidTank, this.inputChemicalTanks, this.outputChemicalTanks); sendUpdatePacket |= super.onUpdateServer(); return MeAdvancedFactorySupport.updateServer(this, sendUpdatePacket, this.outputChemicalTanks, () -> MeAdvancedFactorySupport.finishFluidChemicalSmartPatterns(this, this.fluidTank, this.inputChemicalTanks, this.outputChemicalTanks)); }
     @Override public void clearRemoved() { super.clearRemoved(); MeAdvancedFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { getAeSupport().destroy(); super.onChunkUnloaded(); }

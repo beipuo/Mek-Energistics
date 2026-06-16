@@ -4,10 +4,12 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
+import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
+import java.util.List;
 import mekanism.api.IContentsListener;
 import mekanism.api.recipes.SawmillRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
@@ -27,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implements MeFactoryAeMachine {
     private final MeMekanismMachine machine;
     private MeFactoryAeSupport aeSupport;
+    private final ItemInputFeeder itemInputFeeder = new ItemInputFeeder();
 
     public MeSawingFactoryBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state);
@@ -75,24 +78,33 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
+        return pushPatternInputs(inputHolder, false);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder, boolean knownFits) {
         ItemStack input = MeFactoryPatternInput.singleItem(inputHolder[0]);
         if (input.isEmpty()) {
             return false;
         }
-        if (MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, input)) {
-            setChanged();
+        List<ItemStack> snapshot = MeFactoryInventoryInsert.snapshotSlots(this.inputSlots);
+        boolean inserted = knownFits
+                ? MeFactoryInventoryInsert.insertAcrossSlotsKnownFits(this.inputSlots, input)
+                : MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, input);
+        if (inserted) {
+            saveChanges();
             return true;
         }
+        MeFactoryInventoryInsert.restoreSlots(this.inputSlots, snapshot);
         return false;
     }
 
     @Override public boolean isBusy() { return false; }
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
-        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        boolean sendUpdatePacket = this.aeSupport.processSmartPatternIfOutputsClear(this.itemInputFeeder, this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
-        return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
+        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        return this.aeSupport.processSmartPatternIfNoItemOutputBacklog(this.itemInputFeeder, this.outputSlots) || sendUpdatePacket;
     }
     @Override public void clearRemoved() { super.clearRemoved(); this.aeSupport.createNodeOnFirstTick(this); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
@@ -100,4 +112,20 @@ public class MeSawingFactoryBlockEntity extends TileEntitySawingFactory implemen
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.saveAll(tag, registries); }
     @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.loadAll(tag, registries); }
+
+    private final class ItemInputFeeder implements MeSmartPatternMultiplication.CapacityAwareFeeder {
+        @Override
+        public boolean feed(KeyCounter[] oneCraftInputs) {
+            return pushPatternInputs(oneCraftInputs, true);
+        }
+
+        @Override
+        public long maxAcceptedCopies(KeyCounter[] oneCraftInputs) {
+            if (oneCraftInputs == null || oneCraftInputs.length != 1) {
+                return 0;
+            }
+            ItemStack input = MeFactoryPatternInput.singleItem(oneCraftInputs[0]);
+            return input.isEmpty() ? 0 : MeFactoryInventoryInsert.acceptedCopiesAcrossSlots(inputSlots, input);
+        }
+    }
 }
