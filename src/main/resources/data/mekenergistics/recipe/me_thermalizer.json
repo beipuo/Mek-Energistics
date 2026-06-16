@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "evolvedmekanism"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "evolvedmekanism:thermalizer"
+    },
+    {
+      "item": "mekenergistics:me_factory_installer"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "mekenergistics:me_thermalizer"
+  }
+}

@@ -4,6 +4,7 @@ import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
+import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
@@ -30,29 +31,12 @@ final class MeMekanismMachinePatternInput {
         return tryInsertChemicalConversionInput(owner, patternDetails, inputHolder);
     }
 
-    private static ItemStack getSingleItemInput(KeyCounter counter) {
-        if (counter == null || counter.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-
-        ItemStack input = ItemStack.EMPTY;
-        for (var entry : counter) {
-            AEKey key = entry.getKey();
-            long amount = entry.getLongValue();
-            if (!(key instanceof AEItemKey itemKey) || amount <= 0 || amount > Integer.MAX_VALUE || !input.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-            input = itemKey.toStack((int) amount);
-        }
-        return input;
-    }
-
     private static boolean tryInsertChemicalConversionInput(MeMekanismMachineBlockEntity owner, IPatternDetails patternDetails, KeyCounter[] inputHolder) {
         if (owner.getMachine().slotLayout() != MeMekanismMachine.SlotLayout.ITEM_CHEMICAL || owner.getLevel() == null || inputHolder == null || inputHolder.length != 1) {
             return false;
         }
 
-        ItemStack input = getSingleItemInput(inputHolder[0]);
+        ItemStack input = MeFactoryPatternInput.singleItem(inputHolder[0]);
         if (input.isEmpty()) {
             return false;
         }
@@ -87,64 +71,19 @@ final class MeMekanismMachinePatternInput {
             return false;
         }
 
-        ItemStack itemInput = ItemStack.EMPTY;
-        ChemicalStack chemicalInput = ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            PatternInput input = getSinglePatternInput(counter);
-            if (input == null) {
-                return false;
-            }
-            if (!input.item().isEmpty()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (!input.chemical().isEmpty()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            }
-        }
-
-        if (itemInput.isEmpty() || chemicalInput.isEmpty() || !owner.canAddChemical(chemicalInput)) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty() || !owner.canAddChemical(input.chemical())) {
             return false;
         }
 
-        if (!owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, itemInput.copy(), Action.SIMULATE).isEmpty()
-                || !owner.getChemicalTank().insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+        if (!owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, input.item().copy(), Action.SIMULATE).isEmpty()
+                || !owner.getChemicalTank().insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
             return false;
         }
-        owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, itemInput, Action.EXECUTE);
-        owner.getChemicalTank().insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
+        owner.insertItem(MeMekanismMachineBlockEntity.INPUT_SLOT, input.item(), Action.EXECUTE);
+        owner.getChemicalTank().insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL);
         owner.setChanged();
         return true;
-    }
-
-    @Nullable
-    private static PatternInput getSinglePatternInput(KeyCounter counter) {
-        if (counter == null || counter.isEmpty()) {
-            return null;
-        }
-
-        PatternInput input = null;
-        for (var entry : counter) {
-            AEKey key = entry.getKey();
-            long amount = entry.getLongValue();
-            PatternInput next;
-            if (key instanceof AEItemKey itemKey && amount > 0 && amount <= Integer.MAX_VALUE) {
-                next = new PatternInput(itemKey.toStack((int) amount), ChemicalStack.EMPTY);
-            } else if (key instanceof MekanismKey chemicalKey && amount > 0) {
-                next = new PatternInput(ItemStack.EMPTY, chemicalKey.getStack().copyWithAmount(amount));
-            } else {
-                return null;
-            }
-            if (input != null) {
-                return null;
-            }
-            input = next;
-        }
-        return input;
     }
 
     private static boolean matchesChemicalOutputs(IPatternDetails patternDetails, ChemicalStack expectedOutput, long expectedAmount) {
@@ -221,7 +160,7 @@ final class MeMekanismMachinePatternInput {
         }
 
         ItemStack existing = simulated[slot];
-        int limit = Math.min(stack.getMaxStackSize(), owner.getSlotLimit(slot, stack));
+        int limit = owner.getSlotLimit(slot, stack);
         if (existing.isEmpty()) {
             if (stack.getCount() > limit) {
                 return false;
@@ -233,15 +172,12 @@ final class MeMekanismMachinePatternInput {
         if (!ItemStack.isSameItemSameComponents(existing, stack)) {
             return false;
         }
-        int existingLimit = Math.min(existing.getMaxStackSize(), owner.getSlotLimit(slot, existing));
+        int existingLimit = owner.getSlotLimit(slot, existing);
         if (existing.getCount() + stack.getCount() > existingLimit) {
             return false;
         }
         existing.grow(stack.getCount());
         simulated[slot] = existing;
         return true;
-    }
-
-    private record PatternInput(ItemStack item, ChemicalStack chemical) {
     }
 }

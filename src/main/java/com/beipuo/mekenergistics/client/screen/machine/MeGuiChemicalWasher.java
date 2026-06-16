@@ -49,6 +49,6 @@ public class MeGuiChemicalWasher extends MeGuiConfigurableTile<MeChemicalWasherB
     @Override
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleText(guiGraphics);
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 }

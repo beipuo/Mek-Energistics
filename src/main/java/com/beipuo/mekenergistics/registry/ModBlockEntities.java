@@ -10,8 +10,11 @@ import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalDissolut
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalInfuserBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalOxidizerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.chemical.MeChemicalWasherBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.eme.machine.MeChemixerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.eme.factory.MeAlloyingFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.compat.eme.machine.MeAlloyerBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.eme.machine.MeSolidifierBlockEntity;
+import com.beipuo.mekenergistics.blockentity.compat.eme.machine.MeThermalizerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.factory.MeCombiningFactoryBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.process.MeCombinerBlockEntity;
 import com.beipuo.mekenergistics.blockentity.machine.utility.MeDigitalMinerBlockEntity;
@@ -196,6 +199,9 @@ public final class ModBlockEntities {
         return switch (machine) {
             case METALLURGIC_INFUSER -> ae(MeMetallurgicInfuserBlockEntity::new, MeMetallurgicInfuserBlockEntity.class);
             case ALLOYER -> ae(MeAlloyerBlockEntity::new, MeAlloyerBlockEntity.class);
+            case SOLIDIFICATION_CHAMBER -> ae(MeSolidifierBlockEntity::new, MeSolidifierBlockEntity.class);
+            case THERMALIZER -> ae(MeThermalizerBlockEntity::new, MeThermalizerBlockEntity.class);
+            case CHEMIXER -> ae(MeChemixerBlockEntity::new, MeChemixerBlockEntity.class);
             case COMBINER -> ae(MeCombinerBlockEntity::new, MeCombinerBlockEntity.class);
             case PRECISION_SAWMILL -> ae(MePrecisionSawmillBlockEntity::new, MePrecisionSawmillBlockEntity.class);
             case ELECTRIC_PUMP -> noAe(MeElectricPumpBlockEntity::new);

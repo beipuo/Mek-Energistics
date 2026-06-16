@@ -49,7 +49,7 @@ public class MeGuiChemicalCrystallizer extends MeGuiConfigurableTile<MeChemicalC
     @Override
     protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
         renderTitleTextWithOffset(guiGraphics, inputGauge.getRelativeRight(), tile.getEnergySlotX());
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
+        drawMekanismForegroundText(guiGraphics, mouseX, mouseY);
     }
 
     private class OreInfo implements IOreInfo {

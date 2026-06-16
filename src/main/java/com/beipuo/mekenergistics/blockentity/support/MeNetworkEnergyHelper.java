@@ -6,9 +6,17 @@ import appeng.api.config.PowerUnit;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
+import java.util.function.Supplier;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
+import mekanism.api.IContentsListener;
+import mekanism.api.energy.IEnergyContainer;
+import mekanism.api.functions.ConstantPredicates;
+import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.tile.base.TileEntityMekanism;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.neoforged.fml.ModList;
 
 public final class MeNetworkEnergyHelper {
@@ -76,6 +84,44 @@ public final class MeNetworkEnergyHelper {
         return extracted;
     }
 
+    public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier, IActionSource source) {
+        return new NetworkRecipeEnergyView(energyContainer, gridSupplier, source);
+    }
+
+    public static class NetworkBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
+            implements LocalEnergyBuffer {
+        private final Supplier<IGrid> gridSupplier;
+        private final Supplier<IActionSource> actionSourceSupplier;
+
+        public NetworkBackedEnergyContainer(TILE owner, IContentsListener listener, Supplier<IGrid> gridSupplier, IActionSource actionSource) {
+            this(owner, listener, gridSupplier, () -> actionSource);
+        }
+
+        public NetworkBackedEnergyContainer(TILE owner, IContentsListener listener, Supplier<IGrid> gridSupplier, Supplier<IActionSource> actionSourceSupplier) {
+            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
+                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
+            this.gridSupplier = gridSupplier;
+            this.actionSourceSupplier = actionSourceSupplier;
+        }
+
+        @Override
+        public long extract(long amount, Action action, AutomationType automationType) {
+            IGrid grid = this.gridSupplier == null ? null : this.gridSupplier.get();
+            IActionSource actionSource = this.actionSourceSupplier == null ? null : this.actionSourceSupplier.get();
+            return extractWithLocalBuffer(this, grid, actionSource, amount, action, automationType);
+        }
+
+        @Override
+        public long getLocalEnergy() {
+            return super.getEnergy();
+        }
+
+        @Override
+        public long extractLocal(long amount, Action action, AutomationType automationType) {
+            return super.extract(amount, action, automationType);
+        }
+    }
+
     private static long extractAeEnergyAsFe(IGrid grid, long requestedFe, Actionable action) {
         if (requestedFe <= 0) {
             return 0;
@@ -83,5 +129,52 @@ public final class MeNetworkEnergyHelper {
         double requestedAe = PowerUnit.FE.convertTo(PowerUnit.AE, requestedFe);
         double extractedAe = grid.getEnergyService().extractAEPower(requestedAe, action, PowerMultiplier.ONE);
         return Math.min(requestedFe, (long) Math.floor(PowerUnit.AE.convertTo(PowerUnit.FE, extractedAe)));
+    }
+
+    private static final class NetworkRecipeEnergyView implements IEnergyContainer {
+        private final MachineEnergyContainer<?> energyContainer;
+        private final Supplier<IGrid> gridSupplier;
+        private final IActionSource actionSource;
+
+        private NetworkRecipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier, IActionSource actionSource) {
+            this.energyContainer = energyContainer;
+            this.gridSupplier = gridSupplier;
+            this.actionSource = actionSource;
+        }
+
+        @Override
+        public long getEnergy() {
+            return availableWithLocalBuffer(this.energyContainer, this.gridSupplier.get(), this.actionSource);
+        }
+
+        @Override
+        public void setEnergy(long energy) {
+            this.energyContainer.setEnergy(energy);
+        }
+
+        @Override
+        public long extract(long amount, Action action, AutomationType automationType) {
+            return extractWithLocalBuffer(this.energyContainer, this.gridSupplier.get(), this.actionSource, amount, action, automationType);
+        }
+
+        @Override
+        public long getMaxEnergy() {
+            return this.energyContainer.getMaxEnergy();
+        }
+
+        @Override
+        public void onContentsChanged() {
+            this.energyContainer.onContentsChanged();
+        }
+
+        @Override
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            return this.energyContainer.serializeNBT(provider);
+        }
+
+        @Override
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            this.energyContainer.deserializeNBT(provider, nbt);
+        }
     }
 }

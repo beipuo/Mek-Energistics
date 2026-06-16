@@ -26,6 +26,9 @@ sourceSets.main.resources {
     exclude("src/generated/**/.cache") // datagen cache files
 }
 
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+
 repositories {
     maven {
         name = "Modmaven"
@@ -129,6 +132,9 @@ dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:19.2.16"
     implementation "curse.maven:mekanism-268560:7904058"
     implementation "curse.maven:applied-mekanistics-574300:7096962"
+    testImplementation platform("org.junit:junit-bom:5.10.3")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
     compileOnly "curse.maven:jei-238222:7420587"
     compileOnly "curse.maven:iglee-library-541199:7000755"
@@ -202,6 +208,10 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

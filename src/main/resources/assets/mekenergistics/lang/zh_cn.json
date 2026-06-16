@@ -681,5 +681,11 @@
   "container.mekenergistics.me_cosmic_alloying_factory": "ME 寰宇支配合金工厂",
   "block.mekenergistics.me_infinite_alloying_factory": "ME 悖论无限合金工厂",
   "container.mekenergistics.me_infinite_alloying_factory": "ME 悖论无限合金工厂",
-  "description.mekenergistics.machine": "一台带有内置样板槽并可输出到 AE 网络的 Mek 风格 ME 机器。"
+  "description.mekenergistics.machine": "一台带有内置样板槽并可输出到 AE 网络的 Mek 风格 ME 机器。",
+  "block.mekenergistics.me_solidification_chamber": "ME 固化仓",
+  "container.mekenergistics.me_solidification_chamber": "ME 固化仓",
+  "block.mekenergistics.me_thermalizer": "ME 热力控制器",
+  "container.mekenergistics.me_thermalizer": "ME 热力控制器",
+  "block.mekenergistics.me_chemixer": "ME 化学混合器",
+  "container.mekenergistics.me_chemixer": "ME 化学混合器"
 }

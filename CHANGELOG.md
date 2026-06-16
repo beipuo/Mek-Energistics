@@ -7,6 +7,7 @@
 - Added smart pattern multiplication for ME pattern slots, so large autocrafting requests can place repeated patterns more conveniently when the machine has room.
 - Improved ME machine items to look and read more like their Mekanism counterparts, including colored machine names and clearer item tooltips.
 - Improved ME machine registration and item behavior consistency across Mekanism, Mekanism: MoreMachine, Mekanism Extras, and Evolved Mekanism Extras integrations.
+- Reorganized the machine adaptation guide for pack makers and future ME machine support.
 
 ### Fix
 
@@ -15,6 +16,8 @@
 - Fixed ME machine item tooltips and stored-data display by backing item behavior with the expected capabilities.
 - Fixed ME Isotopic Centrifuge and ME Centrifuging Factory item icons being too large in inventories.
 - Fixed ME centrifuging factory item lighting so their inventory icons match the original factory style more closely.
+- Fixed ExtendedAE renaming support so quartz cutting knives can open the renaming screen on ME machines when ExtendedAE is installed.
+- Fixed renamed ME machine drops so they restore the machine name through the normal item name instead of saving a separate pattern-terminal name.
 
 ## 0.0.14-beta
 

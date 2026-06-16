@@ -1,6 +1,5 @@
 package com.beipuo.mekenergistics.blockentity.support;
 
-import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.ids.AEComponents;
 import appeng.api.implementations.items.IMemoryCard;
 import appeng.api.implementations.items.MemoryCardMessages;
@@ -94,7 +93,7 @@ public final class MeMemoryCardSettings {
             if (desired.isEmpty()) {
                 continue;
             }
-            var pattern = PatternDetailsHelper.decodePattern(desired, player.level());
+            var pattern = MePatternDecodeHelper.safeDecode(desired, player.level(), "memory card import");
             if (pattern == null) {
                 continue;
             }

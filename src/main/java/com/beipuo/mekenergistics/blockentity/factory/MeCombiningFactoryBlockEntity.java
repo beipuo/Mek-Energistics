@@ -4,18 +4,15 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
-import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.GridHelper;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.mixin.TileEntityCombiningFactoryAccessor;
 import com.beipuo.mekenergistics.registry.ModBlocks;
-import java.util.ArrayList;
 import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.IContentsListener;
-import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.CombinerRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -25,24 +22,22 @@ import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.slot.InputInventorySlot;
 import mekanism.common.tile.factory.TileEntityCombiningFactory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory implements MeFactoryAeMachine {
     private final MeMekanismMachine machine;
-    private final MeFactoryAeSupport aeSupport;
+    private MeFactoryAeSupport aeSupport;
+    private final CombiningInputFeeder combiningInputFeeder = new CombiningInputFeeder();
 
     public MeCombiningFactoryBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state);
         this.machine = machine;
-        this.aeSupport = new MeFactoryAeSupport(this);
+        getAeSupport();
     }
 
     @NotNull
@@ -61,20 +56,12 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
     @NotNull
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
-        IInventorySlotHolder original = super.getInitialInventory(listener);
-        return side -> {
-            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
-            return slots;
-        };
+        return getAeSupport().withPatternSlots(super.getInitialInventory(listener));
     }
 
-    @Override public MeFactoryAeSupport getAeSupport() { return this.aeSupport; }
+    @Override public MeFactoryAeSupport getAeSupport() { if (this.aeSupport == null) this.aeSupport = new MeFactoryAeSupport(this); return this.aeSupport; }
     @Override public MeMekanismMachine getMachine() { return this.machine; }
     @Override public Level getOwnerLevel() { return getLevel(); }
-    public void setOwner(ServerPlayer player) { MeOwnerHelper.setOwner(this, getMainNode(), player); }
-    @Override public List<IPatternDetails> getAvailablePatterns() { return this.aeSupport.getAvailablePatterns(); }
-    @Override public int getPatternPriority() { return this.aeSupport.getPatternPriority(); }
 
     @NotNull
     @Override
@@ -94,6 +81,10 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
+        return pushPatternInputs(inputHolder, false);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder, boolean knownFits) {
         MeFactoryPatternInput first = MeFactoryPatternInput.single(inputHolder[0]);
         MeFactoryPatternInput second = MeFactoryPatternInput.single(inputHolder[1]);
         if (first == null || second == null || !first.isItem() || !second.isItem()) {
@@ -102,29 +93,63 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
         ItemStack main = first.item();
         ItemStack extra = second.item();
         InputInventorySlot extraSlot = ((TileEntityCombiningFactoryAccessor) this).mekenergistics$getExtraSlot();
-        if (MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, main)
-                && extraSlot.insertItem(extra.copy(), Action.SIMULATE, mekanism.api.AutomationType.INTERNAL).isEmpty()) {
-            MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, main);
-            extraSlot.insertItem(extra, Action.EXECUTE, mekanism.api.AutomationType.INTERNAL);
-            setChanged();
+        boolean canInsert = knownFits || MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, main);
+        if (canInsert && extraSlot.insertItem(extra.copy(), Action.SIMULATE, mekanism.api.AutomationType.INTERNAL).isEmpty()) {
+            List<ItemStack> inputSnapshot = MeFactoryInventoryInsert.snapshotSlots(this.inputSlots);
+            ItemStack extraSnapshot = extraSlot.getStack().copy();
+            boolean extraInserted = extraSlot.insertItem(extra, Action.EXECUTE, mekanism.api.AutomationType.INTERNAL).isEmpty();
+            boolean mainInserted = extraInserted && insertMainInput(main, knownFits);
+            if (!extraInserted || !mainInserted) {
+                extraSlot.setStack(extraSnapshot);
+                MeFactoryInventoryInsert.restoreSlots(this.inputSlots, inputSnapshot);
+                return false;
+            }
+            saveChanges();
             return true;
         }
         return false;
     }
 
+    private boolean insertMainInput(ItemStack main, boolean knownFits) {
+        return knownFits
+                ? MeFactoryInventoryInsert.insertAcrossSlotsKnownFits(this.inputSlots, main)
+                : MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, main);
+    }
+
     @Override public boolean isBusy() { return false; }
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
-        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        boolean sendUpdatePacket = this.aeSupport.processSmartPatternIfOutputsClear(this.combiningInputFeeder, this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
-        return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
+        return this.aeSupport.processSmartPatternAfterOutputDrain(this.combiningInputFeeder, this.outputSlots, sendUpdatePacket);
     }
-    @Override public void clearRemoved() { super.clearRemoved(); GridHelper.onFirstTick(this, be -> be.aeSupport.create(be.getLevel(), be.getBlockPos())); }
+    @Override public void clearRemoved() { super.clearRemoved(); this.aeSupport.createNodeOnFirstTick(this); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { this.aeSupport.destroy(); super.onChunkUnloaded(); }
-    @Nullable @Override public appeng.api.networking.IGridNode getGridNode(Direction dir) { return MeFactoryAeMachine.super.getGridNode(dir); }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
-    @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.save(tag); this.aeSupport.saveSlots(tag, registries); }
-    @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.load(tag); this.aeSupport.loadSlots(tag, registries); }
+    @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); this.aeSupport.saveAll(tag, registries); }
+    @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); this.aeSupport.loadAll(tag, registries); }
+
+    private final class CombiningInputFeeder implements MeSmartPatternMultiplication.CapacityAwareFeeder {
+        @Override
+        public boolean feed(KeyCounter[] oneCraftInputs) {
+            return pushPatternInputs(oneCraftInputs, true);
+        }
+
+        @Override
+        public long maxAcceptedCopies(KeyCounter[] oneCraftInputs) {
+            if (oneCraftInputs == null || oneCraftInputs.length != 2) {
+                return 0;
+            }
+            MeFactoryPatternInput first = MeFactoryPatternInput.single(oneCraftInputs[0]);
+            MeFactoryPatternInput second = MeFactoryPatternInput.single(oneCraftInputs[1]);
+            if (first == null || second == null || !first.isItem() || !second.isItem()) {
+                return 0;
+            }
+            long mainCopies = MeFactoryInventoryInsert.acceptedCopiesAcrossSlots(inputSlots, first.item());
+            InputInventorySlot extraSlot = ((TileEntityCombiningFactoryAccessor) MeCombiningFactoryBlockEntity.this).mekenergistics$getExtraSlot();
+            long extraCopies = MeFactoryInventoryInsert.acceptedCopiesIntoSlot(extraSlot, second.item());
+            return Math.min(mainCopies, extraCopies);
+        }
+    }
 }

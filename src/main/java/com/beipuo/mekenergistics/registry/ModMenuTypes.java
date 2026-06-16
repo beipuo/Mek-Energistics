@@ -38,6 +38,8 @@ import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineAdvancedMenuTyp
 import com.beipuo.mekenergistics.compat.mekmm.MekanismMoreMachineMenuTypes;
 import com.beipuo.mekenergistics.menu.factory.MePatternFactoryContainer;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import java.util.EnumMap;
+import java.util.Map;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.container.type.MekanismContainerType;
 import mekanism.common.tile.factory.TileEntityFactory;
@@ -111,6 +113,7 @@ public final class ModMenuTypes {
             optionalHolder("me_extra_more_machine_factory");
     public static final ContainerTypeRegistryObject<? extends MekanismTileContainer<?>> ME_EXTRA_ADVANCED_FACTORY =
             optionalHolder("me_extra_advanced_factory");
+    private static final Map<MeMekanismMachine, ContainerTypeRegistryObject<?>> EXPLICIT_MACHINE_CONTAINERS = createExplicitMachineContainers();
 
     static {
         if (ModList.get().isLoaded("mekmm")) {
@@ -202,6 +205,31 @@ public final class ModMenuTypes {
         return holder;
     }
 
+    private static Map<MeMekanismMachine, ContainerTypeRegistryObject<?>> createExplicitMachineContainers() {
+        Map<MeMekanismMachine, ContainerTypeRegistryObject<?>> containers = new EnumMap<>(MeMekanismMachine.class);
+        containers.put(MeMekanismMachine.METALLURGIC_INFUSER, ME_METALLURGIC_INFUSER);
+        containers.put(MeMekanismMachine.COMBINER, ME_COMBINER);
+        containers.put(MeMekanismMachine.PRECISION_SAWMILL, ME_PRECISION_SAWMILL);
+        containers.put(MeMekanismMachine.SEISMIC_VIBRATOR, ME_SEISMIC_VIBRATOR);
+        containers.put(MeMekanismMachine.FORMULAIC_ASSEMBLICATOR, ME_FORMULAIC_ASSEMBLICATOR);
+        containers.put(MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER, ME_PRESSURIZED_REACTION_CHAMBER);
+        containers.put(MeMekanismMachine.CHEMICAL_CRYSTALLIZER, ME_CHEMICAL_CRYSTALLIZER);
+        containers.put(MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER, ME_CHEMICAL_DISSOLUTION_CHAMBER);
+        containers.put(MeMekanismMachine.CHEMICAL_INFUSER, ME_CHEMICAL_INFUSER);
+        containers.put(MeMekanismMachine.CHEMICAL_OXIDIZER, ME_CHEMICAL_OXIDIZER);
+        containers.put(MeMekanismMachine.CHEMICAL_WASHER, ME_CHEMICAL_WASHER);
+        containers.put(MeMekanismMachine.ROTARY_CONDENSENTRATOR, ME_ROTARY_CONDENSENTRATOR);
+        containers.put(MeMekanismMachine.ELECTROLYTIC_SEPARATOR, ME_ELECTROLYTIC_SEPARATOR);
+        containers.put(MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR, ME_SOLAR_NEUTRON_ACTIVATOR);
+        containers.put(MeMekanismMachine.ISOTOPIC_CENTRIFUGE, ME_ISOTOPIC_CENTRIFUGE);
+        containers.put(MeMekanismMachine.NUTRITIONAL_LIQUIFIER, ME_NUTRITIONAL_LIQUIFIER);
+        containers.put(MeMekanismMachine.ANTIPROTONIC_NUCLEOSYNTHESIZER, ME_ANTIPROTONIC_NUCLEOSYNTHESIZER);
+        containers.put(MeMekanismMachine.PIGMENT_EXTRACTOR, ME_PIGMENT_EXTRACTOR);
+        containers.put(MeMekanismMachine.PIGMENT_MIXER, ME_PIGMENT_MIXER);
+        containers.put(MeMekanismMachine.PAINTING_MACHINE, ME_PAINTING_MACHINE);
+        return containers;
+    }
+
     public static ContainerTypeRegistryObject<? extends MekanismTileContainer<? extends TileEntityMekanism>> getMachineContainer(
             MeMekanismMachine machine) {
         if (machine.isMoreMachineAdvancedFactory()) {
@@ -218,48 +246,15 @@ public final class ModMenuTypes {
             return ME_ELECTRIC_MACHINE;
         } else if (machine.hasAdvancedChemicalInput()) {
             return ME_ADVANCED_ELECTRIC_MACHINE;
-        } else if (machine == MeMekanismMachine.METALLURGIC_INFUSER) {
-            return ME_METALLURGIC_INFUSER;
-        } else if (machine == MeMekanismMachine.COMBINER) {
-            return ME_COMBINER;
-        } else if (machine == MeMekanismMachine.PRECISION_SAWMILL) {
-            return ME_PRECISION_SAWMILL;
-        } else if (machine == MeMekanismMachine.SEISMIC_VIBRATOR) {
-            return ME_SEISMIC_VIBRATOR;
-        } else if (machine == MeMekanismMachine.FORMULAIC_ASSEMBLICATOR) {
-            return ME_FORMULAIC_ASSEMBLICATOR;
-        } else if (machine == MeMekanismMachine.PRESSURIZED_REACTION_CHAMBER) {
-            return ME_PRESSURIZED_REACTION_CHAMBER;
-        } else if (machine == MeMekanismMachine.CHEMICAL_CRYSTALLIZER) {
-            return ME_CHEMICAL_CRYSTALLIZER;
-        } else if (machine == MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER) {
-            return ME_CHEMICAL_DISSOLUTION_CHAMBER;
-        } else if (machine == MeMekanismMachine.CHEMICAL_INFUSER) {
-            return ME_CHEMICAL_INFUSER;
-        } else if (machine == MeMekanismMachine.CHEMICAL_OXIDIZER) {
-            return ME_CHEMICAL_OXIDIZER;
-        } else if (machine == MeMekanismMachine.CHEMICAL_WASHER) {
-            return ME_CHEMICAL_WASHER;
-        } else if (machine == MeMekanismMachine.ROTARY_CONDENSENTRATOR) {
-            return ME_ROTARY_CONDENSENTRATOR;
-        } else if (machine == MeMekanismMachine.ELECTROLYTIC_SEPARATOR) {
-            return ME_ELECTROLYTIC_SEPARATOR;
-        } else if (machine == MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR) {
-            return ME_SOLAR_NEUTRON_ACTIVATOR;
-        } else if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
-            return ME_ISOTOPIC_CENTRIFUGE;
-        } else if (machine == MeMekanismMachine.NUTRITIONAL_LIQUIFIER) {
-            return ME_NUTRITIONAL_LIQUIFIER;
-        } else if (machine == MeMekanismMachine.ANTIPROTONIC_NUCLEOSYNTHESIZER) {
-            return ME_ANTIPROTONIC_NUCLEOSYNTHESIZER;
-        } else if (machine == MeMekanismMachine.PIGMENT_EXTRACTOR) {
-            return ME_PIGMENT_EXTRACTOR;
-        } else if (machine == MeMekanismMachine.PIGMENT_MIXER) {
-            return ME_PIGMENT_MIXER;
-        } else if (machine == MeMekanismMachine.PAINTING_MACHINE) {
-            return ME_PAINTING_MACHINE;
         }
-        return ME_GENERIC_MACHINE;
+        ContainerTypeRegistryObject<?> explicitContainer = EXPLICIT_MACHINE_CONTAINERS.get(machine);
+        return explicitContainer == null ? ME_GENERIC_MACHINE : asMachineContainer(explicitContainer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ContainerTypeRegistryObject<? extends MekanismTileContainer<? extends TileEntityMekanism>> asMachineContainer(
+            ContainerTypeRegistryObject<?> container) {
+        return (ContainerTypeRegistryObject<? extends MekanismTileContainer<? extends TileEntityMekanism>>) container;
     }
 
     public static void register(IEventBus eventBus) {

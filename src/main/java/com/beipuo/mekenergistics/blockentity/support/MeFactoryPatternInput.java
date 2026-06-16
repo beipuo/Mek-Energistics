@@ -51,4 +51,44 @@ public record MeFactoryPatternInput(ItemStack item, ChemicalStack chemical, Flui
         }
         return input;
     }
+
+    public static ItemStack singleItem(KeyCounter counter) {
+        MeFactoryPatternInput input = single(counter);
+        return input != null && input.isItem() ? input.item() : ItemStack.EMPTY;
+    }
+
+    @Nullable
+    public static MeFactoryPatternInput separate(KeyCounter[] counters) {
+        if (counters == null || counters.length == 0) {
+            return null;
+        }
+        ItemStack item = ItemStack.EMPTY;
+        ChemicalStack chemical = ChemicalStack.EMPTY;
+        FluidStack fluid = FluidStack.EMPTY;
+        for (KeyCounter counter : counters) {
+            MeFactoryPatternInput input = single(counter);
+            if (input == null) {
+                return null;
+            }
+            if (input.isItem()) {
+                if (!item.isEmpty()) {
+                    return null;
+                }
+                item = input.item();
+            } else if (input.isChemical()) {
+                if (!chemical.isEmpty()) {
+                    return null;
+                }
+                chemical = input.chemical();
+            } else if (input.isFluid()) {
+                if (!fluid.isEmpty()) {
+                    return null;
+                }
+                fluid = input.fluid();
+            } else {
+                return null;
+            }
+        }
+        return new MeFactoryPatternInput(item, chemical, fluid);
+    }
 }

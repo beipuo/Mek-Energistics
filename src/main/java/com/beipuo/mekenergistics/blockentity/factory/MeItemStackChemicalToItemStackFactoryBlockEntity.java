@@ -4,18 +4,14 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryInventoryInsert;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryPatternInput;
-import com.beipuo.mekenergistics.blockentity.support.MeOwnerHelper;
+import com.beipuo.mekenergistics.blockentity.support.MeSmartPatternMultiplication;
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.GridHelper;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.registry.ModBlocks;
-import java.util.ArrayList;
-import java.util.List;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
-import mekanism.api.inventory.IInventorySlot;
 import mekanism.api.recipes.ItemStackChemicalToItemStackRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
@@ -23,25 +19,24 @@ import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.tile.factory.TileEntityItemStackChemicalToItemStackFactory;
+import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntityItemStackChemicalToItemStackFactory implements MeFactoryAeMachine {
     private final MeMekanismMachine machine;
-    private final MeFactoryAeSupport aeSupport;
+    private MeFactoryAeSupport aeSupport;
+    private final ItemChemicalInputFeeder itemChemicalInputFeeder = new ItemChemicalInputFeeder();
 
     public MeItemStackChemicalToItemStackFactoryBlockEntity(MeMekanismMachine machine, BlockPos pos, BlockState state) {
         super(ModBlocks.getMachineBlock(machine), pos, state);
         this.machine = machine;
-        this.aeSupport = new MeFactoryAeSupport(this);
+        getAeSupport();
     }
 
     @NotNull
@@ -60,16 +55,14 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     @NotNull
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
-        IInventorySlotHolder original = super.getInitialInventory(listener);
-        return side -> {
-            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
-            slots.addAll(this.aeSupport.getPatternSlots());
-            return slots;
-        };
+        return getAeSupport().withPatternSlots(super.getInitialInventory(listener));
     }
 
     @Override
     public MeFactoryAeSupport getAeSupport() {
+        if (this.aeSupport == null) {
+            this.aeSupport = new MeFactoryAeSupport(this);
+        }
         return this.aeSupport;
     }
 
@@ -81,20 +74,6 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     @Override
     public Level getOwnerLevel() {
         return getLevel();
-    }
-
-    public void setOwner(ServerPlayer player) {
-        MeOwnerHelper.setOwner(this, getMainNode(), player);
-    }
-
-    @Override
-    public List<IPatternDetails> getAvailablePatterns() {
-        return this.aeSupport.getAvailablePatterns();
-    }
-
-    @Override
-    public int getPatternPriority() {
-        return this.aeSupport.getPatternPriority();
     }
 
     @NotNull
@@ -115,36 +94,35 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     }
 
     private boolean pushPatternInputs(KeyCounter[] inputHolder) {
-        ItemStack itemInput = ItemStack.EMPTY;
-        mekanism.api.chemical.ChemicalStack chemicalInput = mekanism.api.chemical.ChemicalStack.EMPTY;
-        for (KeyCounter counter : inputHolder) {
-            MeFactoryPatternInput input = MeFactoryPatternInput.single(counter);
-            if (input == null) {
-                return false;
-            }
-            if (input.isItem()) {
-                if (!itemInput.isEmpty()) {
-                    return false;
-                }
-                itemInput = input.item();
-            } else if (input.isChemical()) {
-                if (!chemicalInput.isEmpty()) {
-                    return false;
-                }
-                chemicalInput = input.chemical();
-            }
-        }
-        if (itemInput.isEmpty() || chemicalInput.isEmpty()) {
+        return pushPatternInputs(inputHolder, false);
+    }
+
+    private boolean pushPatternInputs(KeyCounter[] inputHolder, boolean knownFits) {
+        MeFactoryPatternInput input = MeFactoryPatternInput.separate(inputHolder);
+        if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()) {
             return false;
         }
-        if (MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, itemInput)
-                && getChemicalTank().insert(chemicalInput.copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
-            MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, itemInput);
-            getChemicalTank().insert(chemicalInput, Action.EXECUTE, AutomationType.INTERNAL);
-            setChanged();
+        boolean canInsertItem = knownFits || MeFactoryInventoryInsert.canInsertAcrossSlots(this.inputSlots, input.item());
+        if (canInsertItem && getChemicalTank().insert(input.chemical().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+            List<ItemStack> itemSnapshot = MeFactoryInventoryInsert.snapshotSlots(this.inputSlots);
+            var chemicalSnapshot = getChemicalTank().getStack().copy();
+            boolean chemicalInserted = getChemicalTank().insert(input.chemical(), Action.EXECUTE, AutomationType.INTERNAL).isEmpty();
+            boolean itemInserted = chemicalInserted && insertItemInput(input.item(), knownFits);
+            if (!chemicalInserted || !itemInserted) {
+                getChemicalTank().setStack(chemicalSnapshot);
+                MeFactoryInventoryInsert.restoreSlots(this.inputSlots, itemSnapshot);
+                return false;
+            }
+            saveChanges();
             return true;
         }
         return false;
+    }
+
+    private boolean insertItemInput(ItemStack input, boolean knownFits) {
+        return knownFits
+                ? MeFactoryInventoryInsert.insertAcrossSlotsKnownFits(this.inputSlots, input)
+                : MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, input);
     }
 
     @Override
@@ -154,16 +132,15 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
 
     @Override
     protected boolean onUpdateServer() {
-        boolean sendUpdatePacket = this.aeSupport.processSmartPattern(this::pushPatternInputs);
-        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
+        boolean sendUpdatePacket = this.aeSupport.processSmartPatternIfOutputsClear(this.itemChemicalInputFeeder, this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
-        return this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots) || sendUpdatePacket;
+        return this.aeSupport.processSmartPatternAfterOutputDrain(this.itemChemicalInputFeeder, this.outputSlots, sendUpdatePacket);
     }
 
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        GridHelper.onFirstTick(this, blockEntity -> blockEntity.aeSupport.create(blockEntity.getLevel(), blockEntity.getBlockPos()));
+        this.aeSupport.createNodeOnFirstTick(this);
     }
 
     @Override
@@ -178,12 +155,6 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
         super.onChunkUnloaded();
     }
 
-    @Nullable
-    @Override
-    public appeng.api.networking.IGridNode getGridNode(Direction dir) {
-        return MeFactoryAeMachine.super.getGridNode(dir);
-    }
-
     @Override
     public void addContainerTrackers(MekanismContainer container) {
         super.addContainerTrackers(container);
@@ -193,14 +164,30 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     @Override
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        this.aeSupport.save(tag);
-        this.aeSupport.saveSlots(tag, registries);
+        this.aeSupport.saveAll(tag, registries);
     }
 
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        this.aeSupport.load(tag);
-        this.aeSupport.loadSlots(tag, registries);
+        this.aeSupport.loadAll(tag, registries);
+    }
+
+    private final class ItemChemicalInputFeeder implements MeSmartPatternMultiplication.CapacityAwareFeeder {
+        @Override
+        public boolean feed(KeyCounter[] oneCraftInputs) {
+            return pushPatternInputs(oneCraftInputs, true);
+        }
+
+        @Override
+        public long maxAcceptedCopies(KeyCounter[] oneCraftInputs) {
+            MeFactoryPatternInput input = MeFactoryPatternInput.separate(oneCraftInputs);
+            if (input == null || input.item().isEmpty() || input.chemical().isEmpty() || !input.fluid().isEmpty()) {
+                return 0;
+            }
+            long itemCopies = MeFactoryInventoryInsert.acceptedCopiesAcrossSlots(inputSlots, input.item());
+            long chemicalCopies = MeFactoryInventoryInsert.acceptedCopiesIntoChemicalTank(getChemicalTank(), input.chemical());
+            return Math.min(itemCopies, chemicalCopies);
+        }
     }
 }

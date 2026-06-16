@@ -13,10 +13,8 @@ import mekanism.client.gui.element.tab.GuiEnergyTab;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.inventory.warning.WarningTracker.WarningType;
 import mekanism.common.tile.machine.TileEntityPrecisionSawmill;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import org.jetbrains.annotations.NotNull;
 
 public class MeGuiPrecisionSawmill extends MeGuiConfigurableTile<MePrecisionSawmillBlockEntity, MekanismTileContainer<MePrecisionSawmillBlockEntity>> {
     public MeGuiPrecisionSawmill(MekanismTileContainer<MePrecisionSawmillBlockEntity> container, Inventory inv, Component title) {
@@ -38,10 +36,4 @@ public class MeGuiPrecisionSawmill extends MeGuiConfigurableTile<MePrecisionSawm
                 .warning(WarningType.INPUT_DOESNT_PRODUCE_OUTPUT, tile.getWarningCheck(RecipeError.INPUT_DOESNT_PRODUCE_OUTPUT));
     }
 
-    @Override
-    protected void drawForegroundText(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        renderTitleText(guiGraphics);
-        renderInventoryText(guiGraphics);
-        super.drawForegroundText(guiGraphics, mouseX, mouseY);
-    }
 }

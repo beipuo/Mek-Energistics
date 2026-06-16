@@ -681,5 +681,11 @@
   "container.mekenergistics.me_cosmic_alloying_factory": "МЭ космический сплавляющий механизм",
   "block.mekenergistics.me_infinite_alloying_factory": "МЭ бесконечный сплавляющий механизм",
   "container.mekenergistics.me_infinite_alloying_factory": "МЭ бесконечный сплавляющий механизм",
-  "description.mekenergistics.machine": "ME-машина в стиле Mekanism со встроенными слотами шаблонов и выводом в сеть AE."
+  "description.mekenergistics.machine": "ME-машина в стиле Mekanism со встроенными слотами шаблонов и выводом в сеть AE.",
+  "block.mekenergistics.me_solidification_chamber": "ME Solidification Chamber",
+  "container.mekenergistics.me_solidification_chamber": "ME Solidification Chamber",
+  "block.mekenergistics.me_thermalizer": "ME Thermalizer",
+  "container.mekenergistics.me_thermalizer": "ME Thermalizer",
+  "block.mekenergistics.me_chemixer": "ME Chemical Mixer",
+  "container.mekenergistics.me_chemixer": "ME Chemical Mixer"
 }

@@ -32,7 +32,11 @@ import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
@@ -41,11 +45,13 @@ import mekanism.api.chemical.IChemicalTank;
 import mekanism.api.energy.IEnergyContainer;
 import mekanism.api.fluid.IExtendedFluidTank;
 import mekanism.api.inventory.IInventorySlot;
-import mekanism.api.functions.ConstantPredicates;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe;
-import mekanism.common.capabilities.energy.BasicEnergyContainer;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
+import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
+import mekanism.common.inventory.container.MekanismContainer;
+import mekanism.common.inventory.container.sync.SyncableBoolean;
+import mekanism.common.inventory.container.sync.SyncableInt;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.tile.base.TileEntityMekanism;
@@ -65,6 +71,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     private final IActionSource actionSource;
     private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final Map<AEKey, IPatternDetails> patternsByDefinition = new HashMap<>();
     private final List<OutputInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
@@ -94,6 +101,14 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         return Collections.unmodifiableList(this.patternSlots);
     }
 
+    public IInventorySlotHolder withPatternSlots(IInventorySlotHolder original) {
+        return side -> {
+            List<IInventorySlot> slots = new ArrayList<>(original.getInventorySlots(side));
+            slots.addAll(this.patternSlots);
+            return slots;
+        };
+    }
+
     public List<IPatternDetails> getAvailablePatterns() {
         return Collections.unmodifiableList(this.patterns);
     }
@@ -113,6 +128,27 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         this.patternTerminalName = MeAeMachine.sanitizePatternTerminalName(name);
         if (this.mainNode.getNode() != null) {
             ICraftingProvider.requestUpdate(this.mainNode);
+        }
+    }
+
+    public void createOnFirstTick() {
+        GridHelper.onFirstTick(this.owner, tile -> {
+            MeRecipeMachineAeSupport<?> support = tile.getRecipeAeSupport();
+            if (support != null) {
+                support.create(tile.getLevel(), tile.getBlockPos());
+            }
+        });
+    }
+
+    public void destroyNode() {
+        destroy();
+    }
+
+    public void addAeTrackers(MekanismContainer container, Supplier<AeOutputMode> outputModeSupplier,
+            Consumer<AeOutputMode> outputModeSetter, boolean trackSmartPatternMultiplication) {
+        container.track(SyncableInt.create(() -> outputModeSupplier.get().ordinal(), mode -> outputModeSetter.accept(AeOutputMode.byId(mode))));
+        if (trackSmartPatternMultiplication) {
+            container.track(SyncableBoolean.create(this.owner::isSmartPatternMultiplicationEnabled, this.owner::setSmartPatternMultiplicationEnabled));
         }
     }
 
@@ -160,7 +196,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     private boolean processSmartPatternWithPattern(MeSmartPatternMultiplication.PatternFeeder feeder) {
-        boolean changed = this.smartPatternMultiplication.processNext(this.patterns, feeder);
+        boolean changed = this.smartPatternMultiplication.processNext(this.patternsByDefinition, feeder);
         if (changed) {
             this.owner.setChanged();
             if (this.smartPatternMultiplication.hasPendingWork()) {
@@ -406,12 +442,15 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public void updatePatterns() {
         this.patterns.clear();
+        this.patternsByDefinition.clear();
         for (BasicInventorySlot patternSlot : this.patternSlots) {
             ItemStack stack = patternSlot.getStack();
             if (!stack.isEmpty()) {
-                IPatternDetails pattern = PatternDetailsHelper.decodePattern(stack, this.owner.getLevel());
+                IPatternDetails pattern = MePatternDecodeHelper.safeDecode(stack, this.owner.getLevel(), this.owner.getBlockPos(),
+                        this.owner.getBlockState().getBlock().getDescriptionId());
                 if (pattern != null) {
                     this.patterns.add(pattern);
+                    this.patternsByDefinition.putIfAbsent(pattern.getDefinition(), pattern);
                 }
             }
         }
@@ -453,93 +492,37 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         updatePatterns();
     }
 
-    public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
-            implements MeNetworkEnergyHelper.LocalEnergyBuffer {
-        private final MeAeMachine aeMachine;
-        private final IActionSource actionSource;
-
-        public AeBackedEnergyContainer(TILE owner, MeRecipeMachineAeSupport<?> support, IContentsListener listener) {
-            super(MachineEnergyContainer.validateBlock(owner).getStorage(), MachineEnergyContainer.validateBlock(owner).getUsage(),
-                    BasicEnergyContainer.notExternal, ConstantPredicates.alwaysTrue(), owner, listener);
-            this.aeMachine = (MeAeMachine) owner;
-            this.actionSource = IActionSource.ofMachine((IActionHost) owner);
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this, this.aeMachine.getGrid(), this.actionSource, amount, action, automationType);
-        }
-
-        @Override
-        public long getLocalEnergy() {
-            return super.getEnergy();
-        }
-
-        @Override
-        public long extractLocal(long amount, Action action, AutomationType automationType) {
-            return super.extract(amount, action, automationType);
-        }
-
-        private long extractAeAsFe(long requestedFe, Action action) {
-            return MeNetworkEnergyHelper.extractNetworkFe(this.aeMachine.getGrid(), this.actionSource, requestedFe, action);
-        }
+    public void saveAeState(CompoundTag tag, HolderLookup.Provider registries, AeOutputMode aeOutputMode) {
+        tag.putInt("AeOutputMode", aeOutputMode.ordinal());
+        save(tag);
+        saveSlots(tag, registries);
     }
 
-    public static final class RecipeEnergyView implements IEnergyContainer {
+    public AeOutputMode loadAeState(CompoundTag tag, HolderLookup.Provider registries) {
+        AeOutputMode aeOutputMode = AeOutputMode.byId(tag.getInt("AeOutputMode"));
+        load(tag);
+        loadSlots(tag, registries);
+        return aeOutputMode;
+    }
+
+    public static final class AeBackedEnergyContainer<TILE extends TileEntityMekanism>
+            extends MeNetworkEnergyHelper.NetworkBackedEnergyContainer<TILE> {
         private final MeAeMachine aeMachine;
-        private final IActionSource actionSource;
-        private final MachineEnergyContainer<?> energyContainer;
 
-        public RecipeEnergyView(AeBackedEnergyContainer<?> energyContainer) {
-            this(energyContainer.aeMachine, energyContainer.actionSource, energyContainer);
+        public AeBackedEnergyContainer(TILE owner, MeRecipeMachineAeSupport<?> support, IContentsListener listener) {
+            super(owner, listener, () -> ((MeAeMachine) owner).getGrid(), () -> recipeActionSource((MeAeMachine) owner));
+            this.aeMachine = (MeAeMachine) owner;
         }
 
-        public RecipeEnergyView(MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer) {
-            this.aeMachine = aeMachine;
-            this.actionSource = actionSource;
-            this.energyContainer = energyContainer;
-        }
-
-        @Override
-        public long getEnergy() {
-            return MeNetworkEnergyHelper.availableWithLocalBuffer(this.energyContainer, this.aeMachine.getGrid(), this.actionSource);
-        }
-
-        @Override
-        public void setEnergy(long energy) {
-            this.energyContainer.setEnergy(energy);
-        }
-
-        @Override
-        public long extract(long amount, Action action, AutomationType automationType) {
-            return MeNetworkEnergyHelper.extractWithLocalBuffer(this.energyContainer, this.aeMachine.getGrid(), this.actionSource, amount, action, automationType);
-        }
-
-        @Override
-        public long getMaxEnergy() {
-            return this.energyContainer.getMaxEnergy();
-        }
-
-        @Override
-        public void onContentsChanged() {
-            this.energyContainer.onContentsChanged();
-        }
-
-        @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-            return this.energyContainer.serializeNBT(provider);
-        }
-
-        @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
-            this.energyContainer.deserializeNBT(provider, nbt);
+        private IActionSource actionSource() {
+            return recipeActionSource(this.aeMachine);
         }
     }
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
             MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
         return energyContainer instanceof AeBackedEnergyContainer<?> aeBackedEnergyContainer
-                ? withAeRecipeEnergy(aeBackedEnergyContainer.aeMachine, aeBackedEnergyContainer.actionSource, energyContainer, cachedRecipe)
+                ? withAeRecipeEnergy(aeBackedEnergyContainer.aeMachine, aeBackedEnergyContainer.actionSource(), energyContainer, cachedRecipe)
                 : cachedRecipe;
     }
 
@@ -550,7 +533,13 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
             MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
-        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick, new RecipeEnergyView(aeMachine, actionSource, energyContainer));
+        return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick,
+                MeNetworkEnergyHelper.recipeEnergyView(energyContainer, aeMachine::getGrid, actionSource));
+    }
+
+    private static IActionSource recipeActionSource(MeAeMachine aeMachine) {
+        MeRecipeMachineAeSupport<?> support = aeMachine.getRecipeAeSupport();
+        return support == null ? null : support.actionSource;
     }
 
     private enum NodeListener implements IGridNodeListener<TileEntityMekanism> {

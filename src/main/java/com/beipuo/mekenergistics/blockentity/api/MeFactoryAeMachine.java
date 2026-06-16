@@ -1,5 +1,6 @@
 package com.beipuo.mekenergistics.blockentity.api;
 
+import appeng.api.crafting.IPatternDetails;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
@@ -16,8 +17,10 @@ import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.sync.SyncableInt;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.lib.transmitter.TransmissionType;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlockEntity, IActionHost, MeSmartCableConnection, appeng.helpers.patternprovider.PatternContainer {
     MeFactoryAeSupport getAeSupport();
@@ -33,6 +36,9 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
 
     @Override
     default void saveChanges() {
+        if (getAeSupport().suppressesFeedSaveChanges()) {
+            return;
+        }
         if (this instanceof net.minecraft.world.level.block.entity.BlockEntity blockEntity) {
             blockEntity.setChanged();
         }
@@ -40,6 +46,16 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
 
     default List<BasicInventorySlot> getPatternSlots() {
         return getAeSupport().getPatternSlots();
+    }
+
+    @Override
+    default List<IPatternDetails> getAvailablePatterns() {
+        return getAeSupport().getAvailablePatterns();
+    }
+
+    @Override
+    default int getPatternPriority() {
+        return getAeSupport().getPatternPriority();
     }
 
     default AeOutputMode getAeOutputMode() {
@@ -92,6 +108,12 @@ public interface MeFactoryAeMachine extends ICraftingProvider, IGridConnectedBlo
 
     @Override
     default IGridNode getActionableNode() {
+        return getMainNode().getNode();
+    }
+
+    @Nullable
+    @Override
+    default IGridNode getGridNode(Direction dir) {
         return getMainNode().getNode();
     }
 

@@ -1,13 +1,13 @@
 package com.beipuo.mekenergistics.client.overlay;
 
 import appeng.api.client.AEKeyRendering;
-import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.stacks.AmountFormat;
 import appeng.api.stacks.GenericStack;
 import appeng.client.gui.me.common.StackSizeRenderer;
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+import com.beipuo.mekenergistics.blockentity.support.MePatternDecodeHelper;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.network.packet.SetPatternTerminalNamePacket;
 import com.beipuo.mekenergistics.network.packet.SetSmartPatternMultiplicationPacket;
@@ -407,7 +407,7 @@ public final class MePatternWindowOverlay {
             if (minecraft.level == null) {
                 return null;
             }
-            var pattern = PatternDetailsHelper.decodePattern(patternStack, minecraft.level);
+            var pattern = MePatternDecodeHelper.safeDecode(patternStack, minecraft.level, "pattern window preview");
             if (pattern == null || pattern.getOutputs().isEmpty()) {
                 return null;
             }

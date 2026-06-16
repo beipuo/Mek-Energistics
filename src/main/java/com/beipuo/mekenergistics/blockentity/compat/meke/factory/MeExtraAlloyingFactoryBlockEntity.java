@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.compat.meke.factory;
 
+import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
+
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.compat.shared.MeExternalFactorySupport;
@@ -28,7 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MeExtraAlloyingFactoryBlockEntity extends TileEntityExtraAlloyingFactory implements MeExtraFactoryAeMachine, MeExternalFactorySupport.Owner {
+public class MeExtraAlloyingFactoryBlockEntity extends TileEntityExtraAlloyingFactory implements MeExternalFactorySupport.Owner {
     private final MeMekanismMachine machine;
     private MeFactoryAeSupport aeSupport;
 
@@ -57,18 +59,15 @@ public class MeExtraAlloyingFactoryBlockEntity extends TileEntityExtraAlloyingFa
     @Override public MeFactoryAeSupport getAeSupport() { if (this.aeSupport == null) this.aeSupport = new MeFactoryAeSupport(this); return this.aeSupport; }
     @Override public MeMekanismMachine getMachine() { return this.machine; }
     @Override public Level getOwnerLevel() { return getLevel(); }
-    @Override public List<IPatternDetails> getAvailablePatterns() { return MeExternalFactorySupport.getAvailablePatterns(getAeSupport()); }
-    @Override public int getPatternPriority() { return getAeSupport().getPatternPriority(); }
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return getMainNode().isActive() && getAvailablePatterns().contains(patternDetails) && MeExternalFactorySupport.pushThreeItems(this, patternDetails, inputHolder, getExtraSlot(), getSecondExtraSlot()); }
     @Override public boolean isBusy() { return false; }
     @Nullable @Override public IRecipeViewerRecipeType<AlloyerRecipe> recipeViewerType() { return EvolvedMekanismRecipeViewerTypes.ALLOYING; }
     @Override public void addContainerTrackers(MekanismContainer container) { super.addContainerTrackers(container); addAeOutputModeTracker(container); }
     @Override public CachedRecipe<AlloyerRecipe> createNewCachedRecipe(@NotNull AlloyerRecipe recipe, int cacheIndex) { return MeExternalFactorySupport.wrapRecipeEnergy(this, this.energyContainer, super.createNewCachedRecipe(recipe, cacheIndex)); }
-    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExternalFactorySupport.drainOutputs(this); sendUpdatePacket |= super.onUpdateServer(); return MeExternalFactorySupport.updateServer(this, sendUpdatePacket); }
+    @Override protected boolean onUpdateServer() { boolean sendUpdatePacket = MeExternalFactorySupport.processThreeItemsSmartPatterns(this, getExtraSlot(), getSecondExtraSlot()); sendUpdatePacket |= super.onUpdateServer(); return MeExternalFactorySupport.updateServer(this, sendUpdatePacket, () -> MeExternalFactorySupport.finishThreeItemsSmartPatterns(this, getExtraSlot(), getSecondExtraSlot())); }
     @Override public void clearRemoved() { super.clearRemoved(); MeExternalFactorySupport.createNodeOnFirstTick(this, getAeSupport(), getLevel(), getBlockPos()); }
     @Override public void setRemoved() { getAeSupport().destroy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { getAeSupport().destroy(); super.onChunkUnloaded(); }
-    @Nullable @Override public appeng.api.networking.IGridNode getGridNode(Direction dir) { return MeExtraFactoryAeMachine.super.getGridNode(dir); }
     @Override public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.saveAdditional(tag, registries); MeExternalFactorySupport.save(getAeSupport(), tag, registries); }
     @Override public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) { super.loadAdditional(tag, registries); MeExternalFactorySupport.load(getAeSupport(), tag, registries); }
 }
