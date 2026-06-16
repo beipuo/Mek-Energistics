@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.5
+
+### Change
+
+- Added EvolvedMekanism machine compatibility for ME Solidification Chamber, ME Thermalizer, and ME Chemical Mixer.
+- Added smart pattern multiplication and faster pattern processing for ME machines and factories.
+- Added safer shared AE output, pattern insertion, and network-energy helpers across Mekanism, Mekanism Extras, Mekanism: MoreMachine, EvolvedMekanism, and EvolvedMekanismExtras machines.
+- Added a CurseForge publish workflow for GitHub release based publishing.
+- Improved ME pattern-machine menus, quick move behavior, and configurable tile screens.
+
+### Fix
+
+- Fixed recipe AE support initialization order for regular recipe machines, chemical machines, Mekanism: MoreMachine machines, and compat factories.
+- Fixed malformed encoded pattern handling so invalid third-party patterns are skipped safely instead of crashing the machine integration path.
+- Fixed AE-backed energy container construction order and recipe energy usage wrappers.
+- Fixed optional EvolvedMekanism, EvolvedMekanismExtras, Mekanism Extras, and Mekanism: MoreMachine factory support delegates.
+- Fixed client setup registration on the mod event bus.
+
 ## 1.0.0
 
 ### Change
