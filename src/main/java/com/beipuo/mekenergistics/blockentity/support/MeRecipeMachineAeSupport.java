@@ -32,7 +32,9 @@ import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import mekanism.api.Action;
@@ -69,6 +71,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     private final IActionSource actionSource;
     private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final Map<AEKey, IPatternDetails> patternsByDefinition = new HashMap<>();
     private final List<OutputInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
@@ -193,7 +196,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     }
 
     private boolean processSmartPatternWithPattern(MeSmartPatternMultiplication.PatternFeeder feeder) {
-        boolean changed = this.smartPatternMultiplication.processNext(this.patterns, feeder);
+        boolean changed = this.smartPatternMultiplication.processNext(this.patternsByDefinition, feeder);
         if (changed) {
             this.owner.setChanged();
             if (this.smartPatternMultiplication.hasPendingWork()) {
@@ -439,6 +442,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public void updatePatterns() {
         this.patterns.clear();
+        this.patternsByDefinition.clear();
         for (BasicInventorySlot patternSlot : this.patternSlots) {
             ItemStack stack = patternSlot.getStack();
             if (!stack.isEmpty()) {
@@ -446,6 +450,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
                         this.owner.getBlockState().getBlock().getDescriptionId());
                 if (pattern != null) {
                     this.patterns.add(pattern);
+                    this.patternsByDefinition.putIfAbsent(pattern.getDefinition(), pattern);
                 }
             }
         }

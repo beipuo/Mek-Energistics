@@ -94,7 +94,7 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
         if (input.isEmpty()) {
             return false;
         }
-        List<ItemStack> snapshot = MeFactoryInventoryInsert.snapshotSlots(this.inputSlots);
+        List<ItemStack> snapshot = knownFits ? MeFactoryInventoryInsert.snapshotSlots(this.inputSlots) : null;
         boolean inserted = knownFits
                 ? MeFactoryInventoryInsert.insertAcrossSlotsKnownFits(this.inputSlots, input)
                 : MeFactoryInventoryInsert.insertAcrossSlots(this.inputSlots, input);
@@ -102,7 +102,9 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
             saveChanges();
             return true;
         }
-        MeFactoryInventoryInsert.restoreSlots(this.inputSlots, snapshot);
+        if (knownFits) {
+            MeFactoryInventoryInsert.restoreSlots(this.inputSlots, snapshot);
+        }
         return false;
     }
 
@@ -121,8 +123,7 @@ public class MeItemStackToItemStackFactoryBlockEntity extends TileEntityItemStac
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = this.aeSupport.processSmartPatternIfOutputsClear(this.itemInputFeeder, this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
-        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
-        return this.aeSupport.processSmartPatternIfNoItemOutputBacklog(this.itemInputFeeder, this.outputSlots) || sendUpdatePacket;
+        return this.aeSupport.processSmartPatternAfterOutputDrain(this.itemInputFeeder, this.outputSlots, sendUpdatePacket);
     }
 
     @Override

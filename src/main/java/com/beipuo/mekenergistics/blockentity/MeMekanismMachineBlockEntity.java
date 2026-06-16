@@ -160,7 +160,9 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             this.operatingTicks = 0;
             setActive(false);
         }
-        this.aeOutput.process();
+        if (this.aeOutput.hasWork()) {
+            this.aeOutput.process();
+        }
         return sendUpdatePacket;
     }
 

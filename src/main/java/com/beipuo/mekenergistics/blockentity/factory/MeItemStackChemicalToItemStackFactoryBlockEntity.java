@@ -134,8 +134,7 @@ public class MeItemStackChemicalToItemStackFactoryBlockEntity extends TileEntity
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = this.aeSupport.processSmartPatternIfOutputsClear(this.itemChemicalInputFeeder, this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
-        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
-        return this.aeSupport.processSmartPatternIfNoItemOutputBacklog(this.itemChemicalInputFeeder, this.outputSlots) || sendUpdatePacket;
+        return this.aeSupport.processSmartPatternAfterOutputDrain(this.itemChemicalInputFeeder, this.outputSlots, sendUpdatePacket);
     }
 
     @Override

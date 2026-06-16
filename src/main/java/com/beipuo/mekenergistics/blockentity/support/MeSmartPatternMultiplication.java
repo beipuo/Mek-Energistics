@@ -88,6 +88,14 @@ public final class MeSmartPatternMultiplication {
     }
 
     public boolean processNext(List<IPatternDetails> patterns, PatternFeeder feeder) {
+        Map<AEKey, IPatternDetails> patternsByDefinition = new HashMap<>(patterns.size());
+        for (IPatternDetails pattern : patterns) {
+            patternsByDefinition.putIfAbsent(pattern.getDefinition(), pattern);
+        }
+        return processNext(patternsByDefinition, feeder);
+    }
+
+    public boolean processNext(Map<AEKey, IPatternDetails> patternsByDefinition, PatternFeeder feeder) {
         boolean changed = false;
         int patternsVisited = 0;
         int feeds = 0;
@@ -100,7 +108,7 @@ public final class MeSmartPatternMultiplication {
                 changed = true;
                 continue;
             }
-            IPatternDetails patternDetails = findPattern(patterns, pendingPattern.definition);
+            IPatternDetails patternDetails = patternsByDefinition.get(pendingPattern.definition);
             if (patternDetails == null) {
                 advancePendingScanIndex();
                 continue;
@@ -304,16 +312,6 @@ public final class MeSmartPatternMultiplication {
         private PendingKey {
             inputs = List.copyOf(inputs);
         }
-    }
-
-    @Nullable
-    private static IPatternDetails findPattern(List<IPatternDetails> patterns, AEKey definition) {
-        for (IPatternDetails pattern : patterns) {
-            if (pattern.getDefinition().equals(definition)) {
-                return pattern;
-            }
-        }
-        return null;
     }
 
     private static final class PendingPattern {

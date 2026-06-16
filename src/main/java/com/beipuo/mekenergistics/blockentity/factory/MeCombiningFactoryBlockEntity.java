@@ -121,8 +121,7 @@ public class MeCombiningFactoryBlockEntity extends TileEntityCombiningFactory im
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = this.aeSupport.processSmartPatternIfOutputsClear(this.combiningInputFeeder, this.outputSlots);
         sendUpdatePacket |= super.onUpdateServer();
-        sendUpdatePacket |= this.aeSupport.insertOutputSlotsIntoNetwork(this.outputSlots);
-        return this.aeSupport.processSmartPatternIfNoItemOutputBacklog(this.combiningInputFeeder, this.outputSlots) || sendUpdatePacket;
+        return this.aeSupport.processSmartPatternAfterOutputDrain(this.combiningInputFeeder, this.outputSlots, sendUpdatePacket);
     }
     @Override public void clearRemoved() { super.clearRemoved(); this.aeSupport.createNodeOnFirstTick(this); }
     @Override public void setRemoved() { this.aeSupport.destroy(); super.setRemoved(); }

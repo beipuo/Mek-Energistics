@@ -34,7 +34,9 @@ import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.registry.ModBlocks;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import mekanism.api.Action;
 import mekanism.api.IContentsListener;
 import mekanism.api.chemical.ChemicalStack;
@@ -66,6 +68,7 @@ public final class MeFactoryAeSupport {
     private final List<BasicInventorySlot> patternSlots = new ArrayList<>(MekEnergisticsConfig.patternSlots());
     private final InternalInventory terminalPatternInventory = new PatternSlotInternalInventory(new PatternSlotOwner());
     private final List<IPatternDetails> patterns = new ArrayList<>();
+    private final Map<AEKey, IPatternDetails> patternsByDefinition = new HashMap<>();
     private final List<IInventorySlot> knownOutputSlots = new ArrayList<>();
     private final List<IChemicalTank> knownChemicalOutputTanks = new ArrayList<>();
     private final List<IExtendedFluidTank> knownFluidOutputTanks = new ArrayList<>();
@@ -180,6 +183,12 @@ public final class MeFactoryAeSupport {
         return hasItemOutputBacklog(outputSlots) ? false : processSmartPattern(feeder);
     }
 
+    public boolean processSmartPatternAfterOutputDrain(MeSmartPatternMultiplication.Feeder feeder, List<IInventorySlot> outputSlots, boolean changed) {
+        markOwnerHandlesSmartPatternProcessing();
+        changed = insertOutputSlotsIntoNetwork(outputSlots) || changed;
+        return hasItemOutputBacklog(outputSlots) ? changed : processSmartPattern(feeder) || changed;
+    }
+
     public void markOwnerHandlesSmartPatternProcessing() {
         this.ownerHandlesSmartPatternProcessing = true;
     }
@@ -199,7 +208,7 @@ public final class MeFactoryAeSupport {
     }
 
     private boolean processSmartPatternWithPattern(MeSmartPatternMultiplication.PatternFeeder feeder) {
-        boolean changed = this.smartPatternMultiplication.processNext(this.patterns, feeder);
+        boolean changed = this.smartPatternMultiplication.processNext(this.patternsByDefinition, feeder);
         if (changed) {
             this.owner.saveChanges();
             if (this.smartPatternMultiplication.hasPendingWork()) {
@@ -469,6 +478,7 @@ public final class MeFactoryAeSupport {
 
     public void updatePatterns() {
         this.patterns.clear();
+        this.patternsByDefinition.clear();
         Level level = this.owner.getOwnerLevel();
         for (BasicInventorySlot patternSlot : this.patternSlots) {
             ItemStack stack = patternSlot.getStack();
@@ -477,6 +487,7 @@ public final class MeFactoryAeSupport {
                         ((TileEntityMekanism) this.owner).getBlockPos(), this.owner.getMachine().name());
                 if (pattern != null) {
                     this.patterns.add(pattern);
+                    this.patternsByDefinition.putIfAbsent(pattern.getDefinition(), pattern);
                 }
             }
         }

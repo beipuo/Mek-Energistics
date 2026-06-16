@@ -474,12 +474,14 @@ public final class MeExternalFactorySupport {
         if (input.isEmpty()) {
             return false;
         }
-        List<ItemStack> snapshot = MeFactoryInventoryInsert.snapshotSlots(owner.meInputSlots());
+        List<ItemStack> snapshot = knownFits ? MeFactoryInventoryInsert.snapshotSlots(owner.meInputSlots()) : null;
         if (insertItemInput(owner, input, knownFits)) {
             owner.saveChanges();
             return true;
         }
-        MeFactoryInventoryInsert.restoreSlots(owner.meInputSlots(), snapshot);
+        if (knownFits) {
+            MeFactoryInventoryInsert.restoreSlots(owner.meInputSlots(), snapshot);
+        }
         return false;
     }
 
