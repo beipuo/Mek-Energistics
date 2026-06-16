@@ -1,7 +1,6 @@
 package com.beipuo.mekenergistics.blockentity.compat.mekmm.machine;
 
 import appeng.api.crafting.IPatternDetails;
-import appeng.api.networking.IGrid;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.stacks.KeyCounter;
@@ -9,17 +8,15 @@ import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeSmartCableConnection;
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
+import com.beipuo.mekenergistics.blockentity.support.MeRecipeMachineAeSupport;
 import com.jerry.mekmm.common.tile.machine.TileEntityPlantingStation;
-import java.util.List;
 import mekanism.api.IContentsListener;
 import mekanism.common.capabilities.holder.chemical.IChemicalTankHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.inventory.container.MekanismContainer;
-import mekanism.common.inventory.slot.BasicInventorySlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,15 +63,8 @@ public class MePlantingStationBlockEntity extends TileEntityPlantingStation impl
 
     @Override public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) { return this.meSupport().pushPattern(patternDetails, inputHolder); }
     @Override public boolean isBusy() { return this.meSupport().isBusy(); }
-    @Override public List<IPatternDetails> getAvailablePatterns() { return this.meSupport().getAvailablePatterns(); }
-    @Override public int getPatternPriority() { return this.meSupport().getPatternPriority(); }
-    @Override public String getCustomPatternTerminalName() { return this.meSupport().getCustomPatternTerminalName(); }
-    @Override public void setCustomPatternTerminalName(String name) { this.meSupport().setCustomPatternTerminalName(name); }
-    @Override public List<BasicInventorySlot> getPatternSlots() { return this.meSupport().getPatternSlots(); }
     @Override public MeMekanismMachine getMachine() { return this.meSupport().getMachine(); }
-    @Override public ItemStack getTerminalIconStack() { return this.meSupport().getTerminalIconStack(); }
-    @Override public IGrid getGrid() { return this.meSupport().getGrid(); }
-    public appeng.api.networking.IManagedGridNode getMainNode() { return this.meSupport().getMainNode(); }
+    @Override public MeRecipeMachineAeSupport<?> getRecipeAeSupport() { return this.meSupport().aeSupport(); }
     @Override public AeOutputMode getAeOutputMode() { return this.meSupport().getAeOutputMode(); }
     @Override public void cycleAeOutputMode() { this.meSupport().cycleAeOutputMode(); }
     @Override public void clearRemoved() { super.clearRemoved(); this.meSupport().clearRemoved(); }
