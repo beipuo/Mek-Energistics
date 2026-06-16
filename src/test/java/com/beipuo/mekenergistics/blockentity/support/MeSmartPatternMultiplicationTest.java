@@ -36,6 +36,21 @@ class MeSmartPatternMultiplicationTest {
     }
 
     @Test
+    void capacityAwareFeederUsesCombinedFactorySlotCapacity() {
+        FakeKey inputKey = new FakeKey("iron_factory");
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+
+        assertTrue(multiplication.enqueueForTesting(inputKey, List.of(new GenericStack(inputKey, 8)), 1_000));
+
+        CountingFeeder feeder = new CountingFeeder(inputKey, 464 / 8);
+        assertTrue(multiplication.processNext(feeder));
+
+        assertEquals(56, feeder.acceptedCopies);
+        assertEquals(1, feeder.feedCalls);
+        assertTrue(multiplication.hasPendingWork());
+    }
+
+    @Test
     void repeatedPatternsMergeBeforeProcessing() {
         FakeKey inputKey = new FakeKey("gold");
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();

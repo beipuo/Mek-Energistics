@@ -160,7 +160,7 @@ final class MeMekanismMachinePatternInput {
         }
 
         ItemStack existing = simulated[slot];
-        int limit = Math.min(stack.getMaxStackSize(), owner.getSlotLimit(slot, stack));
+        int limit = owner.getSlotLimit(slot, stack);
         if (existing.isEmpty()) {
             if (stack.getCount() > limit) {
                 return false;
@@ -172,7 +172,7 @@ final class MeMekanismMachinePatternInput {
         if (!ItemStack.isSameItemSameComponents(existing, stack)) {
             return false;
         }
-        int existingLimit = Math.min(existing.getMaxStackSize(), owner.getSlotLimit(slot, existing));
+        int existingLimit = owner.getSlotLimit(slot, existing);
         if (existing.getCount() + stack.getCount() > existingLimit) {
             return false;
         }
