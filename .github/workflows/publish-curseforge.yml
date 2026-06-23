@@ -67,6 +67,11 @@ jobs:
           version-type: ${{ github.event.inputs.version_type || 'release' }}
           changelog: ${{ github.event.release.body || github.event.inputs.changelog }}
 
+          dependencies: |
+            curseforge:223794(required)
+            curseforge:268560(required)
+            curseforge:574300(required)
+
           loaders: |
             neoforge
           game-versions: |
