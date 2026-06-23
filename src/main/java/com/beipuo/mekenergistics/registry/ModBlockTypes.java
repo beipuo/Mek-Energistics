@@ -89,7 +89,7 @@ public final class ModBlockTypes {
         if (customShape != null) {
             builder.withCustomShape(customShape);
         }
-        if (machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
+        if (machine == MeMekanismMachine.SOLAR_NEUTRON_ACTIVATOR || machine == MeMekanismMachine.ISOTOPIC_CENTRIFUGE) {
             builder.with(AttributeHasBounding.ABOVE_ONLY);
         }
         MeMekanismMachine upgradeTarget = machine.isFactory() ? machine.getNextFactory() : machine.getBasicFactory();

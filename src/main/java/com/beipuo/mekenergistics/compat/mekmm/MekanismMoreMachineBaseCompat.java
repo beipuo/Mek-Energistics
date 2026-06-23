@@ -26,6 +26,7 @@ import com.jerry.mekmm.common.registries.MoreMachineContainerTypes;
 import java.util.Locale;
 import mekanism.api.Upgrade;
 import mekanism.common.block.attribute.Attribute;
+import mekanism.common.block.attribute.AttributeHasBounding;
 import mekanism.common.block.attribute.AttributeStateFacing;
 import mekanism.common.block.attribute.AttributeTier;
 import mekanism.common.block.attribute.Attributes;
@@ -99,7 +100,9 @@ public final class MekanismMoreMachineBaseCompat {
                 .withSupportedUpgrades(Upgrade.SPEED, Upgrade.ENERGY)
                 .with(new MoreMachineAttributeFactoryType(moreMachineFactoryType(machine)));
         switch (machine) {
-            case PLANTING_STATION -> builder.withCustomShape(MoreMachineBlockShapes.PLANTING_STATION);
+            case PLANTING_STATION -> builder
+                    .withCustomShape(MoreMachineBlockShapes.PLANTING_STATION)
+                    .with(AttributeHasBounding.ABOVE_ONLY);
             case REPLICATOR -> builder.withCustomShape(MoreMachineBlockShapes.REPLICATOR);
             default -> {
             }
