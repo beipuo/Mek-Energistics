@@ -112,7 +112,10 @@ public class MeMachineBlockItem extends BlockItem implements ICapabilityAware, I
             StorageUtils.addStoredEnergy(stack, tooltip, false);
         }
         if (Attribute.has(block, AttributeInventory.class) && ContainerType.ITEM.supports(stack)) {
-            tooltip.add(MekanismLang.HAS_INVENTORY.translateColored(EnumColor.AQUA, EnumColor.GRAY, YesNo.hasInventory(stack)));
+            try {
+                tooltip.add(MekanismLang.HAS_INVENTORY.translateColored(EnumColor.AQUA, EnumColor.GRAY, YesNo.hasInventory(stack)));
+            } catch (IllegalArgumentException ignored) {
+            }
         }
         if (Attribute.has(block, AttributeUpgradeSupport.class)) {
             UpgradeAware upgradeAware = stack.get(MekanismDataComponents.UPGRADES);

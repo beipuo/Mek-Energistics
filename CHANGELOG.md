@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.7
+
+### Fix
+
+- Fixed a client crash when showing details for ME factory item tooltips if Mekanism reports no known item containers for the factory stack.
+
 ## 1.0.5
 
 ### Change
