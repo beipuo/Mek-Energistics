@@ -172,7 +172,7 @@ public abstract class TileEntityElectricMachineMeUpgradeMixin implements MeUpgra
             at = @At("RETURN"), cancellable = true)
     private void mekenergistics$wrapRecipeEnergy(ItemStackToItemStackRecipe recipe, int cacheIndex,
           CallbackInfoReturnable<CachedRecipe<ItemStackToItemStackRecipe>> cir) {
-        if (isMeUpgradeTarget() && isMeUpgradeActive()) {
+        if (isMeUpgradeTarget()) {
             TileEntityElectricMachine tile = (TileEntityElectricMachine) (Object) this;
             cir.setReturnValue(mekenergistics$support().wrapRecipeEnergy(
                     tile.getEnergyContainer(), cir.getReturnValue()));

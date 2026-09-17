@@ -17,7 +17,7 @@ public abstract class TileEntityChemicalFactoryMeUpgradeEnergyMixin {
     private void mekenergistics$wrapFactoryRecipeEnergy(ItemStackChemicalToItemStackRecipe recipe, int cacheIndex,
             CallbackInfoReturnable<CachedRecipe<ItemStackChemicalToItemStackRecipe>> cir) {
         MeUpgradeableMachine machine = (MeUpgradeableMachine) this;
-        if (machine.isMeUpgradeTarget() && machine.isMeUpgradeActive()) {
+        if (machine.isMeUpgradeTarget()) {
             TileEntityItemStackChemicalToItemStackFactory tile =
                     (TileEntityItemStackChemicalToItemStackFactory) (Object) this;
             cir.setReturnValue(((MeRecipeMachineAeSupport<?>) machine.getRecipeAeSupport())

@@ -3,8 +3,13 @@ package com.beipuo.mekenergistics.mixin;
 import com.beipuo.mekenergistics.upgrade.MeMekanismUpgrades;
 import com.beipuo.mekenergistics.upgrade.MeUpgradeConflictPolicy;
 import com.beipuo.mekenergistics.upgrade.MeUpgradeStateOwner;
+import com.beipuo.mekenergistics.upgrade.MeUpgradeComponentState;
+import com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer;
 import mekanism.api.Upgrade;
 import mekanism.common.tile.component.TileComponentUpgrade;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,10 +20,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /** Forwards native Mekanism upgrade changes into the existing AE lifecycle. */
 @Mixin(value = TileComponentUpgrade.class, remap = false)
-public abstract class TileComponentUpgradeMixin {
+public abstract class TileComponentUpgradeMixin implements MeUpgradeComponentState {
     @Shadow
     @Final
     private mekanism.common.tile.base.TileEntityMekanism tile;
+
+    @Override
+    public CompoundTag mekenergistics$captureTierState(HolderLookup.Provider registries) {
+        var state = MePatternSlotTransfer.saveMeState(this.tile, registries);
+        state.merge(MePatternSlotTransfer.save(this.tile, registries));
+        return state;
+    }
+
+    @Inject(method = "deserialize", at = @At("RETURN"))
+    private void mekenergistics$restoreTierState(CompoundTag tag,
+            HolderLookup.Provider registries, CallbackInfo ci) {
+        if (tag.contains(TRANSFER_TAG, Tag.TAG_COMPOUND)) {
+            var state = tag.getCompound(TRANSFER_TAG);
+            MePatternSlotTransfer.loadMeState(this.tile, registries, state);
+            MePatternSlotTransfer.load(this.tile, registries, state);
+        }
+    }
 
     @Inject(method = "addUpgrades(Lmekanism/api/Upgrade;I)I", at = @At("RETURN"))
     private void mekenergistics$upgradeInstalled(Upgrade upgrade, int maxAvailable,

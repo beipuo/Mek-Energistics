@@ -159,7 +159,7 @@ public abstract class MekanismChemicalRecipeMachineMeUpgradeMixin implements MeU
     private <RECIPE extends MekanismRecipe<?>> void mekenergistics$wrapEnergy(CallbackInfoReturnable<CachedRecipe<RECIPE>> cir) {
         MachineEnergyContainer<?> energyContainer = mekenergistics$energyContainer();
         if (energyContainer != null) {
-            cir.setReturnValue(mekenergistics$runtime().wrapEnergy(energyContainer, cir.getReturnValue(), isMeUpgradeActive()));
+            cir.setReturnValue(mekenergistics$runtime().wrapEnergy(energyContainer, cir.getReturnValue()));
         }
     }
 

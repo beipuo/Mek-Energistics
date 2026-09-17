@@ -48,12 +48,12 @@ class MekanismRecipeUpgradeContractTest {
     }
 
     @Test
-    void wrapsEveryRecipeFamilyOnlyWhileUpgradeIsActive() throws IOException {
+    void wrapsEverySupportedRecipeFamilyBeforeInstallation() throws IOException {
         String source = Files.readString(MIXIN);
         assertTrue(source.contains("ItemStackChemicalToItemStackRecipe;I"));
         assertTrue(source.contains("CombinerRecipe;I"));
         assertTrue(source.contains("SawmillRecipe;I"));
-        assertTrue(source.contains("isMeUpgradeTarget() && isMeUpgradeActive()"));
+        assertTrue(source.contains("isMeUpgradeTarget()"));
         assertTrue(source.contains("wrapRecipeEnergy("));
     }
 

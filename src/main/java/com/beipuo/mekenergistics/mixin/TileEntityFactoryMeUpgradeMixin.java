@@ -103,9 +103,9 @@ public abstract class TileEntityFactoryMeUpgradeMixin implements MeUpgradeRecipe
             inputs.add(MeMachineIoAdapter.autoSortedFactoryItemInput(this.inputSlots));
             if (tile instanceof TileEntityItemStackChemicalToItemStackFactory chemicalFactory) {
                 inputs.add(MeMachineIoAdapter.chemicalInput(chemicalFactory.getChemicalTank()));
-                if (type != FactoryType.INFUSING) {
-                    inputs.add(MeMachineIoAdapter.itemInput(getExtraSlot()));
-                }
+                inputs.add(type == FactoryType.INFUSING
+                        ? MeMachineIoAdapter.manualItemInput(getExtraSlot())
+                        : MeMachineIoAdapter.itemInput(getExtraSlot()));
             } else if (type == FactoryType.COMBINING) {
                 inputs.add(MeMachineIoAdapter.itemInput(getExtraSlot()));
             }

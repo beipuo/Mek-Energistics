@@ -188,7 +188,7 @@ public abstract class MeklmLargeRecipeMachineMeUpgradeMixin implements MeUpgrade
 
     @Unique
     private <RECIPE extends MekanismRecipe<?>> void mekenergistics$wrapEnergy(CallbackInfoReturnable<CachedRecipe<RECIPE>> cir) {
-        cir.setReturnValue(mekenergistics$runtime().wrapEnergy(mekenergistics$energyContainer(), cir.getReturnValue(), isMeUpgradeActive()));
+        cir.setReturnValue(mekenergistics$runtime().wrapEnergy(mekenergistics$energyContainer(), cir.getReturnValue()));
     }
     @Unique
     private MachineEnergyContainer<?> mekenergistics$energyContainer() {

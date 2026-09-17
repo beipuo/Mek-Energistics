@@ -196,7 +196,7 @@ public abstract class TileEntityRecipeMachineMeUpgradeMixin implements MeUpgrade
     @Unique
     private <RECIPE extends MekanismRecipe<?>> void mekenergistics$wrapEnergy(
             CallbackInfoReturnable<CachedRecipe<RECIPE>> cir) {
-        if (isMeUpgradeTarget() && isMeUpgradeActive()) {
+        if (isMeUpgradeTarget()) {
             cir.setReturnValue(mekenergistics$support().wrapRecipeEnergy(mekenergistics$energyContainer(), cir.getReturnValue()));
         }
     }

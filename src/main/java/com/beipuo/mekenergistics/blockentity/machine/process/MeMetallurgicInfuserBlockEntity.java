@@ -93,6 +93,7 @@ public class MeMetallurgicInfuserBlockEntity extends TileEntityMetallurgicInfuse
         InputInventorySlot inputSlot = ((TileEntityMetallurgicInfuserAccessor) this).mekenergistics$getInputSlot();
         return MeInputLayout.unordered(java.util.List.of(
                 MeMachineIoAdapter.itemInput(inputSlot),
+                MeMachineIoAdapter.manualItemInput(((TileEntityMetallurgicInfuserAccessor) this).mekenergistics$getInfusionSlot()),
                 MeMachineIoAdapter.chemicalInput(this.infusionTank)));
     }
 

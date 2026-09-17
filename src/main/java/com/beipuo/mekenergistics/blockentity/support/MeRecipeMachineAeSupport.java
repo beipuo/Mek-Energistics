@@ -144,11 +144,19 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
             MeAeMachine aeMachine, IActionSource actionSource, MachineEnergyContainer<?> energyContainer, CachedRecipe<RECIPE> cachedRecipe) {
-        if (MeAeMachine.modeOf(aeMachine).isOutputInterface()) {
-            return cachedRecipe;
-        }
+        // Bind once even before installation. CachedRecipe survives upgrade changes;
+        // deciding at construction time leaves it using the old power source until reload.
         return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick,
-                MeNetworkEnergyHelper.recipeEnergyView(energyContainer, aeMachine::getGrid, actionSource));
+                MeNetworkEnergyHelper.recipeEnergyView(energyContainer, () -> recipeGrid(aeMachine), actionSource));
+    }
+
+    private static appeng.api.networking.IGrid recipeGrid(MeAeMachine machine) {
+        if (MeAeMachine.modeOf(machine).isOutputInterface()
+                || machine instanceof com.beipuo.mekenergistics.blockentity.api.MeUpgradeableMachine upgradeable
+                && upgradeable.isMeUpgradeTarget() && !upgradeable.isMeUpgradeActive()) {
+            return null;
+        }
+        return machine.getGrid();
     }
 
     private static IActionSource recipeActionSource(MeAeMachine aeMachine) {

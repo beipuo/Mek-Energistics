@@ -25,7 +25,7 @@ public abstract class EvolvedAlloyingFactoryMeUpgradeMixin implements EvolvedAll
             AlloyerRecipe recipe, int cacheIndex,
             CallbackInfoReturnable<CachedRecipe<AlloyerRecipe>> cir) {
         MeUpgradeableMachine machine = (MeUpgradeableMachine) this;
-        if (machine.isMeUpgradeTarget() && machine.isMeUpgradeActive()) {
+        if (machine.isMeUpgradeTarget()) {
             TileEntityAlloyingFactory tile = (TileEntityAlloyingFactory) (Object) this;
             cir.setReturnValue(((MeRecipeMachineAeSupport<?>) machine.getRecipeAeSupport())
                     .wrapRecipeEnergy(tile.getEnergyContainer(), cir.getReturnValue()));

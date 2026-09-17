@@ -34,7 +34,7 @@ public abstract class EmExtrasMoreMachineFactoryMeUpgradeEnergyMixin {
     private <RECIPE extends MekanismRecipe<?>> void mekenergistics$wrap(
             CallbackInfoReturnable<CachedRecipe<RECIPE>> cir) {
         MeUpgradeableMachine machine = (MeUpgradeableMachine) this;
-        if (machine.isMeUpgradeTarget() && machine.isMeUpgradeActive()) {
+        if (machine.isMeUpgradeTarget()) {
             TileEntityEMExtraMoreMachineFactory<?> tile =
                     (TileEntityEMExtraMoreMachineFactory<?>) (Object) this;
             cir.setReturnValue(((MeRecipeMachineAeSupport<?>) machine.getRecipeAeSupport())

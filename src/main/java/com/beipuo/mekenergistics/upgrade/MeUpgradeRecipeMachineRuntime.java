@@ -130,8 +130,8 @@ public final class MeUpgradeRecipeMachineRuntime {
     }
 
     public <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> wrapEnergy(
-            MachineEnergyContainer<?> energy, CachedRecipe<RECIPE> recipe, boolean active) {
-        return active ? this.support.wrapRecipeEnergy(energy, recipe) : recipe;
+            MachineEnergyContainer<?> energy, CachedRecipe<RECIPE> recipe) {
+        return this.support.wrapRecipeEnergy(energy, recipe);
     }
 
     private long lastProcessTick = Long.MIN_VALUE;

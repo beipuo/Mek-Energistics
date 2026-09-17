@@ -92,7 +92,7 @@ public abstract class AdvancedFactoryMeUpgradeEnergyMixin {
     private <RECIPE extends MekanismRecipe<?>> void mekenergistics$wrap(
             CallbackInfoReturnable<CachedRecipe<RECIPE>> cir) {
         MeUpgradeableMachine machine = (MeUpgradeableMachine) this;
-        if (machine.isMeUpgradeTarget() && machine.isMeUpgradeActive()) {
+        if (machine.isMeUpgradeTarget()) {
             AdvancedFactoryUpgradeAccess factory = (AdvancedFactoryUpgradeAccess) this;
             cir.setReturnValue(((MeRecipeMachineAeSupport<?>) machine.getRecipeAeSupport())
                     .wrapRecipeEnergy(factory.meUpgradeEnergyContainer(), cir.getReturnValue()));

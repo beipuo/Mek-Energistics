@@ -212,7 +212,7 @@ class MekanismFactoryUpgradeContractTest {
         assertTrue(source.contains("this.outputSlots.stream().map(MeMachineIoAdapter::itemOutput)"));
         assertTrue(source.contains("type == FactoryType.COMBINING"));
         assertTrue(source.contains("chemicalInput(chemicalFactory.getChemicalTank())"));
-        assertTrue(source.contains("type != FactoryType.INFUSING"));
+        assertTrue(source.contains("MeMachineIoAdapter.manualItemInput(getExtraSlot())"));
         assertTrue(source.contains("chemicalOutput(chemicalFactory.getChemicalTank())"));
     }
 
@@ -251,10 +251,10 @@ class MekanismFactoryUpgradeContractTest {
     }
 
     @Test
-    void bothFactoryRecipeFamiliesUseNetworkEnergyOnlyWhileActive() throws IOException {
+    void bothFactoryRecipeFamiliesBindDynamicEnergyBeforeInstallation() throws IOException {
         for (Path mixin : new Path[]{ITEM_ENERGY_MIXIN, CHEMICAL_ENERGY_MIXIN}) {
             String source = Files.readString(mixin);
-            assertTrue(source.contains("machine.isMeUpgradeTarget() && machine.isMeUpgradeActive()"));
+            assertTrue(source.contains("machine.isMeUpgradeTarget()"));
             assertTrue(source.contains("wrapRecipeEnergy(tile.getEnergyContainer()"));
         }
     }

@@ -44,7 +44,9 @@ public interface BasicFactoryUpgradeAccess extends CatalogFactoryUpgradeAdapter 
             }
             return MeInputLayout.unordered(List.of(mainInput,
                     MeMachineIoAdapter.chemicalInput(chemicalTank),
-                    MeMachineIoAdapter.itemInput(extraSlot)));
+                    getMachine().factoryType() == FactoryType.INFUSING
+                            ? MeMachineIoAdapter.manualItemInput(extraSlot)
+                            : MeMachineIoAdapter.itemInput(extraSlot)));
         }
         if (extraSlot != null && "combining".equals(getMachine().machineTypeId())) {
             return MeInputLayout.lanes(List.of(

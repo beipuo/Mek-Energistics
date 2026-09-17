@@ -90,7 +90,7 @@ class MeUpgradeableMachineContractTest {
         String source = Files.readString(ELECTRIC_MIXIN);
 
         assertTrue(source.contains("createNewCachedRecipe(Lmekanism/api/recipes/ItemStackToItemStackRecipe;I)"));
-        assertTrue(source.contains("isMeUpgradeTarget() && isMeUpgradeActive()"));
+        assertTrue(source.contains("isMeUpgradeTarget()"));
         assertTrue(source.contains("wrapRecipeEnergy("));
         assertTrue(source.contains("tile.getEnergyContainer()"));
         assertTrue(source.contains("setRecipeCacheListener(recipeCacheListener)"));

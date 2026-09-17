@@ -49,14 +49,21 @@ public final class MePatternSlotTransfer {
 
     public static CompoundTag saveMeState(BlockEntity tile, HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        if (tile instanceof MeUpgradeableMachine machine) {
+        if (tile instanceof MeFactoryAeMachine machine) {
+            machine.getAeSupport().saveAll(tag, registries);
+        } else if (tile instanceof MeUpgradeableMachine machine) {
             machine.saveMeState(tag, registries);
         }
         return tag;
     }
 
     public static void loadMeState(BlockEntity tile, HolderLookup.Provider registries, CompoundTag tag) {
-        if (tile instanceof MeUpgradeableMachine machine && !tag.isEmpty()) {
+        if (tag.isEmpty()) {
+            return;
+        }
+        if (tile instanceof MeFactoryAeMachine machine) {
+            machine.getAeSupport().loadAll(tag, registries);
+        } else if (tile instanceof MeUpgradeableMachine machine) {
             machine.loadMeState(tag, registries);
         }
     }

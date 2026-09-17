@@ -8,6 +8,7 @@
     "UpgradeUtilsMixin",
     "UpgradePersistenceMixin",
     "TileComponentUpgradeMixin",
+    "MachineUpgradeDataMixin",
     "TileEntityElectricMachineAccessor",
     "TileEntityCombiningFactoryAccessor",
     "TileEntityAdvancedElectricMachineAccessor",

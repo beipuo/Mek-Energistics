@@ -97,6 +97,7 @@ public final class MekanismRecipeUpgradeProfiles {
                                 ((TileEntityMetallurgicInfuserAccessor) candidate).mekenergistics$getInfusionSlot())))
                         : MeInputLayout.unordered(List.of(
                                 MeMachineIoAdapter.itemInput(((TileEntityMetallurgicInfuserAccessor) candidate).mekenergistics$getInputSlot()),
+                                MeMachineIoAdapter.manualItemInput(((TileEntityMetallurgicInfuserAccessor) candidate).mekenergistics$getInfusionSlot()),
                                 MeMachineIoAdapter.chemicalInput(candidate.infusionTank))),
                 candidate -> List.of(
                         MeMachineIoAdapter.itemOutput(((TileEntityMetallurgicInfuserAccessor) candidate).mekenergistics$getOutputSlot()),

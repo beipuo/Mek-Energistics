@@ -53,6 +53,7 @@ public interface MeFactoryIoOwner extends MeFactoryAeMachine {
             }
             return MeInputLayout.unordered(List.of(
                     MeMachineIoAdapter.autoSortedFactoryItemInput(meInputSlots()),
+                    MeMachineIoAdapter.manualItemInput(extraSlot),
                     MeMachineIoAdapter.chemicalInput(chemicalTank)));
         }
         return MeInputLayout.unordered(List.of(

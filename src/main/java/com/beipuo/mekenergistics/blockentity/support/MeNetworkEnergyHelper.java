@@ -41,10 +41,22 @@ public final class MeNetworkEnergyHelper {
         }
         if (!MekEnergisticsConfig.preferNetworkEnergy()) {
             long localExtracted = extractLocal(localEnergy, amount, action, automationType);
-            return localExtracted + extractNetworkFe(grid, source, amount - localExtracted, action);
+            long networkExtracted = extractNetworkFe(grid, source, amount - localExtracted, action);
+            notifyNetworkExtraction(localEnergy, networkExtracted, action);
+            return localExtracted + networkExtracted;
         }
         long networkExtracted = extractNetworkFe(grid, source, amount, action);
+        notifyNetworkExtraction(localEnergy, networkExtracted, action);
         return networkExtracted + extractLocal(localEnergy, amount - networkExtracted, action, automationType);
+    }
+
+    private static void notifyNetworkExtraction(MachineEnergyContainer<?> localEnergy, long extracted, Action action) {
+        if (action.execute() && extracted > 0) {
+            // Mekanism's recipe monitor relies on the energy listener to unpause
+            // after an energy error clears. Direct AE extraction bypasses setEnergy,
+            // so a full local buffer otherwise leaves the recipe paused indefinitely.
+            localEnergy.onContentsChanged();
+        }
     }
 
     private static long extractLocal(MachineEnergyContainer<?> localEnergy, long amount, Action action, AutomationType automationType) {
