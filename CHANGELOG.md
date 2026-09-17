@@ -1,5 +1,43 @@
 # Changelog
 
+## 3.0.7
+
+### English
+
+#### Changes
+
+- Added an optional built-in resource pack with alternative textures for the ME factory installer and ME upgrade cards.
+- Updated the Evolved Mekanism Extras compile and runtime dependency to `1.2.2` (CurseMaven file `8678947`).
+
+#### Fixes
+
+- Fixed factory tier upgrades losing patterns. Patterns, slot order, and ME settings now transfer through the machine upgrade data.
+- Fixed energy handling after installing or removing ME upgrades: cached recipes now switch energy sources immediately, and successful AE energy consumption wakes paused recipes without requiring the machine to be broken and replaced.
+- Fixed Metallurgic Infusers and Infusing Factories rejecting item + item → item processing patterns by exposing the infusion-material input.
+
+#### Maintenance
+
+- Added regression coverage for pattern transfer, upgrade energy transitions, and infuser inputs, including idle, blocked-output, and simulated energy checks.
+- Added ignore rules for local diagnostics, tool caches, test instances, and preserved workspace artifacts.
+
+### 中文
+
+#### 变更
+
+- 新增可选内置资源包，为 ME 工厂安装器和 ME 升级卡提供替代材质。
+- 将 Evolved Mekanism Extras 的编译与运行依赖更新为 `1.2.2`（CurseMaven 文件 `8678947`）。
+
+#### 修复
+
+- 修复工厂升阶时样板丢失的问题，通过机器升级数据保留样板、槽位顺序和 ME 设置。
+- 修复安装或卸载 ME 升级后的供能处理：缓存配方现在会立即切换能源来源，成功消耗 AE 能量后会唤醒暂停的配方，无需拆除并重新放置机器。
+- 修复冶金灌注机及灌注工厂拒绝“物品＋物品→物品”加工样板的问题，补齐灌注材料输入。
+
+#### 维护
+
+- 增加样板迁移、升级供能切换和灌注输入的回归测试，涵盖空闲、输出堵塞和模拟能量查询。
+- 补充本地诊断文件、工具缓存、测试实例和工作区保留文件的忽略规则。
+
 ## 3.0.6
 
 ### English
