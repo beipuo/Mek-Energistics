@@ -51,3 +51,17 @@ docs/multiblock-design-notes.md
 docs/PLAN2.md
 extendedae_plus.mixins.json
 libs/
+
+### Local tools and diagnostics ###
+/.claude/settings.local.json
+/.omo/
+/.codegraph
+/.dsh-*
+/.tmp-*/
+/$null
+/fsck.tmp
+
+### Local test instances and preserved work ###
+/standalone-test/
+/outputs/
+/archive/local-only/
