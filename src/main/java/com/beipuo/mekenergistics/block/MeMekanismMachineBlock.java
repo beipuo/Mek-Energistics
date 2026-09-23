@@ -317,6 +317,7 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
                     if (tile instanceof TileEntityMekanism mekanismTile && mekanismTile.getCustomName() != null) {
                         drop.set(DataComponents.CUSTOM_NAME, mekanismTile.getCustomName());
                     }
+                    MePatternSlotTransfer.saveToItemStack(tile, params.getLevel().registryAccess(), drop);
                 }
             }
         }
@@ -344,6 +345,9 @@ public class MeMekanismMachineBlock extends Block implements IHasDescription, IT
         BlockEntity tile = level.getBlockEntity(pos);
         if (tile instanceof TileEntityUpdateable updateable) {
             updateable.onAdded();
+        }
+        if (tile != null) {
+            MePatternSlotTransfer.loadFromItemStack(tile, level.registryAccess(), stack);
         }
         if (!level.isClientSide && placer instanceof ServerPlayer player) {
             if (tile instanceof MeAeMachine machineBlockEntity) {

@@ -9,8 +9,10 @@ import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.base.TileEntityUpdateable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -18,6 +20,9 @@ import org.jetbrains.annotations.Nullable;
 
 public final class MePatternSlotTransfer {
     private static final String TAG_PATTERN_SLOT = "MePatternSlot";
+    private static final String TAG_ITEM_DATA = "MekEnergistics";
+    private static final String TAG_ITEM_PATTERN_SLOTS = "PatternSlots";
+    private static final String TAG_ITEM_ME_STATE = "MeState";
 
     private MePatternSlotTransfer() {
     }
@@ -66,6 +71,30 @@ public final class MePatternSlotTransfer {
         } else if (tile instanceof MeUpgradeableMachine machine) {
             machine.loadMeState(tag, registries);
         }
+    }
+
+    public static void saveToItemStack(BlockEntity tile, HolderLookup.Provider registries, ItemStack stack) {
+        CompoundTag blockEntityData = stack.get(DataComponents.BLOCK_ENTITY_DATA) == null
+                ? new CompoundTag()
+                : stack.get(DataComponents.BLOCK_ENTITY_DATA).copyTag();
+        CompoundTag transferData = new CompoundTag();
+        transferData.put(TAG_ITEM_PATTERN_SLOTS, save(tile, registries));
+        transferData.put(TAG_ITEM_ME_STATE, saveMeState(tile, registries));
+        blockEntityData.put(TAG_ITEM_DATA, transferData);
+        stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(blockEntityData));
+    }
+
+    public static void loadFromItemStack(BlockEntity tile, HolderLookup.Provider registries, ItemStack stack) {
+        CustomData customData = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+        if (customData == null) {
+            return;
+        }
+        CompoundTag transferData = customData.copyTag().getCompound(TAG_ITEM_DATA);
+        if (transferData.isEmpty()) {
+            return;
+        }
+        load(tile, registries, transferData.getCompound(TAG_ITEM_PATTERN_SLOTS));
+        loadMeState(tile, registries, transferData.getCompound(TAG_ITEM_ME_STATE));
     }
 
     public static void dropAndClear(Level level, BlockPos pos, BlockEntity tile) {
