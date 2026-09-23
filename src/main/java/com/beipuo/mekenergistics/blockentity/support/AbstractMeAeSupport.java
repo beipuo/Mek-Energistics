@@ -131,6 +131,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
      */
     private MeInputLayout cachedInputLayout;
     private List<? extends MeOutputPort> cachedOutputPorts;
+    private Boolean lastPatternBusy;
 
     private MeInputLayout patternInputLayout() {
         if (this.cachedInputLayout == null) {
@@ -252,7 +253,12 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
 
     protected final boolean processSmartPatternViaAdapter() {
         MeInputLayout layout = patternInputLayout();
-        if (layout.isEmpty() || this.owner.isPatternBusy()) {
+        boolean busy = this.owner.isPatternBusy();
+        if (this.lastPatternBusy == null || this.lastPatternBusy != busy) {
+            this.smartPatternMultiplication.wake();
+            this.lastPatternBusy = busy;
+        }
+        if (layout.isEmpty() || busy) {
             return false;
         }
         return processSmartPattern(new MeSmartPatternMultiplication.CapacityAwareFeeder() {

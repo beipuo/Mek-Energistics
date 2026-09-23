@@ -49,7 +49,11 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
             }
             return sendUpdatePacket;
         }
-        boolean changed = drainPatternOutputs(mode) || sendUpdatePacket;
+        boolean drained = drainPatternOutputs(mode);
+        if (drained) {
+            this.smartPatternMultiplication.wake();
+        }
+        boolean changed = drained || sendUpdatePacket;
         if (!hasPatternOutputBacklog(mode)) {
             if (this.owner.hasPassiveCraftingUpgrade()) {
                 setSmartPatternMultiplicationEnabled(false);

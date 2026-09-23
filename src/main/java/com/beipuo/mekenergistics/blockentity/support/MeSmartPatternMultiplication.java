@@ -40,6 +40,8 @@ public final class MeSmartPatternMultiplication {
     private final MePendingPatternStore pendingStore = new MePendingPatternStore();
     private boolean enabled = MekEnergisticsConfig.smartPatternMultiplicationDefault();
     private int nextPendingScanIndex;
+    private int retryDelay;
+    private int unchangedPasses;
 
     public boolean isEnabled() {
         return this.enabled;
@@ -63,16 +65,31 @@ public final class MeSmartPatternMultiplication {
         }
         PendingPattern existing = this.pendingByKey.get(pendingPattern.key());
         if (existing != null) {
-            return existing.tryMerge(pendingPattern);
+            boolean merged = existing.tryMerge(pendingPattern);
+            if (merged) {
+                wake();
+            }
+            return merged;
         }
         this.pendingPatterns.add(pendingPattern);
         this.pendingSet.add(pendingPattern);
         this.pendingByKey.put(pendingPattern.key(), pendingPattern);
         indexPendingInputs(pendingPattern);
+        wake();
         return true;
     }
 
+    /** Makes the next processing opportunity immediate after an external I/O mutation. */
+    public void wake() {
+        this.retryDelay = 0;
+        this.unchangedPasses = 0;
+    }
+
     public boolean processNext(Feeder feeder) {
+        if (this.retryDelay > 0) {
+            this.retryDelay--;
+            return false;
+        }
         boolean changed = false;
         int feeds = 0;
         clampPendingScanIndex();
@@ -151,6 +168,12 @@ public final class MeSmartPatternMultiplication {
             advancePendingScanIndex();
             // Keep scanning later pending entries. Smart multiplication favors machine throughput over strict FIFO
             // order so one temporarily full or output-blocked recipe does not stall unrelated recipes.
+        }
+        if (changed) {
+            wake();
+        } else if (++this.unchangedPasses > 1) {
+            // Give a blocked machine a cheap periodic opportunity while avoiding a full queue scan every tick.
+            this.retryDelay = Math.min(20, Math.max(2, this.retryDelay == 0 ? 2 : this.retryDelay * 2));
         }
         return changed;
     }
@@ -252,12 +275,17 @@ public final class MeSmartPatternMultiplication {
         PendingPattern pendingPattern = new PendingPattern(definition, oneCopyInputs, copies);
         PendingPattern existing = this.pendingByKey.get(pendingPattern.key());
         if (existing != null) {
-            return existing.tryMerge(pendingPattern);
+            boolean merged = existing.tryMerge(pendingPattern);
+            if (merged) {
+                wake();
+            }
+            return merged;
         }
         this.pendingPatterns.add(pendingPattern);
         this.pendingSet.add(pendingPattern);
         this.pendingByKey.put(pendingPattern.key(), pendingPattern);
         indexPendingInputs(pendingPattern);
+        wake();
         return true;
     }
 

@@ -78,6 +78,34 @@ class MeSmartPatternMultiplicationTest {
     }
 
     @Test
+    void unchangedQueueUsesBackoffUntilNewWorkWakesIt() {
+        FakeKey inputKey = new FakeKey("blocked_until_wake");
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        assertTrue(multiplication.enqueueForTesting(inputKey, List.of(new GenericStack(inputKey, 1)), 8));
+
+        CountingFeeder feeder = new CountingFeeder(inputKey, 0);
+        assertFalse(multiplication.processNext(feeder));
+        assertFalse(multiplication.processNext(feeder));
+        assertFalse(multiplication.processNext(feeder));
+        assertTrue(multiplication.enqueueForTesting(new FakeKey("wake_definition"),
+                List.of(new GenericStack(new FakeKey("wake_input"), 1)), 1));
+        assertTrue(multiplication.processNext(new CountingFeeder(new FakeKey("wake_input"), 1)));
+    }
+
+    @Test
+    void successfulFeedResetsBackoffForRemainingQueue() {
+        FakeKey blockedKey = new FakeKey("blocked_then_available");
+        FakeKey availableKey = new FakeKey("available_after_success");
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        assertTrue(multiplication.enqueueForTesting(blockedKey, List.of(new GenericStack(blockedKey, 1)), 1));
+        assertTrue(multiplication.enqueueForTesting(availableKey, List.of(new GenericStack(availableKey, 1)), 1));
+
+        SelectiveFeeder feeder = new SelectiveFeeder(blockedKey, 0, availableKey, 1);
+        assertTrue(multiplication.processNext(feeder));
+        assertTrue(multiplication.hasPendingWork());
+    }
+
+    @Test
     void repeatedPatternsMergeBeforeProcessing() {
         FakeKey inputKey = new FakeKey("gold");
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
