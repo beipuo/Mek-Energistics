@@ -51,6 +51,15 @@ public final class CompatFactoryTierGraph {
             return findFactory(
                     CompatRegistrationRoute.MEKMM_ADVANCED_FACTORY, BASIC, "centrifuging", requireAvailable);
         }
+        if (machine == MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER) {
+            return findFactory(
+                    CompatRegistrationRoute.MEKMM_ADVANCED_FACTORY, BASIC, "dissolving", requireAvailable);
+        }
+        MeMekanismMachine advancedFactory = findFactory(
+                CompatRegistrationRoute.MEKMM_ADVANCED_FACTORY, BASIC, typeId, requireAvailable);
+        if (advancedFactory != null) {
+            return advancedFactory;
+        }
         return switch (spec.provider()) {
             case MEKANISM -> findFactory(CompatMod.MEKANISM, BASIC, typeId, requireAvailable);
             case MEKMM -> findFactory(CompatMod.MEKMM, BASIC, typeId, requireAvailable);

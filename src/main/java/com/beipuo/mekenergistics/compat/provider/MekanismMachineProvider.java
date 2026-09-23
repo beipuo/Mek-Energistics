@@ -41,6 +41,7 @@ import com.beipuo.mekenergistics.blockentity.machine.utility.MeTeleporterBlockEn
 import com.beipuo.mekenergistics.common.machine.MeMekanismMachine;
 import com.beipuo.mekenergistics.compat.catalog.CompatMachineCatalog;
 import com.beipuo.mekenergistics.compat.catalog.CompatMachineFamily;
+import com.beipuo.mekenergistics.compat.catalog.CompatMachineKind;
 import com.beipuo.mekenergistics.compat.catalog.CompatMachineSpec;
 import com.beipuo.mekenergistics.compat.catalog.CompatMod;
 import com.beipuo.mekenergistics.registry.ModBlockEntities;
@@ -331,7 +332,8 @@ public final class MekanismMachineProvider extends AbstractCompatMachineProvider
         if (currentTier != fromTier || currentTier == toTier) {
             return null;
         }
-        MeMekanismMachine target = fromTier == null ? current.getBasicFactory() : current.getNextFactory();
+        MeMekanismMachine target = current.machineKind() == CompatMachineKind.MACHINE
+                ? current.getBasicFactory() : current.getNextFactory();
         return target != null && target.baseTier() == toTier ? target : null;
     }
 }

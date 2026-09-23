@@ -45,6 +45,8 @@ class CompatFactoryTierGraphTest {
 
     @Test
     void preservesMoreMachineAndAdvancedFactoryTracks() {
+        assertEquals(MeMekanismMachine.valueOf("BASIC_DISSOLVING_FACTORY"),
+                CompatFactoryTierGraph.declaredBasicFactory(MeMekanismMachine.CHEMICAL_DISSOLUTION_CHAMBER));
         assertEquals(MeMekanismMachine.valueOf("BASIC_RECYCLING_FACTORY"),
                 CompatFactoryTierGraph.declaredBasicFactory(MeMekanismMachine.RECYCLER));
         assertEquals(MeMekanismMachine.valueOf("ABSOLUTE_RECYCLING_FACTORY"),
