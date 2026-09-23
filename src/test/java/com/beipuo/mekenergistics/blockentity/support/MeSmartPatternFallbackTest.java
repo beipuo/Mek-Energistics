@@ -18,6 +18,7 @@ class MeSmartPatternFallbackTest {
     void validCpuInputsStayOnSmartMultiplicationPath() {
         FakeKey input = new FakeKey("normal_cpu_input");
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        multiplication.setEnabled(true);
         AtomicBoolean disabled = new AtomicBoolean();
         AtomicBoolean directlyDispatched = new AtomicBoolean();
         TestPattern pattern = new TestPattern(input);
@@ -121,6 +122,7 @@ class MeSmartPatternFallbackTest {
         FakeKey input = new FakeKey("unrelated_pattern_input");
         TestPattern unrelated = new TestPattern(input);
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        multiplication.setEnabled(true);
         AtomicBoolean disabled = new AtomicBoolean();
         AtomicBoolean directlyDispatched = new AtomicBoolean();
 

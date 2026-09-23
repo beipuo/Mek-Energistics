@@ -19,6 +19,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import org.jetbrains.annotations.Nullable;
 
+import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
+
 public final class MeSmartPatternMultiplication {
     private static final int MAX_PENDING_ENTRIES_SCANNED_PER_PASS = 256;
     private static final int MAX_HOT_PENDING_ENTRIES = 64;
@@ -36,7 +38,7 @@ public final class MeSmartPatternMultiplication {
     private final Map<AEKey, Set<PendingPattern>> pendingByInputKey = new HashMap<>();
     private final List<PendingPattern> hotPendingPatterns = new ArrayList<>();
     private final MePendingPatternStore pendingStore = new MePendingPatternStore();
-    private boolean enabled = true;
+    private boolean enabled = MekEnergisticsConfig.smartPatternMultiplicationDefault();
     private int nextPendingScanIndex;
 
     public boolean isEnabled() {
@@ -293,7 +295,9 @@ public final class MeSmartPatternMultiplication {
     }
 
     public void loadConfig(CompoundTag tag) {
-        this.enabled = !tag.contains(TAG_ENABLED) || tag.getBoolean(TAG_ENABLED);
+        if (tag.contains(TAG_ENABLED)) {
+            this.enabled = tag.getBoolean(TAG_ENABLED);
+        }
     }
 
     public void savePending(CompoundTag tag, HolderLookup.Provider registries) {

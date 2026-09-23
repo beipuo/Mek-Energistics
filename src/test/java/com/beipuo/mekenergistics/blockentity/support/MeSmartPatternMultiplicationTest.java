@@ -21,6 +21,33 @@ import org.junit.jupiter.api.Test;
 
 class MeSmartPatternMultiplicationTest {
     @Test
+    void missingSavedSettingKeepsConfiguredInitialDefault() {
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        multiplication.setEnabled(false);
+        multiplication.loadConfig(new CompoundTag());
+        assertFalse(multiplication.isEnabled());
+    }
+
+    @Test
+    void savedSettingOverridesConfiguredInitialDefault() {
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("SmartPatternMultiplication", true);
+        multiplication.setEnabled(false);
+        multiplication.loadConfig(tag);
+        assertTrue(multiplication.isEnabled());
+    }
+
+    @Test
+    void saveConfigPersistsDisabledState() {
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        multiplication.setEnabled(false);
+        CompoundTag tag = new CompoundTag();
+        multiplication.saveConfig(tag);
+        assertFalse(tag.getBoolean("SmartPatternMultiplication"));
+    }
+
+    @Test
     void capacityAwareFeederConsumesMoreThanVanillaStackInOnePass() {
         FakeKey inputKey = new FakeKey("iron");
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();

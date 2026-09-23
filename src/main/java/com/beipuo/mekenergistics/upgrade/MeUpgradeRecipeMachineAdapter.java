@@ -124,7 +124,7 @@ public interface MeUpgradeRecipeMachineAdapter extends MeUpgradeableMachine, MeU
 
     @Override
     default void loadMeState(CompoundTag tag, HolderLookup.Provider registries) {
-        if (isMeUpgradeTarget()) {
+        if (!tag.isEmpty()) {
             getOrCreateMeUpgradeRuntime().load(tag, registries);
         }
     }

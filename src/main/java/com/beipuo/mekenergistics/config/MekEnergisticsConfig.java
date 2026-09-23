@@ -16,6 +16,7 @@ public final class MekEnergisticsConfig {
     private static ModConfigSpec.IntValue patternPages;
     private static ModConfigSpec.BooleanValue preferAppliedFluxNetworkFe;
     private static ModConfigSpec.BooleanValue preferNetworkEnergy;
+    private static ModConfigSpec.BooleanValue smartPatternMultiplicationDefault;
     private static ModConfigSpec serverSpec;
 
     private static ModConfigSpec.BooleanValue hideJeiMachineVariants;
@@ -52,6 +53,10 @@ public final class MekEnergisticsConfig {
                         "When enabled, AE/Applied Flux energy is drained before the machine's local FE buffer.",
                         "When disabled, the local FE buffer is drained before network energy.")
                 .define("preferNetworkEnergy", true);
+        smartPatternMultiplicationDefault = builder
+                .comment("Enable smart pattern multiplication by default for newly created machines.",
+                        "A machine's saved setting always takes priority over this default.")
+                .define("smartPatternMultiplicationDefault", false);
         serverSpec = builder.build();
         return serverSpec;
     }
@@ -92,5 +97,9 @@ public final class MekEnergisticsConfig {
 
     public static boolean preferNetworkEnergy() {
         return !serverReady() || preferNetworkEnergy.get();
+    }
+
+    public static boolean smartPatternMultiplicationDefault() {
+        return serverReady() && smartPatternMultiplicationDefault.get();
     }
 }
