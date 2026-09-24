@@ -176,7 +176,7 @@ dependencies {
     // constant pool, so the optional mods being absent at test runtime does not weaken the rules.
     testImplementation "com.tngtech.archunit:archunit-junit5:1.3.0"
 
-    compileOnly "curse.maven:jei-238222:8678372"                        // jei, Magic requires >=19.39.0
+    compileOnly "curse.maven:jei-238222:8807104"                        // jei, Magic requires >=19.39.0
     compileOnly "curse.maven:iglee-library-541199:7000755"              // igleelib 1.21.1-1.2.7
     compileOnly "curse.maven:evolved-mekanism-1230085:7599592"          // evolvedmekanism 1.2.1-fix3
     compileOnly "curse.maven:evolved-mekanism-extras-1268159:8678947"   // emextras 1.2.2
@@ -196,7 +196,7 @@ dependencies {
     localRuntime "curse.maven:guideme-1173950:8420861"                  // GuideME 21.1.x, local test runtime
     localRuntime "curse.maven:kotlin-for-forge-351264:8335665"          // Kotlin for Forge, bundles Kotlin 2.4.0
     localRuntime "curse.maven:mekanism-generators-268566:7904061"       // mekanismgenerators 10.7.19
-    localRuntime "curse.maven:jei-238222:8678372"                       // jei, Magic requires >=19.39.0
+    localRuntime "curse.maven:jei-238222:8807104"                       // jei, Magic requires >=19.39.0
     localRuntime "curse.maven:ae2-jei-integration-1074338:7727898"      // ae2jeiintegration 1.2.1
     localRuntime "curse.maven:iglee-library-541199:7000755"             // igleelib 1.21.1-1.2.7
     localRuntime "curse.maven:evolved-mekanism-1230085:7599592"         // evolvedmekanism 1.2.1-fix3
@@ -217,7 +217,7 @@ dependencies {
     localRuntime "curse.maven:extendedae-plus-1337639:8379620"          // extendedae_plus 1.21.1-1.5.4.1
     localRuntime "curse.maven:ae2-lightning-tech-1527395:8575479"       // AE2 Lightning Tech, local compatibility runtime
     localRuntime "curse.maven:thunderbolt-core-1631756:8580186"         // Thunderbolt Core, local compatibility runtime
-    localRuntime "curse.maven:ldlib-626676:8394241"                      // ldlib, local test runtime for DataEnergistics/NeoECOAE
+    localRuntime "curse.maven:ldlib-626676:8940836"                     // ldlib, local test runtime for DataEnergistics/NeoECOAE
     localRuntime "curse.maven:data-energistics-1565514:8841396"          // DataEnergistics 3.0.4
     localRuntime "curse.maven:mekanism-card-1495058:8498626"
     localRuntime "curse.maven:mekanism-magic-1660500:8697428"           // mekanism_magic, local compatibility runtime
