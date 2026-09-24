@@ -12,6 +12,7 @@ import com.beipuo.mekenergistics.blockentity.api.MeAeSupportOwner;
 import com.beipuo.mekenergistics.blockentity.support.AbstractMeAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.io.MeCountedInputAdmission;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.DoublePredicate;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,64 @@ public final class NeoEcoBatchCompat {
             }
         }
         return 0;
+    }
+
+    public static boolean pushPatternBatch(MeAeSupportOwner owner, IPatternDetails patternDetails,
+            KeyCounter[] inputTotal, long craftCount) {
+        if (owner == null || patternDetails == null || !validPrototype(inputTotal) || craftCount <= 0
+                || owner.getPatternAeSupport().isPatternBusy()
+                || !owner.getPatternAeSupport().hasRegisteredPattern(patternDetails)) {
+            return false;
+        }
+        KeyCounter[] oneCopy = oneCopyInputs(patternDetails);
+        KeyCounter[] expected = scale(oneCopy, craftCount);
+        if (oneCopy == null || expected == null || !sameInputs(expected, inputTotal)
+                || owner.maxAcceptedPatternCopies(oneCopy) < craftCount) {
+            return false;
+        }
+        return owner.getPatternAeSupport().routeDataPatternInputs(inputTotal);
+    }
+
+    @Nullable
+    private static KeyCounter[] oneCopyInputs(IPatternDetails patternDetails) {
+        IPatternDetails.IInput[] inputs = patternDetails.getInputs();
+        if (inputs == null || inputs.length == 0) {
+            return null;
+        }
+        KeyCounter[] result = new KeyCounter[inputs.length];
+        for (int i = 0; i < inputs.length; i++) {
+            IPatternDetails.IInput input = inputs[i];
+            if (input == null || input.getPossibleInputs() == null || input.getPossibleInputs().length != 1
+                    || input.getPossibleInputs()[0] == null || input.getMultiplier() <= 0) {
+                return null;
+            }
+            var stack = input.getPossibleInputs()[0];
+            try {
+                KeyCounter counter = new KeyCounter();
+                counter.add(stack.what(), Math.multiplyExact(stack.amount(), input.getMultiplier()));
+                result[i] = counter;
+            } catch (ArithmeticException exception) {
+                return null;
+            }
+        }
+        return result;
+    }
+
+    static boolean sameInputs(KeyCounter[] expected, KeyCounter[] actual) {
+        if (expected == null || actual == null || expected.length != actual.length) {
+            return false;
+        }
+        for (int i = 0; i < expected.length; i++) {
+            if (expected[i].size() != actual[i].size()) {
+                return false;
+            }
+            for (var entry : expected[i]) {
+                if (actual[i].get(entry.getKey()) != entry.getLongValue()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     static int tryPushBatch(@Nullable BatchTarget target, IPatternDetails patternDetails,

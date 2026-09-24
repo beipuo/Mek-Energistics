@@ -176,6 +176,14 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
         return patternInputLayout().maxAcceptedCopies(oneCraftInputs);
     }
 
+    /**
+     * Returns a conservative provider-level parallelism value when no concrete pattern inputs are
+     * available. The counted admission path remains authoritative for the actual batch size.
+     */
+    public final int getAvailableParallelSlots() {
+        return this.nodeLifecycle.getMainNode().isActive() && !isPatternBusy() ? 1 : 0;
+    }
+
     /** Routes pre-scaled counted inputs without invoking Mek-Energistics smart multiplication. */
     public final boolean routeDataPatternInputs(KeyCounter[] scaledInputs) {
         if (scaledInputs == null || !this.nodeLifecycle.getMainNode().isActive() || isPatternBusy()) {

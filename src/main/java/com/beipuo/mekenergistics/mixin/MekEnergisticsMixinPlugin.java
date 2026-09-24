@@ -82,8 +82,8 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
             "com.atir.molecularmanipulator.integration.ae2.MolecularBatchCraftingProvider";
     private static final String OMNI_COMPUTATION_CORE =
             "com.atir.molecularmanipulator.blockentity.OmniComputationCoreBlockEntity";
-    private static final String NEOECO_BATCH_BRIDGE =
-            "cn.dancingsnow.neoecoae.integration.ae2lt.AE2LTBatchCraftingBridge";
+    private static final String NEOECO_PARALLEL_PROVIDER =
+            "cn.dancingsnow.neoecoae.api.me.provider.ECOParallelCraftingProvider";
     private static final String THUNDERBOLT_BATCH_PROVIDER =
             "com.moakiee.thunderbolt.ae2.api.crafting.IBatchCraftingProvider";
 
@@ -197,8 +197,8 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
                     Gate.targets("molecularmanipulator", OMNI_MOLECULAR_BATCH_PROVIDER, OMNI_COMPUTATION_CORE)),
             Map.entry(".omnisequence.OmniManagedCraftingCpuMixin",
                     Gate.targets("molecularmanipulator", OMNI_MOLECULAR_BATCH_PROVIDER, OMNI_COMPUTATION_CORE)),
-            Map.entry(".neoecoae.NeoEcoBatchCraftingBridgeMixin",
-                    Gate.target("neoecoae", NEOECO_BATCH_BRIDGE)),
+            Map.entry(".neoecoae.NeoEcoParallelCraftingProviderMixin",
+                    Gate.targets("neoecoae", NEOECO_PARALLEL_PROVIDER)),
             Map.entry(".thunderbolt.ThunderboltBatchCraftingProviderMixin",
                     Gate.target("thunderbolt", THUNDERBOLT_BATCH_PROVIDER)),
             Map.entry(".thunderbolt.ThunderboltBatchFactoryCraftingProviderMixin",

@@ -26,4 +26,9 @@ public interface MeAeSupportOwner extends ICraftingProvider, IActionHost {
     /** Maximum complete copies of the supplied one-craft input that can be accepted now. */
     long maxAcceptedPatternCopies(KeyCounter[] oneCraftInputs);
 
+    /** Conservative provider-level parallelism when the provider contract has no input shape. */
+    default int getAvailableParallelSlots() {
+        return getPatternAeSupport().getAvailableParallelSlots();
+    }
+
 }

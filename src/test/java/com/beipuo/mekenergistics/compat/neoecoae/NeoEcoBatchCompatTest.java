@@ -3,6 +3,8 @@ package com.beipuo.mekenergistics.compat.neoecoae;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 class NeoEcoBatchCompatTest {
     private static final AEKey INPUT = new FakeKey("input");
+    private static final AEKey SECONDARY = new FakeKey("secondary");
     private static final TestPattern PATTERN = new TestPattern();
 
     @Test
@@ -80,6 +83,26 @@ class NeoEcoBatchCompatTest {
         assertEquals(0, NeoEcoBatchCompat.tryPushBatch(
                 target, PATTERN, inputs(3), inventory, 5, 10, power -> true));
         assertEquals(27, inventory.list.get(INPUT));
+    }
+
+    @Test
+    void fullInputValidationPreservesMultipleKeysAndMultipliers() {
+        KeyCounter first = new KeyCounter();
+        first.add(INPUT, 2);
+        first.add(SECONDARY, 3);
+        KeyCounter second = new KeyCounter();
+        second.add(INPUT, 5);
+
+        KeyCounter[] prototype = new KeyCounter[] {first, second};
+        KeyCounter expectedFirst = new KeyCounter();
+        expectedFirst.add(INPUT, 8);
+        expectedFirst.add(SECONDARY, 12);
+        KeyCounter expectedSecond = new KeyCounter();
+        expectedSecond.add(INPUT, 20);
+        assertTrue(NeoEcoBatchCompat.sameInputs(
+                NeoEcoBatchCompat.scale(prototype, 4), new KeyCounter[] {expectedFirst, expectedSecond}));
+        assertFalse(NeoEcoBatchCompat.sameInputs(
+                NeoEcoBatchCompat.scale(prototype, 4), new KeyCounter[] {first, second}));
     }
 
     @Test

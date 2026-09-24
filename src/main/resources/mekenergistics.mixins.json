@@ -105,7 +105,7 @@
     "omnisequence.OmniBatchCraftingProviderMixin",
     "omnisequence.OmniBatchFactoryCraftingProviderMixin",
     "omnisequence.OmniManagedCraftingCpuMixin",
-    "neoecoae.NeoEcoBatchCraftingBridgeMixin",
+    "neoecoae.NeoEcoParallelCraftingProviderMixin",
     "thunderbolt.ThunderboltBatchCraftingProviderMixin",
     "thunderbolt.ThunderboltBatchFactoryCraftingProviderMixin"
   ],
