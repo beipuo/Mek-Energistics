@@ -190,6 +190,7 @@ dependencies {
     compileOnly "curse.maven:ex-pattern-provider-892005:8025439"        // extendedae 1.21-2.2.32-neoforge
     compileOnly "curse.maven:thunderbolt-core-1631756:8580186"          // Thunderbolt Core, batch-provider API
     compileOnly "curse.maven:mekanism-magic-1660500:8697428"            // mekanism_magic, IMekanismMagicAutomation host
+    compileOnly "curse.maven:omnisequence-transfinite-1624558:8622739"    // OmniSequence Transfinite 1.21.1 NeoForge, parent build verified
 
     localRuntime "curse.maven:guideme-1173950:8420861"                  // GuideME 21.1.x, local test runtime
     localRuntime "curse.maven:kotlin-for-forge-351264:8335665"          // Kotlin for Forge, bundles Kotlin 2.4.0
@@ -207,7 +208,7 @@ dependencies {
     // localRuntime "curse.maven:mekanism-unleashed-1072209:7801278"    // mekanism_unleashed 1.21.1-0.3.4
     localRuntime "curse.maven:advancedae-1084104:7849217"               // advanced_ae 1.6.11-1.21.1
     localRuntime "curse.maven:omni-cells-1359517:8050965"               // ae2omnicells 1.1.6
-    localRuntime "curse.maven:omnisequence-transfinite-1624558:8580768"  // omnisequence_transfinite, local test only (file 8580768)
+    localRuntime "curse.maven:omnisequence-transfinite-1624558:8622739"  // OmniSequence Transfinite 1.21.1 NeoForge, parent build verified
     localRuntime "curse.maven:geckolib-388172:7707149"                  // geckolib 4.8.4
     localRuntime "curse.maven:glodium-957920:5821676"                   // glodium 1.21-2.2-neoforge
     localRuntime "curse.maven:applied-flux-965012:8204513"              // appflux 1.21-2.1.5-neoforge
