@@ -89,9 +89,10 @@ public final class OmniBatchCompat {
                 return null;
             }
             long multiplier = Math.max(1, inputs[slot].getMultiplier());
-            long amount = first.amount() > Long.MAX_VALUE / multiplier
-                    ? Long.MAX_VALUE
-                    : first.amount() * multiplier;
+            if (first.amount() > Long.MAX_VALUE / multiplier) {
+                return null;
+            }
+            long amount = first.amount() * multiplier;
             if (amount <= 0) {
                 return null;
             }

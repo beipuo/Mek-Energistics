@@ -3,6 +3,7 @@ package com.beipuo.mekenergistics.compat.thunderbolt;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.support.AbstractMeAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.io.MeCountedInputAdmission;
 import com.moakiee.thunderbolt.ae2.api.crafting.BatchDispatchMode;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,37 +48,17 @@ public final class ThunderboltBatchCompat {
         }
 
         long requested = smartMultiplicationEnabled ? maxCraft : 1L;
-        long accepted = Math.min(requested,
-                Math.max(0L, target.maxAcceptedCopies(oneCopyTemplate)));
-        if (accepted <= 0) {
+        MeCountedInputAdmission admission = MeCountedInputAdmission.prepare(oneCopyTemplate, requested,
+                target::maxAcceptedCopies, target::routeInputs);
+        if (admission == null || !admission.commit(oneCopyTemplate)) {
             return maxCraft;
         }
-
-        KeyCounter[] scaledInputs = scale(oneCopyTemplate, accepted);
-        if (scaledInputs == null || !target.routeInputs(scaledInputs)) {
-            return maxCraft;
-        }
-        return maxCraft - accepted;
+        return maxCraft - admission.count();
     }
 
     @Nullable
     static KeyCounter[] scale(KeyCounter[] prototype, long copies) {
-        if (!validPrototype(prototype) || copies <= 0) {
-            return null;
-        }
-        KeyCounter[] scaled = new KeyCounter[prototype.length];
-        try {
-            for (int index = 0; index < prototype.length; index++) {
-                KeyCounter counter = new KeyCounter();
-                for (var entry : prototype[index]) {
-                    counter.add(entry.getKey(), Math.multiplyExact(entry.getLongValue(), copies));
-                }
-                scaled[index] = counter;
-            }
-        } catch (ArithmeticException exception) {
-            return null;
-        }
-        return scaled;
+        return MeCountedInputAdmission.scale(prototype, copies);
     }
 
     private static boolean validPrototype(@Nullable KeyCounter[] prototype) {

@@ -10,6 +10,7 @@ import appeng.api.stacks.KeyCounter;
 import appeng.crafting.inv.ListCraftingInventory;
 import com.beipuo.mekenergistics.blockentity.api.MeAeSupportOwner;
 import com.beipuo.mekenergistics.blockentity.support.AbstractMeAeSupport;
+import com.beipuo.mekenergistics.blockentity.support.io.MeCountedInputAdmission;
 import java.util.List;
 import java.util.function.DoublePredicate;
 import org.jetbrains.annotations.Nullable;
@@ -62,13 +63,14 @@ public final class NeoEcoBatchCompat {
         KeyCounter extraInputs = requested == 1
                 ? new KeyCounter()
                 : totals(oneCraftInputs, requested - 1L);
-        KeyCounter[] scaledInputs = scale(oneCraftInputs, requested);
-        if (extraInputs == null || scaledInputs == null
+        MeCountedInputAdmission admission = MeCountedInputAdmission.prepare(oneCraftInputs, requested,
+                target::maxAcceptedCopies, scaled -> target.routeInputs(scaled));
+        if (extraInputs == null || admission == null
                 || (!extraInputs.isEmpty() && !extractExact(inventory, extraInputs))) {
             return 0;
         }
-        if (target.routeInputs(scaledInputs)) {
-            return requested;
+        if (admission.commit(oneCraftInputs)) {
+            return (int) admission.count();
         }
         if (!extraInputs.isEmpty()) {
             restore(inventory, extraInputs);
@@ -115,22 +117,7 @@ public final class NeoEcoBatchCompat {
 
     @Nullable
     static KeyCounter[] scale(KeyCounter[] prototype, long count) {
-        if (!validPrototype(prototype) || count <= 0) {
-            return null;
-        }
-        KeyCounter[] scaled = new KeyCounter[prototype.length];
-        for (int index = 0; index < prototype.length; index++) {
-            KeyCounter target = new KeyCounter();
-            for (var entry : prototype[index]) {
-                long amount = entry.getLongValue();
-                if (amount > Long.MAX_VALUE / count) {
-                    return null;
-                }
-                target.add(entry.getKey(), amount * count);
-            }
-            scaled[index] = target;
-        }
-        return scaled;
+        return MeCountedInputAdmission.scale(prototype, count);
     }
 
     @Nullable
