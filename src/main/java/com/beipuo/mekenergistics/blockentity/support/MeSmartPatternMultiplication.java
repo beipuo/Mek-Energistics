@@ -10,17 +10,11 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import org.jetbrains.annotations.Nullable;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 
 public final class MeSmartPatternMultiplication {
     private static final String TAG_ENABLED = "SmartPatternMultiplication";
-    private static final String TAG_PENDING = "SmartPatternMultiplicationPending";
-    private static final String TAG_REMAINING = "Remaining";
-    private static final String TAG_DEFINITION = "Definition";
-    private static final String TAG_INPUTS = "Inputs";
-    private static final String TAG_INPUT = "Input";
     private final SmartPatternQueue queue = new SmartPatternQueue();
     private final SmartPatternScheduler scheduler = new SmartPatternScheduler();
     private final MePendingPatternStore pendingStore = new MePendingPatternStore();
@@ -92,43 +86,31 @@ public final class MeSmartPatternMultiplication {
     public void loadConfig(CompoundTag tag) { if (tag.contains(TAG_ENABLED)) enabled = tag.getBoolean(TAG_ENABLED); }
 
     public void savePending(CompoundTag tag, HolderLookup.Provider registries) {
-        if (!queue.hasPending() && pendingStore.quarantinedCount() == 0) { tag.remove(TAG_PENDING); pendingStore.saveQuarantined(tag); return; }
-        if (!queue.hasPending()) tag.remove(TAG_PENDING); else {
-            ListTag list = new ListTag();
-            for (SmartPatternRequest request : queue.entries()) {
-                CompoundTag saved = new CompoundTag(); saved.putLong(TAG_REMAINING, request.remaining());
-                saved.put(TAG_DEFINITION, GenericStack.writeTag(registries, new GenericStack(request.definition(), 1)));
-                ListTag inputs = new ListTag();
-                for (GenericStack input : request.inputs()) { CompoundTag item = new CompoundTag(); item.put(TAG_INPUT, GenericStack.writeTag(registries, input)); inputs.add(item); }
-                saved.put(TAG_INPUTS, inputs); list.add(saved);
-            }
-            tag.put(TAG_PENDING, list);
-        }
+        SmartPatternPersistence.save(tag, registries, queue.entries());
         pendingStore.saveQuarantined(tag);
     }
 
     public void loadPending(CompoundTag tag, HolderLookup.Provider registries) { loadPending(tag, registries, null); }
-    public void loadPending(CompoundTag tag, HolderLookup.Provider registries, @Nullable MePendingPatternStore.PendingBalanceRefund refund) {
-        queue.clear(); pendingStore.loadQuarantined(tag);
-        ListTag list = tag.getList(TAG_PENDING, CompoundTag.TAG_COMPOUND);
-        for (int i=0;i<list.size();i++) {
-            CompoundTag saved=list.getCompound(i); long remaining=saved.getLong(TAG_REMAINING);
-            if (remaining<=0) { MePendingPatternStore.logDroppedPending(i, "non-positive remaining " + remaining); continue; }
-            String reason=null; List<GenericStack> inputs=List.of();
-            try {
-                ListTag inputTags=saved.getList(TAG_INPUTS, CompoundTag.TAG_COMPOUND);
-                inputs=inputTags.isEmpty()?List.of():MePendingPatternStore.decodeInputs(registries,inputTags);
-                GenericStack definition=GenericStack.readTag(registries,saved.getCompound(TAG_DEFINITION));
-                if(definition==null) reason="undecodable definition";
-                else if(!(definition.what() instanceof appeng.api.stacks.AEItemKey key)) reason="definition is not an item key: " + definition.what();
-                else if(inputTags.isEmpty()) reason="no inputs listed";
-                else if(inputs.isEmpty()) reason="no usable inputs";
-                else if(inputs.size()<inputTags.size()) reason="only " + inputs.size() + " of " + inputTags.size() + " inputs decoded";
-                else { enqueueLoaded(new SmartPatternRequest(key, inputs, remaining)); continue; }
-            } catch(RuntimeException ex) { reason="decode failed: " + ex.getMessage(); }
-            MePendingPatternStore.logDroppedPending(i, reason); long balance=MePendingPatternStore.refundableBalance(inputs,remaining);
-            if(balance>0 && refund!=null && refund.refund(inputs,remaining)>=balance) continue;
-            pendingStore.quarantine(i,reason,saved);
+    public void loadPending(CompoundTag tag, HolderLookup.Provider registries,
+            @Nullable MePendingPatternStore.PendingBalanceRefund refund) {
+        queue.clear();
+        pendingStore.loadQuarantined(tag);
+        List<SmartPatternPersistence.SavedEntry> entries = SmartPatternPersistence.load(tag, registries);
+        for (int i = 0; i < entries.size(); i++) {
+            SmartPatternPersistence.SavedEntry entry = entries.get(i);
+            if (entry.valid()) {
+                enqueueLoaded(new SmartPatternRequest(entry.definition(), entry.inputs(), entry.remaining()));
+                continue;
+            }
+            MePendingPatternStore.logDroppedPending(i, entry.reason());
+            if (entry.remaining() <= 0) {
+                continue;
+            }
+            long balance = MePendingPatternStore.refundableBalance(entry.inputs(), entry.remaining());
+            if (balance > 0 && refund != null && refund.refund(entry.inputs(), entry.remaining()) >= balance) {
+                continue;
+            }
+            pendingStore.quarantine(i, entry.reason(), entry.raw());
         }
     }
     private void enqueueLoaded(SmartPatternRequest request) { SmartPatternRequest existing=queue.find(request.key()); if(existing!=null && existing.merge(request)) return; queue.add(request); }

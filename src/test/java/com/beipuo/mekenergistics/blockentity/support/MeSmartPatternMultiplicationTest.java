@@ -294,6 +294,21 @@ class MeSmartPatternMultiplicationTest {
     }
 
     @Test
+    void unknownPendingSchemaIsQuarantinedWithoutBreakingLoad() {
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("SchemaVersion", 99);
+        ListTag pending = new ListTag();
+        pending.add(pendingEntry(4, garbageDefinition(), "iron"));
+        tag.put("SmartPatternMultiplicationPending", pending);
+
+        multiplication.loadPending(tag, RegistryAccess.EMPTY, null);
+
+        assertFalse(multiplication.hasPendingWork());
+        assertEquals(1, multiplication.quarantinedPendingCount());
+    }
+
+    @Test
     void quarantinedEntriesArePersistedBySavePending() {
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
         CompoundTag tag = new CompoundTag();
