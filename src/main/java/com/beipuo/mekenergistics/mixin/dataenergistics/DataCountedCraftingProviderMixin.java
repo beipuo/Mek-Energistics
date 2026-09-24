@@ -9,6 +9,8 @@ import com.beipuo.mekenergistics.compat.dataenergistics.DataCraftingAdmission;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.fish_dan_.data_energistics.api.crafting.dispatch.CountedCraftingAdmission;
+import com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.commit.CountedCraftingPreparation;
+import com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.model.CraftingDispatchTargetAvailability;
 import com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.provider.CountedCraftingProvider;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,6 +35,13 @@ public interface DataCountedCraftingProviderMixin extends CountedCraftingProvide
         return DataCraftingAdmission.prepare(
                 getRecipeAeSupport(), patternDetails, prototype, requestedCount);
     }
+
+    @Override
+    default CountedCraftingPreparation prepareBatch(IPatternDetails patternDetails,
+            KeyCounter[] prototype, long requestedCount, CraftingDispatchTargetAvailability availability) {
+        return DataCraftingAdmission.prepareTargetAware(getRecipeAeSupport(), patternDetails,
+                prototype, requestedCount, availability);
+    }
 }
 
 @Mixin(MeFactoryAeMachine.class)
@@ -47,5 +56,12 @@ interface DataCountedFactoryCraftingProviderMixin extends CountedCraftingProvide
             KeyCounter[] prototype, long requestedCount) {
         return DataCraftingAdmission.prepare(
                 getAeSupport(), patternDetails, prototype, requestedCount);
+    }
+
+    @Override
+    default CountedCraftingPreparation prepareBatch(IPatternDetails patternDetails,
+            KeyCounter[] prototype, long requestedCount, CraftingDispatchTargetAvailability availability) {
+        return DataCraftingAdmission.prepareTargetAware(getAeSupport(), patternDetails,
+                prototype, requestedCount, availability);
     }
 }

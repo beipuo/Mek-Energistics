@@ -72,6 +72,12 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
             "com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.provider.CountedCraftingProvider";
     private static final String DATA_COUNTED_ADMISSION =
             "com.fish_dan_.data_energistics.api.crafting.dispatch.CountedCraftingAdmission";
+    private static final String DATA_COUNTED_PREPARATION =
+            "com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.commit.CountedCraftingPreparation";
+    private static final String DATA_TARGET_AVAILABILITY =
+            "com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.model.CraftingDispatchTargetAvailability";
+    private static final String DATA_DISPATCH_TARGET =
+            "com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.model.CraftingDispatchTarget";
     private static final String OMNI_MOLECULAR_BATCH_PROVIDER =
             "com.atir.molecularmanipulator.integration.ae2.MolecularBatchCraftingProvider";
     private static final String OMNI_COMPUTATION_CORE =
@@ -180,9 +186,11 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
             Map.entry(".dataenergistics.PatternProviderSyncHelperMixin", Gate.mod("data_energistics")),
             Map.entry(".dataenergistics.PatternProviderNameHelperMixin", Gate.mod("data_energistics")),
             Map.entry(".dataenergistics.DataCountedCraftingProviderMixin",
-                    Gate.targets("data_energistics", DATA_COUNTED_PROVIDER, DATA_COUNTED_ADMISSION)),
+                    Gate.targets("data_energistics", DATA_COUNTED_PROVIDER, DATA_COUNTED_ADMISSION,
+                            DATA_COUNTED_PREPARATION, DATA_TARGET_AVAILABILITY, DATA_DISPATCH_TARGET)),
             Map.entry(".dataenergistics.DataCountedFactoryCraftingProviderMixin",
-                    Gate.targets("data_energistics", DATA_COUNTED_PROVIDER, DATA_COUNTED_ADMISSION)),
+                    Gate.targets("data_energistics", DATA_COUNTED_PROVIDER, DATA_COUNTED_ADMISSION,
+                            DATA_COUNTED_PREPARATION, DATA_TARGET_AVAILABILITY, DATA_DISPATCH_TARGET)),
             Map.entry(".omnisequence.OmniBatchCraftingProviderMixin",
                     Gate.targets("molecularmanipulator", OMNI_MOLECULAR_BATCH_PROVIDER, OMNI_COMPUTATION_CORE)),
             Map.entry(".omnisequence.OmniBatchFactoryCraftingProviderMixin",

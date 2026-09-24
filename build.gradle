@@ -191,6 +191,7 @@ dependencies {
     compileOnly "curse.maven:thunderbolt-core-1631756:8580186"          // Thunderbolt Core, batch-provider API
     compileOnly "curse.maven:mekanism-magic-1660500:8697428"            // mekanism_magic, IMekanismMagicAutomation host
     compileOnly "curse.maven:omnisequence-transfinite-1624558:8622739"    // OmniSequence Transfinite 1.21.1 NeoForge, parent build verified
+    compileOnly "curse.maven:data-energistics-1565514:8841396"          // DataEnergistics 3.0.4, counted-crafting ABI
 
     localRuntime "curse.maven:guideme-1173950:8420861"                  // GuideME 21.1.x, local test runtime
     localRuntime "curse.maven:kotlin-for-forge-351264:8335665"          // Kotlin for Forge, bundles Kotlin 2.4.0
@@ -217,7 +218,7 @@ dependencies {
     localRuntime "curse.maven:ae2-lightning-tech-1527395:8575479"       // AE2 Lightning Tech, local compatibility runtime
     localRuntime "curse.maven:thunderbolt-core-1631756:8580186"         // Thunderbolt Core, local compatibility runtime
     localRuntime "curse.maven:ldlib-626676:8394241"                      // ldlib, local test runtime for DataEnergistics/NeoECOAE
-    localRuntime "curse.maven:data-energistics-1565514:8613673"          // data_energistics 3.0.3
+    localRuntime "curse.maven:data-energistics-1565514:8841396"          // DataEnergistics 3.0.4
     localRuntime "curse.maven:mekanism-card-1495058:8498626"
     localRuntime "curse.maven:mekanism-magic-1660500:8697428"           // mekanism_magic, local compatibility runtime
     localRuntime "curse.maven:occultism-361026:8592809"                 // occultism 1.224.2, Magic content host
