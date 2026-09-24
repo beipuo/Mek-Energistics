@@ -1,5 +1,51 @@
 # Changelog
 
+## 3.0.8
+
+### English
+
+#### Changes
+
+- Refactored smart pattern multiplication into separate request, queue, scheduler, and persistence components while preserving the existing pending-queue behavior and save format.
+- Unified counted input admission for capacity checks, overflow-safe scaling, one-shot commits, and input ownership tracking across supported counted crafting integrations.
+- Updated the OmniSequence Transfinite compile-time and runtime dependency to CurseMaven file `8622739`.
+- Updated Data Energistics compatibility to the newer counted crafting preparation API and CurseMaven file `8841396`.
+- Added compatibility with Neo ECO AE Extension `21.2.0-beta6` through its ordinary parallel crafting provider contract.
+
+#### Fixes
+
+- Reduced idle smart-multiplication processing overhead with queue backoff and wake-up handling for new work, machine state changes, and drained outputs.
+- Prevented counted CPU integrations from performing a second automatic multiplication or transferring input ownership after a failed submission.
+- Added safer validation for complete counted input totals, multi-input patterns, multipliers, and arithmetic overflow.
+- Preserved corrupted pending work in quarantine instead of silently discarding it, while keeping legacy pending NBT readable.
+
+#### Maintenance
+
+- Added regression and contract coverage for smart queue scheduling, counted admissions, Data Energistics preparation, Neo ECO batch dispatch, persistence compatibility, and overflow handling.
+- Kept AE2 Lightning Tech and Thunderbolt compatibility unchanged because those integrations are currently unavailable for upstream updates.
+
+### 中文
+
+#### 变更
+
+- 将智能样板倍增重构为独立的请求、队列、调度器和持久化组件，同时保持原有 pending 队列行为与存档格式。
+- 统一支持的计数型合成集成的容量检查、防溢出缩放、单次提交和输入所有权跟踪逻辑。
+- 将 OmniSequence Transfinite 的编译与运行依赖更新为 CurseMaven 文件 `8622739`。
+- 将 Data Energistics 兼容更新到新的计数合成准备接口和 CurseMaven 文件 `8841396`。
+- 增加对 Neo ECO AE Extension `21.2.0-beta6` 普通并行合成供应器接口的兼容。
+
+#### 修复
+
+- 通过队列退避，以及在新任务、机器状态变化和输出排空时唤醒处理，降低智能倍增空闲时的处理开销。
+- 防止计数型 CPU 被重复自动倍增，并防止失败提交后错误转移输入所有权。
+- 增强完整计数输入、多输入样板、倍率和算术溢出的安全校验。
+- 损坏的 pending 任务现在会进入隔离区而不是被静默丢弃，同时继续兼容读取旧版 pending NBT。
+
+#### 维护
+
+- 增加智能队列调度、计数型 admission、Data Energistics 准备流程、Neo ECO 批量提交、持久化兼容和溢出处理的回归及契约测试。
+- AE2 Lightning Tech 与 Thunderbolt 兼容保持不变，因为这些集成当前无法从上游获取更新。
+
 ## 3.0.7
 
 ### English
