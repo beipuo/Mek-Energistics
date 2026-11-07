@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "emextras"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "emextras:absolute_overclocked_liquifying_factory"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_absolute_overclocked_liquifying_factory"
     }
   ],
   "type": "minecraft:crafting_shapeless",

@@ -12,6 +12,7 @@ public final class CompatMachineClientProviders {
     private static final Map<CompatMod, String> PROVIDER_CLASSES = Map.of(
             CompatMod.MEKMM, "com.beipuo.mekenergistics.client.compat.provider.MekmmMachineClientProvider",
             CompatMod.MEKE, "com.beipuo.mekenergistics.client.compat.provider.MekeMachineClientProvider",
+            CompatMod.EMEK, "com.beipuo.mekenergistics.client.compat.provider.EmekMachineClientProvider",
             CompatMod.EMEKE, "com.beipuo.mekenergistics.client.compat.provider.EmekeMachineClientProvider");
     private static final Map<CompatMod, CompatMachineClientProvider> PROVIDERS = new EnumMap<>(CompatMod.class);
 

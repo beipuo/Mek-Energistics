@@ -1,5 +1,6 @@
 package com.beipuo.mekenergistics.client.overlay;
 
+import com.beipuo.mekenergistics.upgrade.MePassiveCraftingSettings;
 import appeng.api.client.AEKeyRendering;
 import appeng.api.stacks.AmountFormat;
 import appeng.api.stacks.GenericStack;
@@ -70,8 +71,10 @@ public final class MePatternWindowOverlay {
     private static final Component SMART_MULTIPLICATION_OFF_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.smart_multiplication.off");
     private static final Component TERMINAL_VISIBLE_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.terminal_visibility.shown");
     private static final Component TERMINAL_HIDDEN_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.terminal_visibility.hidden");
-    private static final Component PASSIVE_INTERVAL_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.passive.interval");
-    private static final Component PASSIVE_MULTIPLIER_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.passive.multiplier");
+    private static final Component PASSIVE_INTERVAL_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.passive.interval",
+            MePassiveCraftingSettings.MIN_INTERVAL_TICKS, MePassiveCraftingSettings.MAX_INTERVAL_TICKS);
+    private static final Component PASSIVE_MULTIPLIER_TOOLTIP = Component.translatable("gui.mekenergistics.me_patterns.passive.multiplier",
+            MePassiveCraftingSettings.MAX_COPIES_PER_TICK);
     private static final int TAB_X = 0;
     private static final int TAB_Y = 62;
     private static final int TAB_SIZE = 26;
@@ -100,24 +103,26 @@ public final class MePatternWindowOverlay {
 
     @SubscribeEvent
     public static void render(ScreenEvent.Render.Post event) {
-        Target target = findTarget(event.getScreen());
-        if (target == null) {
+        // Runs every frame on every screen: only test whether this is a target here. Building the
+        // full Target (records + a dozen lambdas) is deferred until the window is actually opened.
+        GuiMekanism<?> targetGui = targetGui(event.getScreen());
+        if (targetGui == null) {
             if (event.getScreen() instanceof GuiMekanism<?> gui) {
                 closeOpenPatternWindows(gui);
             }
             return;
         }
-        ButtonBounds bounds = buttonBounds(target.gui());
+        ButtonBounds bounds = buttonBounds(targetGui);
         GuiGraphics graphics = event.getGuiGraphics();
-        boolean patternWindowOpen = hasPatternWindow(target.gui());
+        boolean patternWindowOpen = hasPatternWindow(targetGui);
         MekanismRenderer.color(graphics, SpecialColors.TAB_UPGRADE);
         GuiUtils.blitNineSlicedSized(graphics, HOLDER_RIGHT, bounds.tabX(), bounds.tabY(), TAB_SIZE, TAB_SIZE, 4, 26, 9, 0, 0, 26, 9);
         MekanismRenderer.resetColor(graphics);
         int buttonTextureY = patternWindowOpen || bounds.contains(event.getMouseX(), event.getMouseY()) ? 40 : 20;
         GuiUtils.blitNineSlicedSized(graphics, BUTTON, bounds.buttonX(), bounds.buttonY(), INNER_SIZE, INNER_SIZE, 20, 4, 200, 20, 0, buttonTextureY, 200, 60);
-        drawPatternIcon(graphics, target.gui(), bounds);
+        drawPatternIcon(graphics, targetGui, bounds);
         if (bounds.contains(event.getMouseX(), event.getMouseY())) {
-            graphics.renderTooltip(target.gui().font(), PATTERN_BUTTON_TOOLTIP, event.getMouseX(), event.getMouseY());
+            graphics.renderTooltip(targetGui.font(), PATTERN_BUTTON_TOOLTIP, event.getMouseX(), event.getMouseY());
         }
     }
 
@@ -126,8 +131,12 @@ public final class MePatternWindowOverlay {
         if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return;
         }
+        GuiMekanism<?> targetGui = targetGui(event.getScreen());
+        if (targetGui == null || !buttonBounds(targetGui).contains(event.getMouseX(), event.getMouseY())) {
+            return;
+        }
         Target target = findTarget(event.getScreen());
-        if (target != null && buttonBounds(target.gui()).contains(event.getMouseX(), event.getMouseY())) {
+        if (target != null) {
             openPatternWindow(target.gui(), target);
             event.setCanceled(true);
         }
@@ -141,7 +150,37 @@ public final class MePatternWindowOverlay {
     }
 
     public static boolean hasPatternTarget(Screen screen) {
-        return findTarget(screen) != null;
+        return targetGui(screen) != null;
+    }
+
+    /**
+     * Allocation-free version of the {@link #findTarget} checks: returns the screen when it shows
+     * the pattern button. Called every frame (render hook and JEI exclusion areas).
+     */
+    @org.jetbrains.annotations.Nullable
+    private static GuiMekanism<?> targetGui(Screen screen) {
+        if (!(screen instanceof GuiMekanism<?> gui) || !(gui.getMenu() instanceof MekanismTileContainer<?> container)) {
+            return null;
+        }
+        if (MeInterfaceWindowOverlay.isInterfaceMachine(screen)) {
+            return null;
+        }
+        if (container.getTileEntity() instanceof MeFactoryAeMachine machine) {
+            return gui; // factory targets are resolved before the generic ME upgrade gate
+        }
+        if (container.getTileEntity() instanceof MeAeMachine machine) {
+            if (machine instanceof MeUpgradeableMachine upgradeable) {
+                boolean nativeMeMachine = container.getTileEntity().getBlockState().getBlock()
+                        instanceof MeMekanismMachineBlock;
+                boolean upgradeTarget = upgradeable.isMeUpgradeTarget();
+                boolean upgradeActive = upgradeTarget && upgradeable.isMeUpgradeActive();
+                if (!PatternWindowTargetPolicy.shouldShow(nativeMeMachine, upgradeTarget, upgradeActive)) {
+                    return null;
+                }
+            }
+            return gui;
+        }
+        return null;
     }
 
     public static Rect2i jeiButtonArea(GuiMekanism<?> gui) {
@@ -219,6 +258,9 @@ public final class MePatternWindowOverlay {
     }
 
     private static void closeOpenPatternWindows(GuiMekanism<?> gui) {
+        if (!hasPatternWindow(gui)) {
+            return; // the common case, every frame: avoid copying the window list
+        }
         for (GuiWindow window : new ArrayList<>(gui.getWindows())) {
             if (window instanceof MePatternWindow patternWindow) {
                 patternWindow.close();
@@ -321,6 +363,11 @@ public final class MePatternWindowOverlay {
         private boolean smartMultiplicationEnabled;
         private boolean visibleInTerminal;
         private boolean passiveCraftingEnabled;
+        /** Last server values copied into the passive fields; MIN_VALUE forces the first sync. */
+        private int syncedPassiveInterval = Integer.MIN_VALUE;
+        private long syncedPassiveMultiplier = Long.MIN_VALUE;
+        private boolean passiveIntervalFocused;
+        private boolean passiveMultiplierFocused;
 
         private MePatternWindow(IGuiWrapper gui, int x, int y, Target target) {
             super(gui, x, y, WINDOW_WIDTH, WINDOW_HEIGHT, SelectedWindowData.UNSPECIFIED);
@@ -359,52 +406,94 @@ public final class MePatternWindowOverlay {
             this.passiveMultiplierField = addChild(new GuiTextField(gui, this, relativeX + 45, relativeY + 96, 21, NAME_FIELD_HEIGHT));
             this.passiveIntervalField.setTooltip(Tooltip.create(PASSIVE_INTERVAL_TOOLTIP));
             this.passiveMultiplierField.setTooltip(Tooltip.create(PASSIVE_MULTIPLIER_TOOLTIP));
-            this.passiveIntervalField.setMaxLength(6);
-            this.passiveMultiplierField.setMaxLength(12);
+            this.passiveIntervalField.setMaxLength(Integer.toString(MePassiveCraftingSettings.MAX_INTERVAL_TICKS).length());
+            this.passiveMultiplierField.setMaxLength(Long.toString(MePassiveCraftingSettings.MAX_COPIES_PER_TICK).length());
             this.passiveIntervalField.setEnterHandler(this::savePassiveCraftingSettings);
             this.passiveMultiplierField.setEnterHandler(this::savePassiveCraftingSettings);
             syncPassiveCraftingFields();
             addChild(new MekanismImageButton(gui, relativeX + 8, relativeY + 96, 12, LEFT_BUTTON, (element, mouseX, mouseY) -> previousPage()));
             addChild(new AeOutputButton(gui, relativeX + 116, relativeY + 96,
-                    Component.literal("I"), TransmissionType.ITEM, target));
+                    Component.translatable("gui.mekenergistics.me_patterns.ae_output.item.short"), TransmissionType.ITEM, target));
             addChild(new AeOutputButton(gui, relativeX + 130, relativeY + 96,
-                    Component.literal("C"), TransmissionType.CHEMICAL, target));
+                    Component.translatable("gui.mekenergistics.me_patterns.ae_output.chemical.short"), TransmissionType.CHEMICAL, target));
             addChild(new AeOutputButton(gui, relativeX + 144, relativeY + 96,
-                    Component.literal("F"), TransmissionType.FLUID, target));
+                    Component.translatable("gui.mekenergistics.me_patterns.ae_output.fluid.short"), TransmissionType.FLUID, target));
             addChild(new MekanismImageButton(gui, relativeX + width - 20, relativeY + 96, 12, RIGHT_BUTTON, (element, mouseX, mouseY) -> nextPage()));
         }
 
         private boolean savePassiveCraftingSettings() {
             if (!this.passiveCraftingEnabled) return true;
             int interval = parseInt(this.passiveIntervalField.getText(), this.target.passiveCraftingAccess().interval());
-            long multiplier = parseLong(this.passiveMultiplierField.getText(), this.target.passiveCraftingAccess().multiplier());
-            interval = Math.clamp(interval, 1, 72_000);
-            multiplier = Math.max(1, multiplier);
+            long multiplier = parseMultiplier(this.passiveMultiplierField.getText(), this.target.passiveCraftingAccess().multiplier());
+            // Mirror the server's limits so the field shows the value that will actually be used
+            // instead of silently accepting e.g. 1000 and running at the per-tick cap.
+            interval = Math.clamp(interval, MePassiveCraftingSettings.MIN_INTERVAL_TICKS, MePassiveCraftingSettings.MAX_INTERVAL_TICKS);
+            multiplier = Math.clamp(multiplier, 1, MePassiveCraftingSettings.MAX_COPIES_PER_TICK);
             this.passiveIntervalField.setText(Integer.toString(interval));
             this.passiveMultiplierField.setText(multiplier == 1 ? "" : Long.toString(multiplier));
+            this.syncedPassiveInterval = interval;
+            this.syncedPassiveMultiplier = multiplier;
             this.target.passiveCraftingAccess().set(interval, multiplier);
             PacketDistributor.sendToServer(new SetPassiveCraftingSettingsPacket(
                     this.target.container().getTileEntity().getBlockPos(), interval, multiplier));
             return true;
         }
 
+        /**
+         * Shows/hides the passive crafting fields and pulls server values into them. Server values
+         * are only copied when they actually change and the field is not being edited, so a value
+         * the player is typing is never overwritten by the next frame.
+         */
         private void syncPassiveCraftingFields() {
             this.passiveIntervalField.visible = this.passiveCraftingEnabled;
             this.passiveMultiplierField.visible = this.passiveCraftingEnabled;
             this.passiveIntervalField.setVisible(this.passiveCraftingEnabled);
             this.passiveMultiplierField.setVisible(this.passiveCraftingEnabled);
             if (this.passiveCraftingEnabled) {
-                if (!this.passiveIntervalField.isFocused()) this.passiveIntervalField.setText(Integer.toString(this.target.passiveCraftingAccess().interval()));
-                if (!this.passiveMultiplierField.isFocused()) {
-                    long multiplier = this.target.passiveCraftingAccess().multiplier();
+                int interval = this.target.passiveCraftingAccess().interval();
+                long multiplier = this.target.passiveCraftingAccess().multiplier();
+                if (!this.passiveIntervalField.isFocused() && interval != this.syncedPassiveInterval) {
+                    this.passiveIntervalField.setText(Integer.toString(interval));
+                    this.syncedPassiveInterval = interval;
+                }
+                if (!this.passiveMultiplierField.isFocused() && multiplier != this.syncedPassiveMultiplier) {
                     this.passiveMultiplierField.setText(multiplier == 1 ? "" : Long.toString(multiplier));
+                    this.syncedPassiveMultiplier = multiplier;
                 }
             }
             this.smartMultiplicationButton.active = !this.passiveCraftingEnabled;
         }
 
+        /** Commits passive crafting edits when a field loses focus, not only on Enter. */
+        private void commitPassiveFieldsOnFocusLoss() {
+            boolean intervalFocused = this.passiveIntervalField.isFocused();
+            boolean multiplierFocused = this.passiveMultiplierField.isFocused();
+            boolean lostFocus = this.passiveIntervalFocused && !intervalFocused
+                    || this.passiveMultiplierFocused && !multiplierFocused;
+            this.passiveIntervalFocused = intervalFocused;
+            this.passiveMultiplierFocused = multiplierFocused;
+            if (lostFocus && passiveFieldsDirty()) {
+                savePassiveCraftingSettings();
+            }
+        }
+
+        private boolean passiveFieldsDirty() {
+            if (!this.passiveCraftingEnabled) {
+                return false;
+            }
+            int interval = this.target.passiveCraftingAccess().interval();
+            long multiplier = this.target.passiveCraftingAccess().multiplier();
+            return parseInt(this.passiveIntervalField.getText(), interval) != interval
+                    || parseMultiplier(this.passiveMultiplierField.getText(), multiplier) != multiplier;
+        }
+
         private static int parseInt(String value, int fallback) {
             try { return Integer.parseInt(value); } catch (NumberFormatException ignored) { return fallback; }
+        }
+
+        /** The multiplier field shows 1 as an empty field, so an empty field means 1, not "unchanged". */
+        private static long parseMultiplier(String value, long fallback) {
+            return value == null || value.isBlank() ? 1 : parseLong(value.trim(), fallback);
         }
 
         private static long parseLong(String value, long fallback) {
@@ -474,6 +563,9 @@ public final class MePatternWindowOverlay {
         @Override
         public void close() {
             saveNameIfDirty();
+            if (passiveFieldsDirty()) {
+                savePassiveCraftingSettings();
+            }
             super.close();
         }
 
@@ -532,6 +624,7 @@ public final class MePatternWindowOverlay {
                 this.passiveCraftingEnabled = syncedPassiveCrafting;
                 syncPassiveCraftingFields();
             } else if (this.passiveCraftingEnabled) {
+                commitPassiveFieldsOnFocusLoss();
                 syncPassiveCraftingFields();
             }
             boolean syncedTerminalVisibility = this.target.terminalVisibilityAccess().get();
@@ -610,6 +703,16 @@ public final class MePatternWindowOverlay {
 
     private static final class PatternGuiVirtualSlot extends GuiVirtualSlot {
         private IVirtualSlot virtualSlot;
+        /*
+         * Decoding a pattern (for crafting patterns: a recipe lookup and match) used to run for
+         * every visible slot on every frame. The decoded output is memoized per slot and only
+         * recomputed when the pattern stack or the client level changes.
+         */
+        private ItemStack decodedPattern = ItemStack.EMPTY;
+        @Nullable
+        private net.minecraft.world.level.Level decodedLevel;
+        @Nullable
+        private GenericStack decodedOutput;
 
         private PatternGuiVirtualSlot(IGUIWindow window, SlotType type, IGuiWrapper gui, int x, int y, VirtualInventoryContainerSlot containerSlot) {
             super(window, type, gui, x, y, containerSlot);
@@ -645,7 +748,7 @@ public final class MePatternWindowOverlay {
                 return;
             }
             ItemStack patternStack = virtualSlot.getStackToRender();
-            GenericStack output = getPatternOutput(patternStack);
+            GenericStack output = cachedPatternOutput(patternStack);
             if (output != null) {
                 int xPos = relativeX + 1;
                 int yPos = relativeY + 1;
@@ -656,6 +759,22 @@ public final class MePatternWindowOverlay {
                 return;
             }
             super.drawContents(guiGraphics);
+        }
+
+        @Nullable
+        private GenericStack cachedPatternOutput(ItemStack patternStack) {
+            net.minecraft.world.level.Level level = Minecraft.getInstance().level;
+            if (level == null) {
+                return null;
+            }
+            boolean samePattern = patternStack == this.decodedPattern
+                    || ItemStack.isSameItemSameComponents(patternStack, this.decodedPattern);
+            if (level != this.decodedLevel || !samePattern) {
+                this.decodedOutput = getPatternOutput(patternStack);
+                this.decodedPattern = patternStack.copy();
+                this.decodedLevel = level;
+            }
+            return this.decodedOutput;
         }
 
         private static GenericStack getPatternOutput(ItemStack patternStack) {

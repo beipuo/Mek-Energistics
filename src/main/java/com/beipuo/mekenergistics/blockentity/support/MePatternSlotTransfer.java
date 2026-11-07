@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.blockentity.support;
 
+import com.beipuo.mekenergistics.block.MeMekanismMachineBlock;
+import com.beipuo.mekenergistics.blockentity.api.AeOutputMode;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeUpgradeableMachine;
@@ -23,6 +25,7 @@ public final class MePatternSlotTransfer {
     private static final String TAG_ITEM_DATA = "MekEnergistics";
     private static final String TAG_ITEM_PATTERN_SLOTS = "PatternSlots";
     private static final String TAG_ITEM_ME_STATE = "MeState";
+    private static final String TAG_AE_OUTPUT_MODE = "AeOutputMode";
 
     private MePatternSlotTransfer() {
     }
@@ -56,6 +59,16 @@ public final class MePatternSlotTransfer {
         CompoundTag tag = new CompoundTag();
         if (tile instanceof MeFactoryAeMachine machine) {
             machine.getAeSupport().saveAll(tag, registries);
+        } else if (isNativeMeMachine(tile) && tile instanceof MeAeMachine machine) {
+            // Standalone ME machines own queued smart-multiplication inputs, stocked interface
+            // items and recovery buffers that are not part of Mekanism's item components. Without
+            // this branch breaking or tier-upgrading the block would silently delete them.
+            AbstractMeAeSupport<?> support = machine.getRecipeAeSupport();
+            if (support != null) {
+                tag.putInt(TAG_AE_OUTPUT_MODE, machine.getAeOutputMode().ordinal());
+                support.save(tag, registries);
+                support.saveSlots(tag, registries);
+            }
         } else if (tile instanceof MeUpgradeableMachine machine) {
             machine.saveMeState(tag, registries);
         }
@@ -68,9 +81,23 @@ public final class MePatternSlotTransfer {
         }
         if (tile instanceof MeFactoryAeMachine machine) {
             machine.getAeSupport().loadAll(tag, registries);
+        } else if (isNativeMeMachine(tile) && tile instanceof MeAeMachine machine) {
+            AbstractMeAeSupport<?> support = machine.getRecipeAeSupport();
+            if (support != null) {
+                support.load(tag, registries);
+                support.loadSlots(tag, registries);
+                if (tag.contains(TAG_AE_OUTPUT_MODE)) {
+                    machine.setAeOutputMode(AeOutputMode.byId(tag.getInt(TAG_AE_OUTPUT_MODE)));
+                }
+            }
         } else if (tile instanceof MeUpgradeableMachine machine) {
             machine.loadMeState(tag, registries);
         }
+    }
+
+    /** Native ME blocks, as opposed to plain Mekanism machines carrying an ME upgrade. */
+    private static boolean isNativeMeMachine(BlockEntity tile) {
+        return tile.getBlockState().getBlock() instanceof MeMekanismMachineBlock;
     }
 
     public static void saveToItemStack(BlockEntity tile, HolderLookup.Provider registries, ItemStack stack) {

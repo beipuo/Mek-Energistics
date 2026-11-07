@@ -72,15 +72,40 @@ public final class MeNetworkEnergyHelper {
         if (grid == null) {
             return local;
         }
-        return availableWithNetwork(local,
+        return availableWithNetwork(local, availabilityCap(localEnergy),
                 requested -> extractNetworkFe(grid, source, requested, Action.SIMULATE));
     }
 
+    /**
+     * How much energy a recipe check ever needs to see. Mekanism only compares the result against
+     * the energy of the operations it may run this tick, so simulating a drain of Long.MAX_VALUE FE
+     * (which walks every AE energy provider and, with Applied Flux, the grid's FE storage) once per
+     * process per tick bought nothing. The cap still exceeds the local buffer whenever one
+     * operation costs more than the buffer holds.
+     */
+    static final long AVAILABILITY_OPERATIONS_MARGIN = 1024;
+
+    static long availabilityCap(MachineEnergyContainer<?> localEnergy) {
+        long perTick = Math.max(0, localEnergy.getEnergyPerTick());
+        long operations = perTick > Long.MAX_VALUE / AVAILABILITY_OPERATIONS_MARGIN
+                ? Long.MAX_VALUE : perTick * AVAILABILITY_OPERATIONS_MARGIN;
+        return Math.max(Math.max(0, localEnergy.getMaxEnergy()), operations);
+    }
+
     static long availableWithNetwork(long local, LongUnaryOperator simulatedNetworkExtraction) {
+        return availableWithNetwork(local, Long.MAX_VALUE, simulatedNetworkExtraction);
+    }
+
+    /** Local plus simulated network energy, querying the network for at most {@code cap - local}. */
+    static long availableWithNetwork(long local, long cap, LongUnaryOperator simulatedNetworkExtraction) {
         if (local >= Long.MAX_VALUE) {
             return Long.MAX_VALUE;
         }
-        return totalAvailableEnergy(local, simulatedNetworkExtraction.applyAsLong(Long.MAX_VALUE - Math.max(0, local)));
+        long normalizedLocal = Math.max(0, local);
+        if (normalizedLocal >= cap) {
+            return local;
+        }
+        return totalAvailableEnergy(local, simulatedNetworkExtraction.applyAsLong(cap - normalizedLocal));
     }
 
     static long totalAvailableEnergy(long local, long network) {

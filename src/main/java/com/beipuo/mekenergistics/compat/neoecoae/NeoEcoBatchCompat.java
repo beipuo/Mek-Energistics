@@ -124,7 +124,10 @@ public final class NeoEcoBatchCompat {
                 : totals(oneCraftInputs, requested - 1L);
         MeCountedInputAdmission admission = MeCountedInputAdmission.prepare(oneCraftInputs, requested,
                 target::maxAcceptedCopies, scaled -> target.routeInputs(scaled));
-        if (extraInputs == null || admission == null
+        // The extra inputs below are sized for `requested` copies. If the machine's capacity
+        // shrank between the two queries, the surplus would be pulled from the CPU and never
+        // delivered, so only proceed when the admission covers exactly what is extracted.
+        if (extraInputs == null || admission == null || admission.count() != requested
                 || (!extraInputs.isEmpty() && !extractExact(inventory, extraInputs))) {
             return 0;
         }

@@ -5,6 +5,9 @@ import mekanism.api.IContentsListener;
 
 final class MeAeBackedEnergyContainer extends MeNetworkEnergyHelper.NetworkBackedEnergyContainer<MeMekanismMachineBlockEntity> {
     MeAeBackedEnergyContainer(MeMekanismMachineBlockEntity owner, IContentsListener listener) {
-        super(owner, listener, owner::getGrid, owner.getActionSource());
+        // Mekanism builds energy containers inside the TileEntityMekanism super-constructor, before
+        // the owner's final actionSource field is assigned. Read it lazily: passing the value here
+        // would capture null forever and make every network/Applied Flux extraction fail.
+        super(owner, listener, owner::getGrid, owner::getActionSource);
     }
 }

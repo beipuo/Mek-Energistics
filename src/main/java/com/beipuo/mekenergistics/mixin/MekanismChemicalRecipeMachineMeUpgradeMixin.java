@@ -95,8 +95,21 @@ public abstract class MekanismChemicalRecipeMachineMeUpgradeMixin implements MeU
         mekenergistics$runtime().onMeUpgradeStateChanged();
     }
 
+    /** Memoized upgrade profile; deliberately no initializer (see MeUpgradeProfileCache). */
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache;
+
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache() {
+        if (this.mekenergistics$profileCache == null) {
+            this.mekenergistics$profileCache = new com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache();
+        }
+        return this.mekenergistics$profileCache;
+    }
+
     @Override public MeUpgradeMachineProfile<?> getMeUpgradeProfile() {
-        return MekanismChemicalUpgradeProfiles.forTile(mekenergistics$tile());
+        return mekenergistics$profileCache().get(mekenergistics$tile(),
+                () -> MekanismChemicalUpgradeProfiles.forTile(mekenergistics$tile()), true);
     }
     @Override public boolean isMeUpgradeTarget() { return getMeUpgradeProfile() != null; }
     @Override public boolean isMeUpgradeActive() { return mekenergistics$runtime().active(isMeUpgradeTarget()); }

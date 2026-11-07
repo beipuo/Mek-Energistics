@@ -225,6 +225,7 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
                         .allMatch(MekEnergisticsMixinPlugin::isClassPresent);
                 if (!targetsPresent) {
                     reportBridgeState(mixinClassName, false);
+                    reportDisabledIntegration(mixinClassName, gate);
                     return false;
                 }
                 reportBridgeState(mixinClassName, true);
@@ -266,6 +267,24 @@ public class MekEnergisticsMixinPlugin implements IMixinConfigPlugin {
             }
         }
     }
+
+    /**
+     * The mod is installed but a class this integration patches is missing (usually a newer or
+     * older addon version). Say so once per mixin, so "the ME card is not accepted by X" can be
+     * diagnosed from the log instead of being a silent no-op.
+     */
+    private static void reportDisabledIntegration(String mixinClassName, Gate gate) {
+        if (!DISABLED_INTEGRATIONS_REPORTED.add(mixinClassName)) {
+            return;
+        }
+        List<String> missing = gate.targetClasses().stream()
+                .filter(name -> !isClassPresent(name))
+                .toList();
+        LOGGER.info("Mek Energistics integration {} disabled: {} is installed but {} is missing (unsupported version?)",
+                mixinClassName.substring(mixinClassName.lastIndexOf('.') + 1), gate.modIds(), missing);
+    }
+
+    private static final Set<String> DISABLED_INTEGRATIONS_REPORTED = ConcurrentHashMap.newKeySet();
 
     @Override
     public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {

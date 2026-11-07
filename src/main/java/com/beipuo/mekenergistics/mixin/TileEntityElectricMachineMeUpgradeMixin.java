@@ -91,9 +91,20 @@ public abstract class TileEntityElectricMachineMeUpgradeMixin implements MeUpgra
 
     @Unique
     private MeUpgradeMachineProfile<TileEntityElectricMachine> mekenergistics$profile() {
-        MeUpgradeMachineProfile<TileEntityElectricMachine> resolved =
-                MeUpgradeMachineProfiles.forTile((TileEntityElectricMachine) (Object) this);
-        return resolved;
+        TileEntityElectricMachine tile = (TileEntityElectricMachine) (Object) this;
+        return mekenergistics$profileCache().get(tile, () -> MeUpgradeMachineProfiles.forTile(tile), true);
+    }
+
+    /** Memoized upgrade profile; deliberately no initializer (see MeUpgradeProfileCache). */
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache;
+
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache() {
+        if (this.mekenergistics$profileCache == null) {
+            this.mekenergistics$profileCache = new com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache();
+        }
+        return this.mekenergistics$profileCache;
     }
 
     @Override

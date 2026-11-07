@@ -8,12 +8,19 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import mekanism.api.Action;
 import me.ramidzkh.mekae2.ae2.MekanismKey;
 
 public final class MePatternInputRouter {
     /** A malformed port must never be able to monopolize the server thread. */
     private static final int MAX_ASSIGNMENT_STEPS = 256;
+    /**
+     * Bounds the total backtracking work of one assignment. {@link #MAX_ASSIGNMENT_STEPS} only
+     * limits search depth; without a call budget a multi-key request over many ports could still
+     * explore a combinatorial number of partial plans in one tick.
+     */
+    private static final int MAX_ASSIGNMENT_CALLS = 4096;
 
     private MePatternInputRouter() {
     }
@@ -26,8 +33,6 @@ public final class MePatternInputRouter {
 
         List<Map.Entry<AEKey, Long>> requestList = new ArrayList<>(requests.entrySet());
         List<Insertion> plan = new ArrayList<>();
-        Map<MeInputPort, Object> snapshots = new java.util.IdentityHashMap<>();
-        ports.forEach(port -> snapshots.put(port, port.snapshot()));
         boolean assigned = requestList.size() == 1
                 ? assignSingle(requestList.get(0), ports, plan,
                         new java.util.IdentityHashMap<>(), new java.util.IdentityHashMap<>())
@@ -36,7 +41,7 @@ public final class MePatternInputRouter {
         if (!assigned) {
             return false;
         }
-        return executePlan(plan, snapshots);
+        return executePlan(plan);
     }
 
     /**
@@ -52,7 +57,6 @@ public final class MePatternInputRouter {
         }
 
         List<Insertion> plan = new ArrayList<>();
-        Map<MeInputPort, Object> snapshots = new java.util.IdentityHashMap<>();
         for (List<? extends MeInputPort> ports : lanePorts) {
             if (ports == null || ports.isEmpty()) {
                 return false;
@@ -61,13 +65,12 @@ public final class MePatternInputRouter {
                 if (port == null) {
                     return false;
                 }
-                snapshots.putIfAbsent(port, port.snapshot());
             }
         }
 
         boolean assigned = assignLanes(laneInputs, lanePorts, 0, plan,
                 new java.util.IdentityHashMap<>(), new java.util.IdentityHashMap<>());
-        return assigned && executePlan(plan, snapshots);
+        return assigned && executePlan(plan);
     }
 
     /** Returns the largest whole-copy batch that can be simulated by the ports. */
@@ -148,7 +151,15 @@ public final class MePatternInputRouter {
             List<? extends MeInputPort> ports, List<Insertion> plan,
             int requestPlanStart,
             Map<MeInputPort, AEKey> reservedKeys, Map<MeInputPort, Long> reservedAmounts) {
-        if (plan.size() >= MAX_ASSIGNMENT_STEPS) {
+        return assign(requests, index, remaining, ports, plan, requestPlanStart, reservedKeys, reservedAmounts,
+                new int[] {MAX_ASSIGNMENT_CALLS});
+    }
+
+    private static boolean assign(List<Map.Entry<AEKey, Long>> requests, int index, long remaining,
+            List<? extends MeInputPort> ports, List<Insertion> plan,
+            int requestPlanStart,
+            Map<MeInputPort, AEKey> reservedKeys, Map<MeInputPort, Long> reservedAmounts, int[] budget) {
+        if (plan.size() >= MAX_ASSIGNMENT_STEPS || --budget[0] < 0) {
             return false;
         }
         if (index >= requests.size()) {
@@ -158,7 +169,7 @@ public final class MePatternInputRouter {
         if (remaining <= 0) {
             return assign(requests, index + 1,
                     index + 1 < requests.size() ? requests.get(index + 1).getValue() : 0,
-                    ports, plan, plan.size(), reservedKeys, reservedAmounts);
+                    ports, plan, plan.size(), reservedKeys, reservedAmounts, budget);
         }
         for (MeInputPort port : ports) {
             boolean usedInRequest = false;
@@ -190,7 +201,7 @@ public final class MePatternInputRouter {
             reservedKeys.put(port, request.getKey());
             reservedAmounts.put(port, alreadyReserved + accepted);
             if (assign(requests, index, remaining - accepted, ports, plan, requestPlanStart,
-                    reservedKeys, reservedAmounts)) {
+                    reservedKeys, reservedAmounts, budget)) {
                 return true;
             }
             while (plan.size() > planSize) {
@@ -418,16 +429,28 @@ public final class MePatternInputRouter {
         }
     }
 
-    private static void restoreInputs(Map<MeInputPort, Object> snapshots) {
-        snapshots.forEach(MeInputPort::restore);
-    }
-
-    private static boolean executePlan(List<Insertion> plan, Map<MeInputPort, Object> snapshots) {
-        Map<MeInputPort, Object> touched = new java.util.IdentityHashMap<>();
+    /**
+     * Executes a fully simulated plan, rolling every touched port back if any real insert falls
+     * short. Snapshots are taken lazily, right before the first real insert into each port:
+     * planning only simulates, so that is the same state an up-front snapshot would capture, but
+     * ports the plan never touches are no longer copied (the smart scheduler routes up to hundreds
+     * of times per tick). Ports may wrap overlapping slots (a grouped port and one of its members),
+     * so rollback restores in reverse order and the earliest, untouched snapshot is applied last.
+     */
+    private static boolean executePlan(List<Insertion> plan) {
+        Set<MeInputPort> snapshotted = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        List<MeInputPort> touchedPorts = new ArrayList<>();
+        List<Object> touchedSnapshots = new ArrayList<>();
         for (Insertion insertion : plan) {
-            touched.putIfAbsent(insertion.port(), snapshots.get(insertion.port()));
-            if (insertion.port().insert(insertion.key(), insertion.amount(), Action.EXECUTE) != insertion.amount()) {
-                restoreInputs(touched);
+            MeInputPort port = insertion.port();
+            if (snapshotted.add(port)) {
+                touchedPorts.add(port);
+                touchedSnapshots.add(port.snapshot());
+            }
+            if (port.insert(insertion.key(), insertion.amount(), Action.EXECUTE) != insertion.amount()) {
+                for (int i = touchedPorts.size() - 1; i >= 0; i--) {
+                    touchedPorts.get(i).restore(touchedSnapshots.get(i));
+                }
                 return false;
             }
         }

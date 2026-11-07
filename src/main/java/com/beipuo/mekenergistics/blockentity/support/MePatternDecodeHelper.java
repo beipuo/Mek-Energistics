@@ -22,8 +22,27 @@ public final class MePatternDecodeHelper {
         try {
             return PatternDetailsHelper.decodePattern(stack, level);
         } catch (RuntimeException exception) {
-            MekEnergistics.LOGGER.warn("Skipping invalid encoded pattern in {}: {}", ownerName, stack.getHoverName().getString(), exception);
+            String patternName = stack.getHoverName().getString();
+            String signature = ownerName + '|' + patternName + '|' + exception;
+            if (firstReport(signature)) {
+                // Full stack trace once; pattern caches rebuild on every slot change and the
+                // pattern window decodes every frame, so repeating it would flood the log.
+                MekEnergistics.LOGGER.warn("Skipping invalid encoded pattern in {}: {} (further identical failures are logged at debug level)",
+                        ownerName, patternName, exception);
+            } else {
+                MekEnergistics.LOGGER.debug("Skipping invalid encoded pattern in {}: {}: {}", ownerName, patternName, exception.toString());
+            }
             return null;
         }
+    }
+
+    private static final int MAX_REMEMBERED_FAILURES = 1024;
+    private static final java.util.Set<String> REPORTED_FAILURES = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private static boolean firstReport(String signature) {
+        if (REPORTED_FAILURES.size() >= MAX_REMEMBERED_FAILURES) {
+            REPORTED_FAILURES.clear();
+        }
+        return REPORTED_FAILURES.add(signature);
     }
 }

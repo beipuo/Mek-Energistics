@@ -44,9 +44,7 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     /** Drains declared outputs before allowing another smart batch into the machine. */
     public boolean processPatternIo(AeOutputMode mode, boolean sendUpdatePacket) {
         if (isInterfaceMode()) {
-            if (hasInterfaceWork()) {
-                alertAeTicker();
-            }
+            wakeAeTickerIfIdle();
             return sendUpdatePacket;
         }
         boolean drained = drainPatternOutputs(mode);
@@ -83,25 +81,14 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
     @Override
     protected boolean processAeOutputWork() {
         if (isInterfaceMode()) {
-            boolean hadWork = hasInterfaceWork();
-            boolean changed = processInterfaceMode();
-            boolean hasWork = hasInterfaceWork();
-            if (hasWork) {
-                alertAeTicker();
-            }
-            return hadWork && !hasWork;
+            return processInterfaceMode();
         }
-        boolean hadWork = hasAeOutputWork();
         AeOutputMode mode = this.owner.getAeOutputMode();
-        drainPatternOutputs(mode);
+        boolean changed = drainPatternOutputs(mode);
         if (!hasPatternOutputBacklog(mode)) {
-            processSmartPatternViaAdapter();
+            changed |= processSmartPatternViaAdapter();
         }
-        boolean hasWork = hasAeOutputWork();
-        if (hasWork) {
-            alertAeTicker();
-        }
-        return hadWork && !hasWork;
+        return changed;
     }
 
     @Override

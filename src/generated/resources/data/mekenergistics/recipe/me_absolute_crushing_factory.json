@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "mekanism_extras"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism_extras:absolute_crushing_factory"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_absolute_crushing_factory"
     }
   ],
   "type": "minecraft:crafting_shapeless",

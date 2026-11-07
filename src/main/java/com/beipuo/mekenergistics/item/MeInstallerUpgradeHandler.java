@@ -22,7 +22,9 @@ import mekanism.common.tile.interfaces.ITierUpgradable;
 import mekanism.common.tile.interfaces.ITileDirectional;
 import mekanism.common.upgrade.IUpgradeData;
 import mekanism.common.util.WorldUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -84,12 +86,27 @@ public final class MeInstallerUpgradeHandler {
         return null;
     }
 
-    private static InteractionResult upgrade(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, MeMekanismMachine target) {
+    /**
+     * Replaces the machine at {@code pos} with {@code target}, carrying over Mekanism data, patterns
+     * and ME state, and rolling everything back if any step fails. Shared by the ME factory
+     * installer and the tier installers so both paths have identical guards and feedback.
+     */
+    static InteractionResult upgrade(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, MeMekanismMachine target) {
         BlockEntity oldTile = WorldUtils.getTileEntity(level, pos);
+        if (oldTile == null) {
+            return InteractionResult.PASS;
+        }
+        // Installers replace the block, so they need build permission (adventure mode, spawn
+        // protection and claim mods all hook mayBuild/mayInteract).
+        if (!player.mayBuild() || !level.mayInteract(player, pos)) {
+            feedback(player, "no_permission");
+            return InteractionResult.FAIL;
+        }
         if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(player, level, pos, oldTile)) {
             return InteractionResult.FAIL;
         }
         if (oldTile instanceof TileEntityMekanism tileMek && !tileMek.playersUsing.isEmpty()) {
+            feedback(player, "in_use");
             return InteractionResult.FAIL;
         }
         IUpgradeData upgradeData = null;
@@ -98,6 +115,7 @@ public final class MeInstallerUpgradeHandler {
             upgradeData = tierUpgradable.getUpgradeData(level.registryAccess());
             if (upgradeData == null && tierUpgradable.canBeUpgraded()) {
                 MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: no upgrade data at {}", target.registryName(), pos);
+                feedback(player, "no_upgrade_data");
                 return InteractionResult.FAIL;
             }
             copyComponents = upgradeData == null && copyComponents;
@@ -113,6 +131,7 @@ public final class MeInstallerUpgradeHandler {
         if (upgradeBounding != null && !canPlaceBoundingBlocks(level, pos, upgradeState, upgradeBounding)) {
             MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: bounding blocks cannot be placed at {}",
                     target.registryName(), pos);
+            feedback(player, "obstructed");
             return InteractionResult.FAIL;
         }
         BlockState oldState = level.getBlockState(pos);
@@ -120,6 +139,7 @@ public final class MeInstallerUpgradeHandler {
         if (!level.setBlockAndUpdate(pos, upgradeState)) {
             MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: setBlockAndUpdate returned false at {}",
                     target.registryName(), pos);
+            feedback(player, "failed");
             return InteractionResult.FAIL;
         }
         try {
@@ -130,6 +150,7 @@ public final class MeInstallerUpgradeHandler {
             if (upgradedTile == null) {
                 MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed: upgraded tile missing at {}",
                         target.registryName(), pos);
+                feedback(player, "failed");
                 return rollbackUpgrade(level, pos, oldState, oldTileNbt, upgradeBounding, upgradeState);
             }
             if (oldTile instanceof ITileDirectional directional && directional.isDirectional()) {
@@ -143,7 +164,7 @@ public final class MeInstallerUpgradeHandler {
             MePatternSlotTransfer.load(upgradedTile, level.registryAccess(), mePatternSlots);
             MePatternSlotTransfer.loadMeState(upgradedTile, level.registryAccess(), meState);
             refreshMeLifecycle(upgradedTile);
-            if (player instanceof ServerPlayer serverPlayer) {
+            if (player instanceof ServerPlayer serverPlayer && MeOwnerHelper.mayClaimOwnership(upgradedTile, serverPlayer)) {
                 if (upgradedTile instanceof MeAeMachine machine) {
                     machine.setOwner(serverPlayer);
                 } else if (upgradedTile instanceof MeFactoryAeMachine machine) {
@@ -164,8 +185,15 @@ public final class MeInstallerUpgradeHandler {
         } catch (RuntimeException failure) {
             MekEnergistics.LOGGER.warn("ME installer upgrade to {} failed at {}, restoring the previous machine",
                     target.registryName(), pos, failure);
+            feedback(player, "failed");
             return rollbackUpgrade(level, pos, oldState, oldTileNbt, upgradeBounding, upgradeState);
         }
+    }
+
+    /** Tells the player why an installer did nothing, on the action bar. */
+    static void feedback(Player player, String reason) {
+        player.displayClientMessage(Component.translatable("message.mekenergistics.installer." + reason)
+                .withStyle(ChatFormatting.RED), true);
     }
 
     private static InteractionResult rollbackUpgrade(Level level, BlockPos pos, BlockState oldState, CompoundTag oldTileNbt,

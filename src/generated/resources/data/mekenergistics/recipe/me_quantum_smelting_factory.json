@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "evolvedmekanism"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "evolvedmekanism:quantum_smelting_factory"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_quantum_smelting_factory"
     }
   ],
   "type": "minecraft:crafting_shapeless",

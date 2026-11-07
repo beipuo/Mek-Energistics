@@ -1,5 +1,6 @@
 package com.beipuo.mekenergistics.blockentity.support;
 
+import mekanism.api.security.IBlockSecurityUtils;
 import appeng.api.ids.AEComponents;
 import appeng.api.implementations.items.IMemoryCard;
 import appeng.api.implementations.items.MemoryCardMessages;
@@ -43,6 +44,11 @@ public final class MeMemoryCardSettings {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (!level.isClientSide) {
+            // Exporting copies every encoded pattern and importing overwrites them, so a memory
+            // card must respect Mekanism's private/trusted machine security like the GUI does.
+            if (!IBlockSecurityUtils.INSTANCE.canAccessOrDisplayError(player, level, blockEntity.getBlockPos(), blockEntity)) {
+                return ItemInteractionResult.FAIL;
+            }
             if (InteractionUtil.isInAlternateUseMode(player)) {
                 DataComponentMap settings = exportSettings(patternContainer);
                 if (!settings.isEmpty()) {

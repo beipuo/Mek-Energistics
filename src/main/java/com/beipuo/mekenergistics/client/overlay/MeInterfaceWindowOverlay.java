@@ -175,6 +175,9 @@ public final class MeInterfaceWindowOverlay {
     }
 
     private static void closeOpenInterfaceWindows(GuiMekanism<?> gui) {
+        if (!hasInterfaceWindow(gui)) {
+            return; // the common case, every frame: avoid copying the window list
+        }
         for (GuiWindow window : new ArrayList<>(gui.getWindows())) {
             if (window instanceof MeInterfaceWindow interfaceWindow) {
                 interfaceWindow.close();

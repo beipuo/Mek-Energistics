@@ -15,7 +15,9 @@ public final class MekmmMachineClientProvider implements CompatMachineClientProv
     @Override
     public void registerClientSetup(FMLClientSetupEvent event) {
         if (MekanismMoreMachineBaseCompat.hasAvailableLargeMachines()) {
-            MekanismMoreMachineLargeClientModels.registerModels();
+            // FMLClientSetupEvent listeners run in parallel across mods; Mekanism's custom model
+            // registry is a plain shared map, so mutate it on the main thread.
+            event.enqueueWork(MekanismMoreMachineLargeClientModels::registerModels);
         }
     }
 

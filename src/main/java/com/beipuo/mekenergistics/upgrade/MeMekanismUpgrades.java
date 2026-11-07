@@ -11,16 +11,38 @@ public final class MeMekanismUpgrades {
     private MeMekanismUpgrades() {
     }
 
+    /*
+     * The three entries are appended to Mekanism's Upgrade enum by a mixin during Upgrade's static
+     * initializer, so they exist as soon as Upgrade is usable. Resolving them by name on every call
+     * was a hash lookup on hot paths (upgrade counts are read several times per machine per tick);
+     * resolve once and keep the constants.
+     */
+    private static volatile Upgrade patternProvider;
+    private static volatile Upgrade passiveCrafting;
+    private static volatile Upgrade outputInterface;
+
     public static Upgrade patternProvider() {
-        return Upgrade.valueOf("ME_PATTERN_PROVIDER");
+        Upgrade upgrade = patternProvider;
+        if (upgrade == null) {
+            patternProvider = upgrade = Upgrade.valueOf("ME_PATTERN_PROVIDER");
+        }
+        return upgrade;
     }
 
     public static Upgrade passiveCrafting() {
-        return Upgrade.valueOf("ME_PASSIVE_CRAFTING");
+        Upgrade upgrade = passiveCrafting;
+        if (upgrade == null) {
+            passiveCrafting = upgrade = Upgrade.valueOf("ME_PASSIVE_CRAFTING");
+        }
+        return upgrade;
     }
 
     public static Upgrade outputInterface() {
-        return Upgrade.valueOf("ME_OUTPUT_INTERFACE");
+        Upgrade upgrade = outputInterface;
+        if (upgrade == null) {
+            outputInterface = upgrade = Upgrade.valueOf("ME_OUTPUT_INTERFACE");
+        }
+        return upgrade;
     }
 
     public static Upgrade forType(MeUpgradeType type) {

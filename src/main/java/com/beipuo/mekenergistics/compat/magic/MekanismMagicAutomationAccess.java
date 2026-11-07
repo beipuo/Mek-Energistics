@@ -164,10 +164,19 @@ public final class MekanismMagicAutomationAccess {
         }
         try {
             return (T) method.invoke(tile);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            // Report each failing API method once: a silent failure here makes a Mekanism Magic
+            // machine quietly behave as if it had no pattern I/O, which is very hard to diagnose.
+            if (REPORTED_FAILURES.add(method.getName())) {
+                com.beipuo.mekenergistics.MekEnergistics.LOGGER.warn(
+                        "Mekanism Magic automation call {} failed on {}; treating it as unavailable",
+                        method.getName(), tile.getClass().getName(), failure);
+            }
             return null;
         }
     }
+
+    private static final java.util.Set<String> REPORTED_FAILURES = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     @SuppressWarnings("unchecked")
     private static List<IInventorySlot> inventorySlots(@Nullable Object value) {

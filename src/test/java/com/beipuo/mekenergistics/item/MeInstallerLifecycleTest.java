@@ -15,9 +15,22 @@ class MeInstallerLifecycleTest {
     private static final Path AE_SUPPORT =
             Path.of("src/main/java/com/beipuo/mekenergistics/blockentity/support/AbstractMeAeSupport.java");
 
+    /**
+     * Both installers must share one replacement implementation, so every guard, rollback and
+     * feedback message below is enforced for the factory installer as well.
+     */
+    @Test
+    void factoryInstallerDelegatesToTheSharedReplacementPath() throws IOException {
+        String source = Files.readString(STANDARD_INSTALLER);
+        assertTrue(source.contains("MeInstallerUpgradeHandler.upgrade("),
+                "MeTierInstallerItem must replace machines through MeInstallerUpgradeHandler.upgrade");
+        assertTrue(!source.contains("setBlockAndUpdate"),
+                "MeTierInstallerItem must not keep a second copy of the block swap");
+    }
+
     @Test
     void everyInWorldInstallerRefreshesTheAeLifecycleAfterMutation() throws IOException {
-        for (Path installer : new Path[] {STANDARD_INSTALLER, COMPAT_INSTALLER}) {
+        for (Path installer : new Path[] {COMPAT_INSTALLER}) {
             String source = Files.readString(installer);
             assertTrue(source.contains("refreshMeLifecycle(upgradedTile)"),
                     () -> installer.getFileName() + " must refresh the newly-created ME block entity");
@@ -42,7 +55,7 @@ class MeInstallerLifecycleTest {
 
     @Test
     void everyInstallerCapturesOldStateBeforeTheSwapForRollback() throws IOException {
-        for (Path installer : new Path[] {STANDARD_INSTALLER, COMPAT_INSTALLER}) {
+        for (Path installer : new Path[] {COMPAT_INSTALLER}) {
             String source = Files.readString(installer);
             int captureState = source.indexOf("BlockState oldState = level.getBlockState(pos)");
             int captureNbt = source.indexOf("saveWithoutMetadata", captureState);
@@ -85,7 +98,7 @@ class MeInstallerLifecycleTest {
 
     @Test
     void rollbackReappliesOldTileStateAndRemovesNewBoundingBlocks() throws IOException {
-        for (Path installer : new Path[] {STANDARD_INSTALLER, COMPAT_INSTALLER}) {
+        for (Path installer : new Path[] {COMPAT_INSTALLER}) {
             String source = Files.readString(installer);
             int helper = source.indexOf("private static InteractionResult rollbackUpgrade(");
             int removeBounding = source.indexOf("removeBoundingBlocks", helper);

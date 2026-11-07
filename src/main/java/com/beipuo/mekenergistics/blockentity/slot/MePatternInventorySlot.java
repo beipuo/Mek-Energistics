@@ -17,11 +17,21 @@ public class MePatternInventorySlot extends BasicInventorySlot {
 
     private MePatternInventorySlot(Predicate<@NotNull ItemStack> validator, @Nullable IContentsListener listener) {
         super(1, (stack, automationType) -> allowsInsertion(automationType),
-                (stack, automationType) -> true, validator, listener, 0, 0);
+                (stack, automationType) -> allowsExtraction(automationType), validator, listener, 0, 0);
     }
 
     static boolean allowsInsertion(AutomationType automationType) {
         return automationType == AutomationType.MANUAL;
+    }
+
+    /**
+     * Pattern slots are appended to the machine's sided item handler on every face so menus and
+     * pattern routing address one list. That handler is also what hoppers, pipes and AE import
+     * buses see, so external automation must never be able to pull encoded patterns out.
+     * Players (MANUAL) and the mod's own transfers (INTERNAL) may still extract.
+     */
+    static boolean allowsExtraction(AutomationType automationType) {
+        return automationType != AutomationType.EXTERNAL;
     }
 
     @NotNull
