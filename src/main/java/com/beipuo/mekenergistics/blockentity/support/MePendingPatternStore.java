@@ -100,8 +100,4 @@ public final class MePendingPatternStore {
         MekEnergistics.LOGGER.warn("Dropping corrupted smart-multiplication pending entry #{}: {}", index, reason);
     }
 
-    public interface PendingBalanceRefund {
-        /** Returns the total amount of the pending balance actually returned to the AE network. */
-        long refund(List<GenericStack> inputs, long remaining);
-    }
 }

@@ -7,6 +7,7 @@
   "gui.mekenergistics.me_patterns.passive.multiplier": "被动样板倍率（留空为 1x，最大 %sx）",
   "gui.mekenergistics.me_patterns.smart_multiplication.on": "智能样板倍增：开",
   "gui.mekenergistics.me_patterns.smart_multiplication.off": "智能样板倍增：关",
+  "gui.mekenergistics.me_patterns.refund": "退回缓存中尚未加工的输入至 ME 网络。网络已满或离线时保留余额并重试。已投入机器的输入不退回；请另行取消 CPU 合成任务。",
   "gui.mekenergistics.me_patterns.terminal_visibility.shown": "在样板访问终端中显示",
   "gui.mekenergistics.me_patterns.terminal_visibility.hidden": "在样板访问终端中隐藏",
   "gui.mekenergistics.me_patterns.ae_output.item": "物品输出到 AE：%s",

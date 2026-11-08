@@ -8,7 +8,7 @@ import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.testfixture.FakeKey;
-import com.moakiee.thunderbolt.ae2.api.crafting.BatchDispatchMode;
+import com.moakiee.thunderbolt.api.crafting.batch.BatchDispatchMode;
 import org.junit.jupiter.api.Test;
 
 class ThunderboltBatchCompatTest {
@@ -39,6 +39,18 @@ class ThunderboltBatchCompatTest {
         assertEquals(6L, leftover);
         assertEquals(12L, target.routed[0].get(INPUT));
         assertSame(PATTERN, target.pattern);
+    }
+
+    @Test
+    void borrowedTemplateRemainsUnchangedAndIsNotRetainedByTheRoute() {
+        RecordingTarget target = new RecordingTarget(4, true);
+        KeyCounter[] template = inputs(3);
+
+        assertEquals(6L, ThunderboltBatchCompat.pushBatch(
+                target, true, PATTERN, template, 10));
+        target.routed[0].clear();
+
+        assertEquals(3L, template[0].get(INPUT));
     }
 
     @Test

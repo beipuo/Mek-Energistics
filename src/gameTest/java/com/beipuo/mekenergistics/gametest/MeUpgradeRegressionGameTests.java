@@ -11,6 +11,7 @@ import appeng.core.definitions.AEBlocks;
 import com.beipuo.mekenergistics.MekEnergistics;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.item.MeInstallerUpgradeHandler;
+import net.minecraft.core.component.DataComponents;
 import com.beipuo.mekenergistics.blockentity.support.MeNetworkEnergyHelper;
 import com.beipuo.mekenergistics.upgrade.MeUpgradeStateOwner;
 import com.beipuo.mekenergistics.upgrade.MeUpgradeType;
@@ -87,6 +88,86 @@ public final class MeUpgradeRegressionGameTests {
             helper.assertTrue(machine(helper).getAvailablePatterns().size() == 2, "upgraded patterns were not published");
             helper.assertTrue(!machine(helper).isSmartPatternMultiplicationEnabled(), "ME configuration was reset");
         }).thenSucceed();
+    }
+
+    @GameTest(template = "empty_3x3x3")
+    public static void carriedMeMachineEncodesAndRestores(GameTestHelper helper) {
+        carriedMachine(helper, "mekenergistics:me_metallurgic_infuser");
+    }
+
+    @GameTest(template = "empty_3x3x3")
+    public static void carriedMeFactoryEncodesAndRestores(GameTestHelper helper) {
+        carriedMachine(helper, "mekenergistics:me_basic_enriching_factory");
+    }
+
+    @GameTest(template = "empty_3x3x3")
+    public static void carriedMeMekmmFactoryEncodesAndRestores(GameTestHelper helper) {
+        carriedMachine(helper, "mekenergistics:me_basic_recycling_factory");
+    }
+
+    @GameTest(template = "empty_3x3x3")
+    public static void carriedUpgradedMekmmFactoryEncodes(GameTestHelper helper) {
+        place(helper, "mekmm:basic_recycling_factory");
+        helper.startSequence().thenExecuteAfter(1, () -> {
+            install(helper);
+            ItemStack pattern = pattern(Items.IRON_ORE, Items.IRON_INGOT);
+            machine(helper).getPatternSlots().getFirst().setStack(pattern.copy());
+            machine(helper).getRecipeAeSupport().setSmartPatternMultiplicationEnabled(false);
+            var state = helper.getBlockState(MACHINE);
+            var registries = helper.getLevel().registryAccess();
+            ItemStack dropped = net.minecraft.world.level.block.Block.getDrops(state, helper.getLevel(),
+                    helper.absolutePos(MACHINE), tile(helper)).stream()
+                    .filter(stack -> stack.is(state.getBlock().asItem())).findFirst().orElseThrow();
+            ItemStack decoded = ItemStack.parse(registries, dropped.save(registries)).orElseThrow();
+            helper.assertTrue(ItemStack.matches(dropped, decoded), "mekmm factory changed during ItemStack encoding");
+        }).thenSucceed();
+    }
+
+    private static void carriedMachine(GameTestHelper helper, String id) {
+        place(helper, id);
+        helper.startSequence().thenExecuteAfter(1, () -> carriedMachineAfterInitialization(helper)).thenSucceed();
+    }
+
+    private static void carriedMachineAfterInitialization(GameTestHelper helper) {
+        ItemStack pattern = pattern(Items.IRON_ORE, Items.IRON_INGOT);
+        machine(helper).getPatternSlots().getFirst().setStack(pattern.copy());
+        machine(helper).getRecipeAeSupport().setSmartPatternMultiplicationEnabled(false);
+        var state = helper.getBlockState(MACHINE);
+        var registries = helper.getLevel().registryAccess();
+        var drops = net.minecraft.world.level.block.Block.getDrops(state, helper.getLevel(),
+                helper.absolutePos(MACHINE), tile(helper));
+        ItemStack dropped = drops.stream().filter(stack -> stack.is(state.getBlock().asItem()))
+                .findFirst().orElseThrow();
+        var data = dropped.get(DataComponents.BLOCK_ENTITY_DATA).copyTag();
+        helper.assertTrue(data.getString("id").equals(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(tile(helper).getType()).toString()),
+                "machine drop has no correct block entity id");
+        ItemStack decoded = ItemStack.parse(registries, dropped.save(registries)).orElseThrow();
+        helper.assertTrue(ItemStack.matches(dropped, decoded), "carried machine changed during ItemStack encoding");
+        helper.setBlock(MACHINE, net.minecraft.world.level.block.Blocks.AIR);
+        helper.setBlock(MACHINE, state);
+        state.getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(MACHINE), state, null, decoded);
+        helper.assertTrue(ItemStack.matches(machine(helper).getPatternSlots().getFirst().getStack(), pattern),
+                "encoded machine lost its pattern on placement");
+        helper.assertTrue(!machine(helper).isSmartPatternMultiplicationEnabled(), "encoded machine lost its ME configuration");
+
+        data.remove("id");
+        data.putString("RegressionSentinel", "preserved");
+        ItemStack legacy = decoded.copy();
+        legacy.set(DataComponents.BLOCK_ENTITY_DATA,
+                net.minecraft.world.item.component.CustomData.of(data));
+        helper.setBlock(MACHINE, net.minecraft.world.level.block.Blocks.AIR);
+        helper.setBlock(MACHINE, state);
+        state.getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(MACHINE), state, null, legacy);
+        helper.assertTrue(ItemStack.matches(machine(helper).getPatternSlots().getFirst().getStack(), pattern),
+                "legacy machine lost its pattern on placement");
+        helper.assertTrue(!machine(helper).isSmartPatternMultiplicationEnabled(), "legacy machine lost its ME configuration");
+        ItemStack repaired = ItemStack.parse(registries, legacy.save(registries)).orElseThrow();
+        helper.assertTrue(repaired.get(DataComponents.BLOCK_ENTITY_DATA).copyTag()
+                .getString("RegressionSentinel").equals("preserved"), "legacy repair discarded unrelated data");
+        com.beipuo.mekenergistics.blockentity.support.MePatternSlotTransfer.saveToItemStack(tile(helper), registries, repaired);
+        ItemStack.parse(registries, repaired.save(registries)).orElseThrow();
+        helper.assertTrue(repaired.get(DataComponents.BLOCK_ENTITY_DATA).copyTag()
+                .getString("RegressionSentinel").equals("preserved"), "saving discarded existing block entity data");
     }
 
     private static void assertPatterns(GameTestHelper helper, ItemStack pattern) {

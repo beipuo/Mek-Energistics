@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import org.jetbrains.annotations.Nullable;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 
 public final class MeSmartPatternMultiplication {
@@ -19,14 +18,53 @@ public final class MeSmartPatternMultiplication {
     private final SmartPatternScheduler scheduler = new SmartPatternScheduler();
     private final MePendingPatternStore pendingStore = new MePendingPatternStore();
     private boolean enabled = MekEnergisticsConfig.smartPatternMultiplicationDefault();
+    private final java.util.List<RefundBalance> refunds = new java.util.ArrayList<>();
+    private record RefundBalance(AEKey key, java.math.BigInteger amount) {}
+
+    public boolean requestRefund() {
+        for (SmartPatternRequest request : List.copyOf(queue.entries())) {
+            for (GenericStack input : request.inputs()) {
+                refunds.add(new RefundBalance(input.what(), java.math.BigInteger.valueOf(input.amount())
+                        .multiply(java.math.BigInteger.valueOf(request.remaining()))));
+            }
+        }
+        boolean changed = queue.hasPending();
+        queue.clear();
+        return changed;
+    }
+
+    public boolean refundPending(java.util.function.ToLongFunction<GenericStack> insert) {
+        boolean changed = false;
+        for (int i = refunds.size() - 1; i >= 0; i--) {
+            RefundBalance balance = refunds.get(i);
+            long offered = balance.amount().min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValueExact();
+            long inserted = Math.clamp(insert.applyAsLong(new GenericStack(balance.key(), offered)), 0, offered);
+            if (inserted == 0) continue;
+            java.math.BigInteger left = balance.amount().subtract(java.math.BigInteger.valueOf(inserted));
+            if (left.signum() == 0) refunds.remove(i);
+            else refunds.set(i, new RefundBalance(balance.key(), left));
+            changed = true;
+        }
+        return changed;
+    }
+
+    public boolean canRepresent(IPatternDetails details, KeyCounter[] holder) {
+        return SmartPatternRequest.create(details, holder) != null;
+    }
+
+    public KeyCounter[] oneCraftInputs(IPatternDetails details, KeyCounter[] holder) {
+        SmartPatternRequest request = SmartPatternRequest.create(details, holder);
+        return request == null ? null : request.toKeyCounters(1);
+    }
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    public boolean hasPendingWork() { return queue.hasPending(); }
+    public boolean hasPendingWork() { return queue.hasPending() || !refunds.isEmpty(); }
+    public boolean isRefunding() { return !refunds.isEmpty(); }
     public void wake() { scheduler.wake(); }
 
     public boolean enqueue(IPatternDetails details, KeyCounter[] holder) {
-        if (!enabled) return false;
+        if (!enabled || isRefunding()) return false;
         SmartPatternRequest request = SmartPatternRequest.create(details, holder);
         return request != null && enqueueRequest(request);
     }
@@ -49,7 +87,7 @@ public final class MeSmartPatternMultiplication {
     }
 
     public boolean processNext(Feeder feeder) {
-        if (scheduler.delayed()) return false;
+        if (isRefunding() || scheduler.delayed()) return false;
         boolean changed = false;
         int feeds = 0;
         queue.clamp();
@@ -88,13 +126,32 @@ public final class MeSmartPatternMultiplication {
     public void savePending(CompoundTag tag, HolderLookup.Provider registries) {
         SmartPatternPersistence.save(tag, registries, queue.entries());
         pendingStore.saveQuarantined(tag);
+        net.minecraft.nbt.ListTag balances = new net.minecraft.nbt.ListTag();
+        for (RefundBalance balance : refunds) {
+            CompoundTag saved = new CompoundTag();
+            saved.put("Key", GenericStack.writeTag(registries, new GenericStack(balance.key(), 1)));
+            saved.putString("Amount", balance.amount().toString());
+            balances.add(saved);
+        }
+        tag.put("SmartPatternRefunds", balances);
     }
 
-    public void loadPending(CompoundTag tag, HolderLookup.Provider registries) { loadPending(tag, registries, null); }
-    public void loadPending(CompoundTag tag, HolderLookup.Provider registries,
-            @Nullable MePendingPatternStore.PendingBalanceRefund refund) {
+    public void loadPending(CompoundTag tag, HolderLookup.Provider registries) {
         queue.clear();
+        refunds.clear();
         pendingStore.loadQuarantined(tag);
+        net.minecraft.nbt.ListTag balances = tag.getList("SmartPatternRefunds", net.minecraft.nbt.Tag.TAG_COMPOUND);
+        for (int i = 0; i < balances.size(); i++) {
+            CompoundTag saved = balances.getCompound(i);
+            try {
+                GenericStack key = GenericStack.readTag(registries, saved.getCompound("Key"));
+                java.math.BigInteger amount = new java.math.BigInteger(saved.getString("Amount"));
+                if (key == null || amount.signum() <= 0) throw new IllegalArgumentException("Invalid refund balance");
+                refunds.add(new RefundBalance(key.what(), amount));
+            } catch (RuntimeException ex) {
+                pendingStore.quarantine(i, "Invalid refund balance", saved);
+            }
+        }
         List<SmartPatternPersistence.SavedEntry> entries = SmartPatternPersistence.load(tag, registries);
         for (int i = 0; i < entries.size(); i++) {
             SmartPatternPersistence.SavedEntry entry = entries.get(i);
@@ -104,10 +161,6 @@ public final class MeSmartPatternMultiplication {
             }
             MePendingPatternStore.logDroppedPending(i, entry.reason());
             if (entry.remaining() <= 0) {
-                continue;
-            }
-            long balance = MePendingPatternStore.refundableBalance(entry.inputs(), entry.remaining());
-            if (balance > 0 && refund != null && refund.refund(entry.inputs(), entry.remaining()) >= balance) {
                 continue;
             }
             pendingStore.quarantine(i, entry.reason(), entry.raw());

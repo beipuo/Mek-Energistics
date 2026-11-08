@@ -21,6 +21,83 @@ import org.junit.jupiter.api.Test;
 
 class MeSmartPatternMultiplicationTest {
     @Test
+    void refundDoesNotClampAwayBalancesLargerThanLong() {
+        FakeKey key = new FakeKey("refund_overflow");
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        assertTrue(multiplication.enqueueForTesting(key, List.of(new GenericStack(key, Long.MAX_VALUE)), 2));
+        assertTrue(multiplication.requestRefund());
+        int[] calls = {0};
+        assertTrue(multiplication.refundPending(stack -> {
+            assertEquals(Long.MAX_VALUE, stack.amount());
+            calls[0]++;
+            return stack.amount();
+        }));
+        assertTrue(multiplication.hasPendingWork());
+        assertTrue(multiplication.refundPending(stack -> {
+            assertEquals(Long.MAX_VALUE, stack.amount());
+            calls[0]++;
+            return stack.amount();
+        }));
+        assertEquals(2, calls[0]);
+        assertFalse(multiplication.hasPendingWork());
+    }
+
+    @Test
+    void refundRetainsPartialBalancesAndRepeatedClicksDoNotDuplicate() {
+        FakeKey iron = new FakeKey("refund_partial");
+        FakeKey gold = new FakeKey("refund_other");
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        assertTrue(multiplication.enqueueForTesting(iron,
+                List.of(new GenericStack(iron, 3), new GenericStack(gold, 2)), 10));
+        assertTrue(multiplication.requestRefund());
+        assertFalse(multiplication.requestRefund());
+        assertFalse(multiplication.refundPending(stack -> 0));
+        assertTrue(multiplication.hasPendingWork());
+        List<GenericStack> returned = new ArrayList<>();
+        assertTrue(multiplication.refundPending(stack -> {
+            long accepted = Math.min(7, stack.amount());
+            returned.add(new GenericStack(stack.what(), accepted));
+            return accepted;
+        }));
+        assertTrue(multiplication.hasPendingWork());
+        assertTrue(multiplication.refundPending(stack -> {
+            returned.add(stack);
+            return stack.amount();
+        }));
+        assertEquals(30, returned.stream().filter(stack -> stack.what().equals(iron)).mapToLong(GenericStack::amount).sum());
+        assertEquals(20, returned.stream().filter(stack -> stack.what().equals(gold)).mapToLong(GenericStack::amount).sum());
+        assertFalse(multiplication.hasPendingWork());
+        assertFalse(multiplication.refundPending(stack -> { throw new AssertionError("Already returned"); }));
+    }
+
+    @Test
+    void refundOnlyReturnsRemainingCopiesAfterFeeding() {
+        FakeKey key = new FakeKey("refund_remaining");
+        MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
+        assertTrue(multiplication.enqueueForTesting(key, List.of(new GenericStack(key, 4)), 10));
+        long[] fed = {0};
+        assertTrue(multiplication.processNext(new MeSmartPatternMultiplication.CapacityAwareFeeder() {
+            private long capacity = 3;
+            @Override
+            public long maxAcceptedCopies(KeyCounter[] inputs) { return capacity; }
+            @Override
+            public boolean feed(KeyCounter[] inputs) {
+                long copies = inputs[0].get(key) / 4;
+                if (copies <= 0 || copies > capacity) return false;
+                capacity -= copies;
+                fed[0] += copies;
+                return true;
+            }
+        }));
+        assertEquals(3, fed[0]);
+        assertTrue(multiplication.requestRefund());
+        long[] refunded = {0};
+        assertTrue(multiplication.refundPending(stack -> { refunded[0] += stack.amount(); return stack.amount(); }));
+        assertEquals(28, refunded[0]);
+        assertFalse(multiplication.hasPendingWork());
+    }
+
+    @Test
     void missingSavedSettingKeepsConfiguredInitialDefault() {
         MeSmartPatternMultiplication multiplication = new MeSmartPatternMultiplication();
         multiplication.setEnabled(false);
@@ -287,7 +364,7 @@ class MeSmartPatternMultiplicationTest {
         pending.add(pendingEntry(0, garbageDefinition(), "iron"));
         tag.put("SmartPatternMultiplicationPending", pending);
 
-        multiplication.loadPending(tag, RegistryAccess.EMPTY, null);
+        multiplication.loadPending(tag, RegistryAccess.EMPTY);
 
         assertFalse(multiplication.hasPendingWork());
         assertEquals(2, multiplication.quarantinedPendingCount());
@@ -302,7 +379,7 @@ class MeSmartPatternMultiplicationTest {
         pending.add(pendingEntry(4, garbageDefinition(), "iron"));
         tag.put("SmartPatternMultiplicationPending", pending);
 
-        multiplication.loadPending(tag, RegistryAccess.EMPTY, null);
+        multiplication.loadPending(tag, RegistryAccess.EMPTY);
 
         assertFalse(multiplication.hasPendingWork());
         assertEquals(1, multiplication.quarantinedPendingCount());
@@ -316,14 +393,14 @@ class MeSmartPatternMultiplicationTest {
         pending.add(pendingEntry(8, garbageDefinition(), "iron"));
         pending.add(pendingEntry(4, badTypeDefinition(), "iron"));
         tag.put("SmartPatternMultiplicationPending", pending);
-        multiplication.loadPending(tag, RegistryAccess.EMPTY, null);
+        multiplication.loadPending(tag, RegistryAccess.EMPTY);
         assertEquals(2, multiplication.quarantinedPendingCount());
 
         CompoundTag saved = new CompoundTag();
         multiplication.savePending(saved, RegistryAccess.EMPTY);
 
         MeSmartPatternMultiplication restored = new MeSmartPatternMultiplication();
-        restored.loadPending(saved, RegistryAccess.EMPTY, null);
+        restored.loadPending(saved, RegistryAccess.EMPTY);
         assertFalse(restored.hasPendingWork());
         assertEquals(2, restored.quarantinedPendingCount());
     }
@@ -335,7 +412,7 @@ class MeSmartPatternMultiplicationTest {
         ListTag pending = new ListTag();
         pending.add(pendingEntry(8, garbageDefinition(), "iron"));
         tag.put("SmartPatternMultiplicationPending", pending);
-        multiplication.loadPending(tag, RegistryAccess.EMPTY, null);
+        multiplication.loadPending(tag, RegistryAccess.EMPTY);
         assertEquals(1, multiplication.quarantinedPendingCount());
 
         FakeKey inputKey = new FakeKey("after_quarantine");
@@ -356,7 +433,7 @@ class MeSmartPatternMultiplicationTest {
         pending.add(pendingEntry(-5, garbageDefinition(), "iron"));
         tag.put("SmartPatternMultiplicationPending", pending);
 
-        multiplication.loadPending(tag, RegistryAccess.EMPTY, null);
+        multiplication.loadPending(tag, RegistryAccess.EMPTY);
 
         assertFalse(multiplication.hasPendingWork());
         assertEquals(0, multiplication.quarantinedPendingCount());

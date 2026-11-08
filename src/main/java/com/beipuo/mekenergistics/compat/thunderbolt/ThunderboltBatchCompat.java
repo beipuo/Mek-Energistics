@@ -4,7 +4,7 @@ import appeng.api.crafting.IPatternDetails;
 import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.support.AbstractMeAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.io.MeCountedInputAdmission;
-import com.moakiee.thunderbolt.ae2.api.crafting.BatchDispatchMode;
+import com.moakiee.thunderbolt.api.crafting.batch.BatchDispatchMode;
 import org.jetbrains.annotations.Nullable;
 
 /** Bridges Thunderbolt's counted batch dispatch to ME machine input transactions. */

@@ -5,13 +5,30 @@ import appeng.api.stacks.KeyCounter;
 import com.beipuo.mekenergistics.blockentity.support.AbstractMeAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.io.MeCountedInputAdmission;
 import com.fish_dan_.data_energistics.api.crafting.dispatch.CountedCraftingAdmission;
+import com.fish_dan_.data_energistics.api.crafting.dispatch.CountedCraftingCapacity;
+import com.fish_dan_.data_energistics.api.crafting.dispatch.CountedCraftingRoutingMode;
+import com.fish_dan_.data_energistics.api.crafting.dispatch.CountedCraftingTarget;
 import com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.commit.CountedCraftingPreparation;
 import com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.model.CraftingDispatchTarget;
 import com.fish_dan_.data_energistics.common.crafting.trinity.dispatch.model.CraftingDispatchTargetAvailability;
+import it.unimi.dsi.fastutil.objects.ObjectList;
+import java.util.OptionalLong;
 import org.jetbrains.annotations.Nullable;
 
 public final class DataCraftingAdmission {
     private DataCraftingAdmission() {
+    }
+
+    public static ObjectList<CountedCraftingCapacity> captureCapacity(
+            AbstractMeAeSupport<?> support, IPatternDetails patternDetails,
+            KeyCounter[] prototype, long requestedCount) {
+        CountedCraftingAdmission admission = prepare(support, patternDetails, prototype, requestedCount);
+        if (admission == null) {
+            return ObjectList.of();
+        }
+        return ObjectList.of(new CountedCraftingCapacity(
+                CountedCraftingTarget.provider(), CountedCraftingRoutingMode.AGGREGATE,
+                OptionalLong.of(admission.count()), OptionalLong.of(admission.count())));
     }
 
     @Nullable

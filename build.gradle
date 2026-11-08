@@ -91,6 +91,7 @@ neoForge {
     // This line is optional. Access Transformers are automatically detected
     accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
     addModdingDependenciesTo(sourceSets.gameTest)
+    addModdingDependenciesTo(sourceSets.optionalApi)
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -113,6 +114,7 @@ neoForge {
         // The gametest system is also enabled by default for other run configs under the /test command.
         gameTestServer {
             type = "gameTestServer"
+            gameDirectory = project.file('run/gametest-server')
             sourceSet = sourceSets.gameTest
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
@@ -164,7 +166,7 @@ configurations {
 // annotated with the mod id and version that file actually resolves to. Update the comment whenever
 // you bump a file id -- there is no other way to tell what a build compiles against.
 dependencies {
-    implementation "curse.maven:applied-energistics-2-223794:7027323"
+    implementation "curse.maven:applied-energistics-2-223794:8992605"   // ae2 19.2.18, DataEnergistics requires >=19.2.18
     implementation "curse.maven:mekanism-268560:7904058"                // mekanism 10.7.19
     implementation "curse.maven:applied-mekanistics-574300:7096962"     // appmek 1.6.3
     // Unpublished optional-mod API contracts live in sourceSets.optionalApi. They are available to
@@ -176,7 +178,7 @@ dependencies {
     // constant pool, so the optional mods being absent at test runtime does not weaken the rules.
     testImplementation "com.tngtech.archunit:archunit-junit5:1.3.0"
 
-    compileOnly "curse.maven:jei-238222:8807104"                        // jei, Magic requires >=19.39.0
+    compileOnly "curse.maven:jei-238222:8870333"                        // jei 19.56.0.438, DataEnergistics requires >=19.56.0.438
     compileOnly "curse.maven:iglee-library-541199:7000755"              // igleelib 1.21.1-1.2.7
     compileOnly "curse.maven:evolved-mekanism-1230085:7599592"          // evolvedmekanism 1.2.1-fix3
     compileOnly "curse.maven:evolved-mekanism-extras-1268159:8678947"   // emextras 1.2.2
@@ -188,15 +190,15 @@ dependencies {
     // "ex-pattern-provider" is ExtendedAE under its former project name. This is what lets
     // mixin/extendedae/ContainerRenamerMixin compile; nothing else here advertises the connection.
     compileOnly "curse.maven:ex-pattern-provider-892005:8025439"        // extendedae 1.21-2.2.32-neoforge
-    compileOnly "curse.maven:thunderbolt-core-1631756:8580186"          // Thunderbolt Core, batch-provider API
+    compileOnly "curse.maven:thunderbolt-core-1631756:9363797"          // Thunderbolt Core 2.0.3, batch-provider API
     compileOnly "curse.maven:mekanism-magic-1660500:8697428"            // mekanism_magic, IMekanismMagicAutomation host
-    compileOnly "curse.maven:omnisequence-transfinite-1624558:8622739"    // OmniSequence Transfinite 1.21.1 NeoForge, parent build verified
-    compileOnly "curse.maven:data-energistics-1565514:8841396"          // DataEnergistics 3.0.4, counted-crafting ABI
+    compileOnly "curse.maven:omnisequence-transfinite-1624558:9484758"  // OmniSequence Transfinite 2.0.13
+    compileOnly "curse.maven:data-energistics-1565514:9095664"          // DataEnergistics 3.3.5, counted-crafting ABI
 
     localRuntime "curse.maven:guideme-1173950:8420861"                  // GuideME 21.1.x, local test runtime
     localRuntime "curse.maven:kotlin-for-forge-351264:8335665"          // Kotlin for Forge, bundles Kotlin 2.4.0
     localRuntime "curse.maven:mekanism-generators-268566:7904061"       // mekanismgenerators 10.7.19
-    localRuntime "curse.maven:jei-238222:8807104"                       // jei, Magic requires >=19.39.0
+    localRuntime "curse.maven:jei-238222:8870333"                       // jei 19.56.0.438, DataEnergistics requires >=19.56.0.438
     localRuntime "curse.maven:ae2-jei-integration-1074338:7727898"      // ae2jeiintegration 1.2.1
     localRuntime "curse.maven:iglee-library-541199:7000755"             // igleelib 1.21.1-1.2.7
     localRuntime "curse.maven:evolved-mekanism-1230085:7599592"         // evolvedmekanism 1.2.1-fix3
@@ -209,16 +211,18 @@ dependencies {
     // localRuntime "curse.maven:mekanism-unleashed-1072209:7801278"    // mekanism_unleashed 1.21.1-0.3.4
     localRuntime "curse.maven:advancedae-1084104:7849217"               // advanced_ae 1.6.11-1.21.1
     localRuntime "curse.maven:omni-cells-1359517:8050965"               // ae2omnicells 1.1.6
-    localRuntime "curse.maven:omnisequence-transfinite-1624558:8622739"  // OmniSequence Transfinite 1.21.1 NeoForge, parent build verified
+    localRuntime "curse.maven:omnisequence-transfinite-1624558:9484758"  // OmniSequence Transfinite 2.0.13
+    localRuntime "curse.maven:applied-enhancements-1665696:9168895"     // appliedenhancements 1.1.2, required by OmniSequence
     localRuntime "curse.maven:geckolib-388172:7707149"                  // geckolib 4.8.4
     localRuntime "curse.maven:glodium-957920:5821676"                   // glodium 1.21-2.2-neoforge
     localRuntime "curse.maven:applied-flux-965012:8204513"              // appflux 1.21-2.1.5-neoforge
     localRuntime "curse.maven:ex-pattern-provider-892005:8025439"       // extendedae 1.21-2.2.32-neoforge
     localRuntime "curse.maven:extendedae-plus-1337639:8379620"          // extendedae_plus 1.21.1-1.5.4.1
-    localRuntime "curse.maven:ae2-lightning-tech-1527395:8575479"       // AE2 Lightning Tech, local compatibility runtime
-    localRuntime "curse.maven:thunderbolt-core-1631756:8580186"         // Thunderbolt Core, local compatibility runtime
+    localRuntime "curse.maven:ae2-lightning-tech-1527395:9374836"       // AE2 Lightning Tech 2.1.3
+    localRuntime "curse.maven:thunderbolt-core-1631756:9363797"         // Thunderbolt Core 2.0.3
+    localRuntime "curse.maven:neo-eco-ae-extension-1460639:9455087"     // Neo ECO AE Extension 21.2.15
     localRuntime "curse.maven:ldlib-626676:8940836"                     // ldlib, local test runtime for DataEnergistics/NeoECOAE
-    localRuntime "curse.maven:data-energistics-1565514:8841396"          // DataEnergistics 3.0.4
+    localRuntime "curse.maven:data-energistics-1565514:9095664"          // DataEnergistics 3.3.5
     localRuntime "curse.maven:mekanism-card-1495058:8498626"
     localRuntime "curse.maven:mekanism-magic-1660500:8697428"           // mekanism_magic, local compatibility runtime
     localRuntime "curse.maven:occultism-361026:8592809"                 // occultism 1.224.2, Magic content host

@@ -26,6 +26,9 @@ public final class ModNetwork {
         registrar.playToServer(SetAeOutputModePacket.TYPE, SetAeOutputModePacket.STREAM_CODEC, SetAeOutputModePacket::handle);
         registrar.playToServer(SetPatternTerminalNamePacket.TYPE, SetPatternTerminalNamePacket.STREAM_CODEC, SetPatternTerminalNamePacket::handle);
         registrar.playToServer(SetPassiveCraftingSettingsPacket.TYPE, SetPassiveCraftingSettingsPacket.STREAM_CODEC, SetPassiveCraftingSettingsPacket::handle);
+        registrar.playToServer(com.beipuo.mekenergistics.network.packet.RefundPendingPatternsPacket.TYPE,
+                com.beipuo.mekenergistics.network.packet.RefundPendingPatternsPacket.STREAM_CODEC,
+                com.beipuo.mekenergistics.network.packet.RefundPendingPatternsPacket::handle);
         registrar.playToServer(SetSmartPatternMultiplicationPacket.TYPE, SetSmartPatternMultiplicationPacket.STREAM_CODEC, SetSmartPatternMultiplicationPacket::handle);
         registrar.playToServer(SetTerminalVisibilityPacket.TYPE, SetTerminalVisibilityPacket.STREAM_CODEC, SetTerminalVisibilityPacket::handle);
     }

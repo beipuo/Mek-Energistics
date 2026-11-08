@@ -7,8 +7,8 @@ import com.beipuo.mekenergistics.blockentity.api.MeFactoryAeMachine;
 import com.beipuo.mekenergistics.blockentity.support.AbstractMeAeSupport;
 import com.beipuo.mekenergistics.blockentity.support.MeFactoryAeSupport;
 import com.beipuo.mekenergistics.compat.thunderbolt.ThunderboltBatchCompat;
-import com.moakiee.thunderbolt.ae2.api.crafting.BatchDispatchMode;
-import com.moakiee.thunderbolt.ae2.api.crafting.IBatchCraftingProvider;
+import com.moakiee.thunderbolt.api.crafting.batch.BatchDispatchMode;
+import com.moakiee.thunderbolt.api.crafting.batch.IBatchCraftingProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 

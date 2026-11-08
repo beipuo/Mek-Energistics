@@ -7,6 +7,7 @@
   "gui.mekenergistics.me_patterns.passive.multiplier": "Множитель пассивного заказа (пусто = 1x, максимум %sx)",
   "gui.mekenergistics.me_patterns.smart_multiplication.on": "Умное умножение шаблона: Вкл",
   "gui.mekenergistics.me_patterns.smart_multiplication.off": "Умное умножение шаблона: Выкл",
+  "gui.mekenergistics.me_patterns.refund": "Вернуть необработанные ресурсы из кэша в МЭ. При полной или отключённой сети остаток сохраняется. Уже переданные машине ресурсы не возвращаются; отмените задание ЦП отдельно.",
   "gui.mekenergistics.me_patterns.terminal_visibility.shown": "Отображается в терминале доступа к шаблонам",
   "gui.mekenergistics.me_patterns.terminal_visibility.hidden": "Скрыто из терминала доступа к шаблонам",
   "gui.mekenergistics.me_patterns.ae_output.item": "Вывод предметов в AE: %s",

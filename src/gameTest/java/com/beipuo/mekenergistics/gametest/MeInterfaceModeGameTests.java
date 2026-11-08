@@ -28,10 +28,10 @@ import mekanism.api.energy.IEnergyContainer;
 import mekanism.common.tile.base.TileEntityMekanism;
 import mekanism.common.tile.machine.TileEntityMetallurgicInfuser;
 import mekanism.common.registries.MekanismChemicals;
-import com.moakiee.thunderbolt.ae2.batch.BatchCpuAccounting;
-import com.moakiee.thunderbolt.ae2.batch.BatchExecutor;
-import com.moakiee.thunderbolt.ae2.batch.BatchJobView;
-import com.moakiee.thunderbolt.ae2.batch.BatchTaskHandle;
+import com.moakiee.thunderbolt.core.crafting.batch.BatchCpuAccounting;
+import com.moakiee.thunderbolt.core.crafting.batch.BatchExecutor;
+import com.moakiee.thunderbolt.api.crafting.batch.BatchJobView;
+import com.moakiee.thunderbolt.api.crafting.batch.BatchTaskHandle;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -113,14 +113,13 @@ public final class MeInterfaceModeGameTests {
 
                     ListCraftingInventory cpuInventory = new ListCraftingInventory(key -> { });
                     cpuInventory.insert(AEItemKey.of(Items.IRON_ORE), 3_000, Actionable.MODULATE);
-                    TestBatchJob job = new TestBatchJob(pattern, 3_000);
+                    TestBatchJob job = new TestBatchJob(helper.getLevel(), pattern, 3_000);
                     IGrid grid = machine.getGrid();
                     BatchExecutor.BatchRunResult result = BatchExecutor.runBatchOnly(
                             100,
                             BatchCpuAccounting.Mode.SUCCESSFUL_DISPATCH,
                             (CraftingService) grid.getCraftingService(),
                             grid.getEnergyService(),
-                            helper.getLevel(),
                             job,
                             cpuInventory,
                             new HashMap<>(),
@@ -175,12 +174,12 @@ public final class MeInterfaceModeGameTests {
                     ListCraftingInventory cpuInventory = new ListCraftingInventory(key -> { });
                     cpuInventory.insert(osmium, 3_000, Actionable.MODULATE);
                     cpuInventory.insert(redstone, 30_000, Actionable.MODULATE);
-                    TestBatchJob job = new TestBatchJob(pattern, 3_000);
+                    TestBatchJob job = new TestBatchJob(helper.getLevel(), pattern, 3_000);
                     IGrid grid = machine.getGrid();
                     BatchExecutor.BatchRunResult result = BatchExecutor.runBatchOnly(
                             100, BatchCpuAccounting.Mode.SUCCESSFUL_DISPATCH,
                             (CraftingService) grid.getCraftingService(), grid.getEnergyService(),
-                            helper.getLevel(), job, cpuInventory, new HashMap<>(), () -> { });
+                            job, cpuInventory, new HashMap<>(), () -> { });
                     TileEntityMetallurgicInfuser infuser = (TileEntityMetallurgicInfuser) requiredTile(helper, MACHINE);
                     TileEntityMetallurgicInfuserAccessor slots = (TileEntityMetallurgicInfuserAccessor) infuser;
                     helper.assertTrue(result.dispatchedCopies() == 64,
@@ -538,8 +537,21 @@ public final class MeInterfaceModeGameTests {
     private static final class TestBatchJob implements BatchJobView {
         private final List<BatchTaskHandle> tasks = new ArrayList<>();
         private final ListCraftingInventory waitingFor = new ListCraftingInventory(key -> { });
+        private final net.minecraft.world.level.Level level;
+        private final java.util.UUID craftingId = java.util.UUID.randomUUID();
 
-        private TestBatchJob(IPatternDetails pattern, long copies) {
+        @Override
+        public net.minecraft.world.level.Level level() {
+            return this.level;
+        }
+
+        @Override
+        public java.util.UUID craftingId() {
+            return this.craftingId;
+        }
+
+        private TestBatchJob(net.minecraft.world.level.Level level, IPatternDetails pattern, long copies) {
+            this.level = level;
             this.tasks.add(new BatchTaskHandle() {
                 private long remaining = copies;
 

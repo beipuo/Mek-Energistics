@@ -7,6 +7,7 @@
   "gui.mekenergistics.me_patterns.passive.multiplier": "Passive order multiplier (blank = 1x, max %sx)",
   "gui.mekenergistics.me_patterns.smart_multiplication.on": "Smart pattern multiplication: On",
   "gui.mekenergistics.me_patterns.smart_multiplication.off": "Smart pattern multiplication: Off",
+  "gui.mekenergistics.me_patterns.refund": "Return cached, unprocessed inputs to ME storage. Full or offline networks retain the balance for retry. Already-fed inputs are not returned; cancel the CPU job separately.",
   "gui.mekenergistics.me_patterns.terminal_visibility.shown": "Shown in Pattern Access Terminal",
   "gui.mekenergistics.me_patterns.terminal_visibility.hidden": "Hidden from Pattern Access Terminal",
   "gui.mekenergistics.me_patterns.ae_output.item": "Item output to AE: %s",

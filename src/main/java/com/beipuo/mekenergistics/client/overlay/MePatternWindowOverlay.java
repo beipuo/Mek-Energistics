@@ -394,6 +394,12 @@ public final class MePatternWindowOverlay {
                 }
             });
             updateTerminalVisibilityTooltip();
+            addChild(new MekanismImageButton(gui, relativeX + 46, relativeY + 4, 12, LEFT_BUTTON,
+                    (element, mouseX, mouseY) -> {
+                        PacketDistributor.sendToServer(new com.beipuo.mekenergistics.network.packet.RefundPendingPatternsPacket(
+                                this.target.container().getTileEntity().getBlockPos()));
+                        return true;
+                    })).setTooltip(Tooltip.create(Component.translatable("gui.mekenergistics.me_patterns.refund")));
             addChild(new MekanismImageButton(gui, relativeX + 158, relativeY + 4, 12, CHECK_BUTTON, (element, mouseX, mouseY) -> toggleNameEditor()))
                     .setTooltip(Tooltip.create(RENAME_BUTTON_TOOLTIP));
             this.lastSavedName = this.target.nameAccess().get();

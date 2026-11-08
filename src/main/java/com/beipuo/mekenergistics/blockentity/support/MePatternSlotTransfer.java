@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
@@ -108,7 +109,7 @@ public final class MePatternSlotTransfer {
         transferData.put(TAG_ITEM_PATTERN_SLOTS, save(tile, registries));
         transferData.put(TAG_ITEM_ME_STATE, saveMeState(tile, registries));
         blockEntityData.put(TAG_ITEM_DATA, transferData);
-        stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(blockEntityData));
+        BlockItem.setBlockEntityData(stack, tile.getType(), blockEntityData);
     }
 
     public static void loadFromItemStack(BlockEntity tile, HolderLookup.Provider registries, ItemStack stack) {
@@ -116,9 +117,14 @@ public final class MePatternSlotTransfer {
         if (customData == null) {
             return;
         }
-        CompoundTag transferData = customData.copyTag().getCompound(TAG_ITEM_DATA);
+        CompoundTag blockEntityData = customData.copyTag();
+        CompoundTag transferData = blockEntityData.getCompound(TAG_ITEM_DATA);
         if (transferData.isEmpty()) {
             return;
+        }
+        if (!blockEntityData.contains("id") && isNativeMeMachine(tile)
+                && stack.is(tile.getBlockState().getBlock().asItem())) {
+            BlockItem.setBlockEntityData(stack, tile.getType(), blockEntityData);
         }
         load(tile, registries, transferData.getCompound(TAG_ITEM_PATTERN_SLOTS));
         loadMeState(tile, registries, transferData.getCompound(TAG_ITEM_ME_STATE));

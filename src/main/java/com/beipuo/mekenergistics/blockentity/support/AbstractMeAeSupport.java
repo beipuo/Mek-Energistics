@@ -218,9 +218,17 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
                 || this.owner.isPatternBusy()) {
             return false;
         }
+        if (this.smartPatternMultiplication.isRefunding()) {
+            return false;
+        }
+        KeyCounter[] oneCraft = this.smartPatternMultiplication.oneCraftInputs(patternDetails, inputs);
+        if (this.smartPatternMultiplication.isEnabled() && oneCraft != null
+                && !hasSingleCraftCapacity(oneCraft)) {
+            return false;
+        }
         boolean exactPattern = this.patterns.contains(patternDetails);
         boolean registeredPattern = exactPattern || hasMatchingPatternDefinition(this.patterns, patternDetails);
-        return dispatchWithSmartPatternFallback(
+        boolean accepted = dispatchWithSmartPatternFallback(
                 exactPattern,
                 registeredPattern,
                 this.smartPatternMultiplication,
@@ -235,6 +243,11 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
                     setSmartPatternMultiplicationEnabled(false);
                 },
                 () -> routePatternInputs(inputs));
+        if (accepted) {
+            this.owner.saveChanges();
+            alertAeTicker();
+        }
+        return accepted;
     }
 
     /**
@@ -250,11 +263,11 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
         if (!registeredPattern) {
             return false;
         }
-        if (multiplication.isEnabled() && exactPattern) {
-            if (multiplication.enqueue(patternDetails, inputs)) {
-                return true;
-            }
+        if (multiplication.isRefunding()) return false;
+        if (multiplication.isEnabled() && exactPattern && multiplication.canRepresent(patternDetails, inputs)) {
+            return multiplication.enqueue(patternDetails, inputs);
         }
+        if (multiplication.hasPendingWork()) return false;
         if (multiplication.isEnabled()) {
             disableMultiplication.run();
         }
@@ -283,7 +296,23 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
         return changed;
     }
 
+    public final void requestPendingPatternRefund() {
+        if (this.ownerTile.getLevel() == null || this.ownerTile.getLevel().isClientSide) return;
+        if (this.smartPatternMultiplication.requestRefund()) this.owner.saveChanges();
+        alertAeTicker();
+    }
+
+    private boolean processPendingPatternRefund() {
+        if (!this.smartPatternMultiplication.isRefunding()) return false;
+        boolean changed = this.smartPatternMultiplication.refundPending(
+                stack -> this.nodeLifecycle.getMainNode().isActive()
+                        ? insertIntoNetwork(stack.what(), stack.amount()) : 0);
+        if (changed) this.owner.saveChanges();
+        return changed;
+    }
+
     protected final boolean processSmartPatternViaAdapter() {
+        if (this.smartPatternMultiplication.isRefunding()) return false;
         MeInputLayout layout = patternInputLayout();
         boolean busy = this.owner.isPatternBusy();
         if (this.lastPatternBusy == null || this.lastPatternBusy != busy) {
@@ -766,8 +795,15 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
         return changed;
     }
 
+    private boolean hasSingleCraftCapacity(KeyCounter[] oneCraftInputs) {
+        return oneCraftInputs != null && patternInputLayout().maxAcceptedCopies(oneCraftInputs) >= 1;
+    }
+
     public final boolean enqueueSmartPattern(IPatternDetails patternDetails, KeyCounter[] inputHolder) {
-        if (!this.smartPatternMultiplication.enqueue(patternDetails, inputHolder)) {
+        if (!this.nodeLifecycle.getMainNode().isActive() || this.owner.isPatternBusy()
+                || !hasRegisteredPattern(patternDetails)
+                || !hasSingleCraftCapacity(this.smartPatternMultiplication.oneCraftInputs(patternDetails, inputHolder))
+                || !this.smartPatternMultiplication.enqueue(patternDetails, inputHolder)) {
             return false;
         }
         this.owner.saveChanges();
@@ -832,34 +868,6 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
     protected final MEStorage getNetworkStorage(IGrid grid) {
         IStorageService storageService = grid == null ? null : grid.getService(IStorageService.class);
         return storageService == null ? null : storageService.getInventory();
-    }
-
-    /**
-     * Returns a quarantined smart-multiplication balance to the AE network. Returns 0 when the
-     * machine has no active grid yet (normal during deserialization), so the caller keeps the
-     * balance in the quarantined NBT instead of losing it.
-     */
-    private long refundPendingBalance(List<GenericStack> inputs, long remaining) {
-        if (inputs == null || inputs.isEmpty() || remaining <= 0) {
-            return 0;
-        }
-        MEStorage storage = getNetworkStorage(getGrid());
-        if (storage == null) {
-            return 0;
-        }
-        long refunded = 0;
-        for (GenericStack input : inputs) {
-            if (input == null || input.what() == null) {
-                continue;
-            }
-            long amount = MePendingPatternStore.scaleAmountClamped(input.amount(), remaining);
-            if (amount <= 0) {
-                continue;
-            }
-            long inserted = storage.insert(input.what(), amount, Actionable.MODULATE, this.actionSource);
-            refunded = refunded > Long.MAX_VALUE - inserted ? Long.MAX_VALUE : refunded + inserted;
-        }
-        return refunded;
     }
 
     public final void updatePatterns() {
@@ -989,7 +997,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
             int offset = this.owner instanceof MePatternIoOwner io ? Math.max(0, io.getLegacyPatternSlotOffset()) : 0;
             loadLegacyInventory(this.patternSlots, tag, registries, offset);
         }
-        this.smartPatternMultiplication.loadPending(tag, registries, this::refundPendingBalance);
+        this.smartPatternMultiplication.loadPending(tag, registries);
         // Block entities can be deserialized before they have a level. Decode the
         // restored patterns after the managed node is created on the first tick.
         this.patterns.clear();
@@ -1053,7 +1061,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
 
     /** Wakes the AE ticker if work is pending and it may be asleep. Cheap enough for every tick. */
     protected final void wakeAeTickerIfIdle() {
-        if (!this.aeTickerAwake && hasAeOutputWork()) {
+        if (!this.aeTickerAwake && (this.smartPatternMultiplication.isRefunding() || hasAeOutputWork())) {
             this.aeTickerAwake = true;
             alertAeTicker();
         }
@@ -1073,7 +1081,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
     private final class AeTicker implements IGridTickable {
         @Override
         public TickingRequest getTickingRequest(IGridNode node) {
-            boolean hasWork = hasAeOutputWork();
+            boolean hasWork = smartPatternMultiplication.isRefunding() || hasAeOutputWork();
             aeTickerAwake = hasWork;
             return new TickingRequest(1, MAX_IDLE_TICK_RATE, !hasWork);
         }
@@ -1084,9 +1092,10 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
                 aeTickerAwake = false;
                 return TickRateModulation.SLEEP;
             }
-            // processAeOutputWork reports whether anything moved this tick.
-            boolean progressed = processAeOutputWork();
-            TickRateModulation rate = nextTickRate(progressed, hasAeOutputWork());
+            boolean progressed = processPendingPatternRefund();
+            progressed |= processAeOutputWork();
+            TickRateModulation rate = nextTickRate(progressed,
+                    smartPatternMultiplication.isRefunding() || hasAeOutputWork());
             aeTickerAwake = rate != TickRateModulation.SLEEP;
             return rate;
         }
