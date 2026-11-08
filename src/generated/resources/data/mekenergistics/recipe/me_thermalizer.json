@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "evolvedmekanism"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "evolvedmekanism:thermalizer"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_thermalizer"
     }
   ],
   "type": "minecraft:crafting_shapeless",

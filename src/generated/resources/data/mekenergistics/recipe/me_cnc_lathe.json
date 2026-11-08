@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "mekmm"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekmm:cnc_lathe"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_cnc_lathe"
     }
   ],
   "type": "minecraft:crafting_shapeless",

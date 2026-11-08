@@ -35,6 +35,27 @@ class MeNetworkEnergyHelperTest {
     }
 
     @Test
+    void cappedAvailabilityOnlyQueriesTheNetworkUpToTheCap() {
+        AtomicLong requestedFromNetwork = new AtomicLong();
+        long available = MeNetworkEnergyHelper.availableWithNetwork(5_000, 100_000, requested -> {
+            requestedFromNetwork.set(requested);
+            return Math.min(requested, 1_000_000);
+        });
+
+        assertEquals(95_000, requestedFromNetwork.get(), "the network must only be asked for what the cap allows");
+        assertEquals(100_000, available);
+    }
+
+    @Test
+    void cappedAvailabilitySkipsTheNetworkWhenLocalEnergySuffices() {
+        long available = MeNetworkEnergyHelper.availableWithNetwork(200_000, 100_000, requested -> {
+            throw new AssertionError("network must not be queried");
+        });
+
+        assertEquals(200_000, available);
+    }
+
+    @Test
     void localAndNetworkEnergyAreCombined() {
         assertEquals(50_000, MeNetworkEnergyHelper.totalAvailableEnergy(10_000, 40_000));
     }

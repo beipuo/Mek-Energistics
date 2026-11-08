@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "evolvedmekanism"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "evolvedmekanism:multiversal_purifying_factory"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_multiversal_purifying_factory"
     }
   ],
   "type": "minecraft:crafting_shapeless",

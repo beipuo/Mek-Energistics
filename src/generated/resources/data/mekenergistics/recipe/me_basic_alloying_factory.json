@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "evolvedmekanism"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "evolvedmekanism:basic_alloying_factory"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_basic_alloying_factory"
     }
   ],
   "type": "minecraft:crafting_shapeless",

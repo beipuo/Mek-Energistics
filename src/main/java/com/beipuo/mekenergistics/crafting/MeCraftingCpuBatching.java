@@ -49,8 +49,17 @@ public final class MeCraftingCpuBatching {
         try {
             accepted = pusher.push(provider, details, baseInputs);
             if (accepted) {
-                commitBatch(batch, jobAccess.mekenergistics$getWaitingFor(),
-                        (ElapsedTimeTrackerAccessor) jobAccess.mekenergistics$getTimeTracker(), energyService);
+                try {
+                    commitBatch(batch, jobAccess.mekenergistics$getWaitingFor(),
+                            (ElapsedTimeTrackerAccessor) jobAccess.mekenergistics$getTimeTracker(), energyService);
+                } catch (RuntimeException failure) {
+                    // The provider already owns the inputs, so the push itself succeeded and must
+                    // be reported as such. commitBatch restored the CPU bookkeeping; letting the
+                    // exception escape would crash AE2's crafting CPU tick and the server with it.
+                    MekEnergistics.LOGGER.error("Failed to record a batched ME crafting push for {}; "
+                            + "extra outputs will be returned to the network as unexpected items",
+                            details.getDefinition(), failure);
+                }
             }
             return accepted;
         } finally {

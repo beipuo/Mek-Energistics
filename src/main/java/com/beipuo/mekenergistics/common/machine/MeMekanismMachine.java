@@ -278,8 +278,16 @@ public final class MeMekanismMachine implements Comparable<MeMekanismMachine> {
     public int ordinal() {
         return this.ordinal;
     }
+    /** Resolved lazily (and then reused) because it is queried on per-tick paths. */
+    private volatile Identity identity;
+
     public Identity identity() {
-        return isFactory() ? Identity.FACTORY : Identity.valueOf(this.name);
+        Identity resolved = this.identity;
+        if (resolved == null) {
+            resolved = isFactory() ? Identity.FACTORY : Identity.valueOf(this.name);
+            this.identity = resolved;
+        }
+        return resolved;
     }
 
     public enum Identity {

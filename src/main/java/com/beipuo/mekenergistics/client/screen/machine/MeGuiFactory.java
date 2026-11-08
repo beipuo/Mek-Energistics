@@ -40,6 +40,12 @@ public class MeGuiFactory extends MeGuiConfigurableTile<TileEntityFactory<?>, Me
         if (tile.tier == FactoryTier.ULTIMATE) {
             imageWidth += 34;
             inventoryLabelX = 26;
+        } else if (isExtendedTier()) {
+            // Evolved Mekanism appends tiers (overclocked .. creative) to FactoryTier and routes
+            // their ME variants to this screen. They run more processes than ULTIMATE, so the
+            // fixed ULTIMATE geometry pushed slots, bars and progress arrows past the background.
+            imageWidth += MeFactoryGuiLayout.imageWidthDelta(extendedTierIndex());
+            inventoryLabelX = MeFactoryGuiLayout.inventoryLabelX(extendedTierIndex());
         }
         titleLabelY = 4;
         dynamicSlots = true;
@@ -54,19 +60,44 @@ public class MeGuiFactory extends MeGuiConfigurableTile<TileEntityFactory<?>, Me
         addRenderableWidget(new GuiEnergyTab(this, tile.getEnergyContainer(), tile::getLastUsage));
         if (tile.hasSecondaryResourceBar() && tile instanceof TileEntityItemStackChemicalToItemStackFactory factory) {
             addRenderableWidget(new GuiChemicalBar(this, GuiChemicalBar.getProvider(factory.getChemicalTank(), tile.getChemicalTanks(null)), 7, 76,
-                    tile.tier == FactoryTier.ULTIMATE ? 172 : 138, 4, true))
+                    barWidth(), 4, true))
                     .warning(WarningType.NO_MATCHING_RECIPE, tile.getWarningCheck(RecipeError.NOT_ENOUGH_SECONDARY_INPUT, 0));
-            dumpButton = addRenderableWidget(new GuiDumpButton<>(this, (TileEntityFactory<?> & IHasDumpButton) tile, tile.tier == FactoryTier.ULTIMATE ? 182 : 148, 76));
+            dumpButton = addRenderableWidget(new GuiDumpButton<>(this, (TileEntityFactory<?> & IHasDumpButton) tile, buttonX(), 76));
         }
 
         int baseX = tile.tier == FactoryTier.BASIC ? 55 : tile.tier == FactoryTier.ADVANCED ? 35 : tile.tier == FactoryTier.ELITE ? 29 : 27;
         int baseXMult = tile.tier == FactoryTier.BASIC ? 38 : tile.tier == FactoryTier.ADVANCED ? 26 : 19;
         for (int i = 0; i < tile.tier.processes; i++) {
             int cacheIndex = i;
+            // Tiers above ULTIMATE keep ULTIMATE's 19px pitch; the widened background from
+            // MeFactoryGuiLayout is sized for exactly that pitch.
             addRenderableWidget(new GuiProgress(() -> tile.getScaledProgress(1, cacheIndex), ProgressType.DOWN, this, 4 + baseX + (i * baseXMult), 33))
                     .recipeViewerCategory(tile)
                     .warning(WarningType.INPUT_DOESNT_PRODUCE_OUTPUT, tile.getWarningCheck(RecipeError.INPUT_DOESNT_PRODUCE_OUTPUT, cacheIndex));
         }
+    }
+
+    /** True for tiers above ULTIMATE, which only exist when Evolved Mekanism extends FactoryTier. */
+    private boolean isExtendedTier() {
+        return tile.tier.ordinal() >= MeFactoryGuiLayout.MEKANISM_TIER_OFFSET;
+    }
+
+    private int extendedTierIndex() {
+        return tile.tier.ordinal() - MeFactoryGuiLayout.MEKANISM_TIER_OFFSET;
+    }
+
+    private int barWidth() {
+        if (isExtendedTier()) {
+            return MeFactoryGuiLayout.barWidth(extendedTierIndex());
+        }
+        return tile.tier == FactoryTier.ULTIMATE ? 172 : 138;
+    }
+
+    private int buttonX() {
+        if (isExtendedTier()) {
+            return MeFactoryGuiLayout.buttonX(extendedTierIndex());
+        }
+        return tile.tier == FactoryTier.ULTIMATE ? 182 : 148;
     }
 
     @Override

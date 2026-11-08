@@ -171,11 +171,28 @@ public final class MeUpgradeContainer {
         if (component == null || this.data.counts().isEmpty()) {
             return;
         }
+        java.util.Map<MeUpgradeType, Integer> unmigrated = new java.util.EnumMap<>(MeUpgradeType.class);
         for (MeUpgradeType type : MeUpgradeType.values()) {
-            int missing = this.data.count(type) - component.getUpgrades(MeMekanismUpgrades.forType(type));
+            int legacy = this.data.count(type);
+            if (legacy <= 0) {
+                continue;
+            }
+            int missing = legacy - component.getUpgrades(MeMekanismUpgrades.forType(type));
             if (missing > 0 && component.supports(MeMekanismUpgrades.forType(type))) {
                 component.addUpgrades(MeMekanismUpgrades.forType(type), missing);
+                missing = legacy - component.getUpgrades(MeMekanismUpgrades.forType(type));
             }
+            if (missing > 0) {
+                unmigrated.put(type, missing);
+            }
+        }
+        if (!unmigrated.isEmpty()) {
+            // The native component refused some legacy cards (unsupported block, conflict, full).
+            // Legacy counts are not written back on save, so make the loss visible instead of
+            // silent; server owners can then restore the cards by hand.
+            com.beipuo.mekenergistics.MekEnergistics.LOGGER.warn(
+                    "Could not migrate legacy ME upgrades {} into the native upgrade component; they were dropped",
+                    unmigrated);
         }
         this.data = new MeUpgradeData(java.util.Map.of(), this.data.preserved());
         notifyChanged();

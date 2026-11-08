@@ -1,5 +1,7 @@
 package com.beipuo.mekenergistics.mixin;
 
+import appeng.api.crafting.PatternDetailsHelper;
+import mekanism.api.AutomationType;
 import mekanism.common.attachments.containers.creator.BaseContainerCreator;
 import mekanism.common.attachments.containers.item.ComponentBackedInventorySlot;
 import mekanism.common.attachments.containers.ContainerType;
@@ -27,8 +29,14 @@ public abstract class EnrichmentChamberItemContainerCreatorMixin {
     private void mekenergistics$createPatternSlot(ContainerType<?, ?, ?> type, ItemStack stack, int index,
             CallbackInfoReturnable<ComponentBackedInventorySlot> cir) {
         if (type == ContainerType.ITEM && index >= creators.size()) {
+            // These trailing slots only ever hold encoded patterns carried over from a machine. Keep
+            // external automation (other mods' item handlers on the stack) out, and only accept
+            // encoded patterns, so the fabricated slot cannot become a free general-purpose slot.
             cir.setReturnValue(new ComponentBackedInventorySlot(
-                    stack, index, (ignored, automation) -> true, (ignored, automation) -> true, ignored -> true));
+                    stack, index,
+                    (ignored, automation) -> automation != AutomationType.EXTERNAL,
+                    (ignored, automation) -> automation != AutomationType.EXTERNAL,
+                    PatternDetailsHelper::isEncodedPattern));
         }
     }
 }

@@ -101,6 +101,8 @@ public final class MeInterfaceModeGameTests {
                             List.of(new GenericStack(AEItemKey.of(Items.IRON_ORE), 1)),
                             List.of(new GenericStack(AEItemKey.of(Items.IRON_INGOT), 1)));
                     machine.getPatternSlots().getFirst().setStack(encoded);
+                    // This scenario exercises the smart queue; do not depend on the server config default.
+                    machine.setSmartPatternMultiplicationEnabled(true);
                 })
                 .thenExecuteAfter(3 * SharedConstants.TICKS_PER_SECOND, () -> {
                     MeAeMachine machine = machine(helper);
@@ -158,6 +160,8 @@ public final class MeInterfaceModeGameTests {
                             List.of(new GenericStack(
                                     AEItemKey.of(requiredItem("mekanism:basic_control_circuit")), 1)));
                     machine.getPatternSlots().getFirst().setStack(encoded);
+                    // This scenario exercises the smart queue; do not depend on the server config default.
+                    machine.setSmartPatternMultiplicationEnabled(true);
                 })
                 .thenExecuteAfter(3 * SharedConstants.TICKS_PER_SECOND, () -> {
                     MeAeMachine machine = machine(helper);
@@ -219,6 +223,8 @@ public final class MeInterfaceModeGameTests {
                                     new GenericStack(MekanismKey.of(MekanismChemicals.REDSTONE.asStack(10)), 10)),
                             List.of(new GenericStack(AEItemKey.of(requiredItem("mekanism:basic_control_circuit")), 1)));
                     machine.getPatternSlots().getFirst().setStack(encoded);
+                    // This scenario exercises the smart queue; do not depend on the server config default.
+                    machine.setSmartPatternMultiplicationEnabled(true);
                 })
                 .thenExecuteAfter(3 * SharedConstants.TICKS_PER_SECOND, () -> {
                     MeAeMachine machine = machine(helper);

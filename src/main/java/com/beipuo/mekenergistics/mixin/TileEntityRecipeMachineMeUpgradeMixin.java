@@ -105,9 +105,22 @@ public abstract class TileEntityRecipeMachineMeUpgradeMixin implements MeUpgrade
         return mekenergistics$tile() instanceof TileEntityMetallurgicInfuser ? AeOutputMode.ITEMS : AeOutputMode.BOTH;
     }
 
+    /** Memoized upgrade profile; deliberately no initializer (see MeUpgradeProfileCache). */
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache;
+
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache() {
+        if (this.mekenergistics$profileCache == null) {
+            this.mekenergistics$profileCache = new com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache();
+        }
+        return this.mekenergistics$profileCache;
+    }
+
     @Unique
     private MeUpgradeMachineProfile<?> mekenergistics$profile() {
-        return MekanismRecipeUpgradeProfiles.forTile(mekenergistics$tile());
+        return mekenergistics$profileCache().get(mekenergistics$tile(),
+                () -> MekanismRecipeUpgradeProfiles.forTile(mekenergistics$tile()), true);
     }
 
     @Unique

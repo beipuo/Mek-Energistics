@@ -53,11 +53,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
         TileEntityChemicalReplicator.class, TileEntityFluidReplicator.class}, remap = false)
 public abstract class MekmmComplexRecipeMachineMeUpgradeMixin implements MeUpgradeableMachine, MeUpgradeStateOwner, IBlockEntityExtension {
     @Unique private MeUpgradeRecipeMachineRuntime mekenergistics$runtime;
-    @Unique private List<IChemicalTank> mekenergistics$chemicalTanks = List.of();
-    @Unique private List<IExtendedFluidTank> mekenergistics$fluidTanks = List.of();
-    @Unique private List<InputInventorySlot> mekenergistics$itemInputs = List.of();
-    @Unique private List<ChemicalInventorySlot> mekenergistics$conversionSlots = List.of();
-    @Unique private List<OutputInventorySlot> mekenergistics$itemOutputs = List.of();
+    @Unique private List<IChemicalTank> mekenergistics$chemicalTanks;
+    @Unique private List<IExtendedFluidTank> mekenergistics$fluidTanks;
+    @Unique private List<InputInventorySlot> mekenergistics$itemInputs;
+    @Unique private List<ChemicalInventorySlot> mekenergistics$conversionSlots;
+    @Unique private List<OutputInventorySlot> mekenergistics$itemOutputs;
+
+    /*
+     * The captured lists above deliberately have no field initializers. Mekanism calls
+     * getInitialInventory/ChemicalTanks/FluidTanks from the TileEntityMekanism super-constructor,
+     * and Mixin runs @Unique field initializers in the target constructor *after* super() returns,
+     * so an initializer would wipe the captured ports and leave the ME input layout empty forever.
+     */
+    @Unique private static <T> List<T> mekenergistics$list(List<T> list) { return list == null ? List.of() : list; }
 
     @Unique private TileEntityMekanism mekenergistics$tile() { return (TileEntityMekanism) (Object) this; }
 
@@ -112,14 +120,14 @@ public abstract class MekmmComplexRecipeMachineMeUpgradeMixin implements MeUpgra
     @Unique
     private MeInputLayout mekenergistics$inputLayout(MeMekanismMachine machine) {
         if (machine == MeMekanismMachine.CHEMICAL_REPLICATOR) {
-            if (this.mekenergistics$chemicalTanks.size() < 2 || this.mekenergistics$conversionSlots.size() < 2) {
+            if (mekenergistics$list(this.mekenergistics$chemicalTanks).size() < 2 || mekenergistics$list(this.mekenergistics$conversionSlots).size() < 2) {
                 return MeInputLayout.empty();
             }
             return MeInputLayout.lanes(List.of(
-                    List.of(MeMachineIoAdapter.chemicalInput(this.mekenergistics$chemicalTanks.get(0)),
-                            MeMachineIoAdapter.itemInput(this.mekenergistics$conversionSlots.get(0))),
-                    List.of(MeMachineIoAdapter.chemicalInput(this.mekenergistics$chemicalTanks.get(1)),
-                            MeMachineIoAdapter.itemInput(this.mekenergistics$conversionSlots.get(1)))));
+                    List.of(MeMachineIoAdapter.chemicalInput(mekenergistics$list(this.mekenergistics$chemicalTanks).get(0)),
+                            MeMachineIoAdapter.itemInput(mekenergistics$list(this.mekenergistics$conversionSlots).get(0))),
+                    List.of(MeMachineIoAdapter.chemicalInput(mekenergistics$list(this.mekenergistics$chemicalTanks).get(1)),
+                            MeMachineIoAdapter.itemInput(mekenergistics$list(this.mekenergistics$conversionSlots).get(1)))));
         }
         if (machine == MeMekanismMachine.FLUID_REPLICATOR && (Object) this instanceof TileEntityFluidReplicator tile) {
             ChemicalInventorySlot slot = ((TileEntityFluidReplicatorAccessor) tile).mekenergistics$getUuSlot();
@@ -128,12 +136,12 @@ public abstract class MekmmComplexRecipeMachineMeUpgradeMixin implements MeUpgra
                     List.of(MeMachineIoAdapter.fluidInput(tile.inputTank)),
                     List.of(MeMachineIoAdapter.chemicalInput(tile.uuTank), MeMachineIoAdapter.itemInput(slot))));
         }
-        if (this.mekenergistics$itemInputs.isEmpty() || this.mekenergistics$chemicalTanks.isEmpty()
-                || this.mekenergistics$conversionSlots.isEmpty()) return MeInputLayout.empty();
+        if (mekenergistics$list(this.mekenergistics$itemInputs).isEmpty() || mekenergistics$list(this.mekenergistics$chemicalTanks).isEmpty()
+                || mekenergistics$list(this.mekenergistics$conversionSlots).isEmpty()) return MeInputLayout.empty();
         return MeInputLayout.unordered(List.of(
-                MeMachineIoAdapter.itemInput(this.mekenergistics$itemInputs.getFirst()),
-                MeMachineIoAdapter.chemicalInput(this.mekenergistics$chemicalTanks.getFirst()),
-                MeMachineIoAdapter.itemInput(this.mekenergistics$conversionSlots.getFirst())));
+                MeMachineIoAdapter.itemInput(mekenergistics$list(this.mekenergistics$itemInputs).getFirst()),
+                MeMachineIoAdapter.chemicalInput(mekenergistics$list(this.mekenergistics$chemicalTanks).getFirst()),
+                MeMachineIoAdapter.itemInput(mekenergistics$list(this.mekenergistics$conversionSlots).getFirst())));
     }
 
     @Unique
@@ -157,7 +165,7 @@ public abstract class MekmmComplexRecipeMachineMeUpgradeMixin implements MeUpgra
             return List.of(MeMachineIoAdapter.itemOutput(
                     ((TileEntityReplicatorAccessor) replicator).mekenergistics$getOutputSlot()));
         }
-        return this.mekenergistics$itemOutputs.stream().map(MeMachineIoAdapter::itemOutput).toList();
+        return mekenergistics$list(this.mekenergistics$itemOutputs).stream().map(MeMachineIoAdapter::itemOutput).toList();
     }
 
     @Override public boolean isMeUpgradeTarget() { return mekenergistics$machine() != null; }

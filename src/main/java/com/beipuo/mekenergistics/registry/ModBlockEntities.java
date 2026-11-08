@@ -65,13 +65,24 @@ public final class ModBlockEntities {
         return MACHINES.get(machine);
     }
 
+    /**
+     * Identity set of every ME machine block entity type, built on first use (after registration).
+     * Capability lookups on bounding blocks call {@link #isMachineBlockEntity} frequently; a linear
+     * scan over every registered machine type per call was wasted work.
+     */
+    private static volatile java.util.Set<BlockEntityType<?>> machineTypes;
+
     public static boolean isMachineBlockEntity(BlockEntityType<?> type) {
-        for (TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder : MACHINES.values()) {
-            if (holder.get() == type) {
-                return true;
+        java.util.Set<BlockEntityType<?>> types = machineTypes;
+        if (types == null) {
+            java.util.Set<BlockEntityType<?>> built =
+                    java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+            for (TileEntityTypeRegistryObject<? extends TileEntityMekanism> holder : MACHINES.values()) {
+                built.add(holder.get());
             }
+            machineTypes = types = java.util.Collections.unmodifiableSet(built);
         }
-        return false;
+        return types.contains(type);
     }
 
     public static void register(IEventBus eventBus) {

@@ -22,24 +22,27 @@ Mek Energistics 为 Mekanism 机器添加可接入 Applied Energistics 2 自动�
 
 ## 配置选项
 
-Mek Energistics 使用 NeoForge 原生模组配置页面。可在 Mods 列表中选择 Mek Energistics，然后点击 Config 打开。
+Mek Energistics 使用 NeoForge 原生模组配置页面：在 Mods 列表中选择 Mek Energistics，然后点击 Config。客户端配置位于 `config/`，服务端配置位于 `<存档>/serverconfig/`。
 
-| 选项 | 默认值 | 说明 |
-| --- | --- | --- |
-| 样板页数 | 2 | 设置每台机器内置样板总成的页数。每页有 36 个编码样板槽。 |
-| 隐藏 JEI 机器变体 | 开启 | 默认在 JEI 中隐藏重复的 ME 工厂变体。配方页面只保留基础 ME 机器作为显示用催化机器，但工厂变体仍可合成并正常使用。 |
-| 优先使用 Applied Flux FE | 关闭 | 安装 Applied Flux 且机器连接 AE 网络时，优先消耗 Applied Flux 存储的 FE，再消耗 AE 网络能量。 |
-| 优先使用本地 FE | 开启 | 机器连接 AE 网络时，优先消耗机器本地 FE 缓冲，再消耗网络能量。关闭后优先使用网络能量。 |
+| 选项（键名） | 文件 | 默认值 | 范围 | 说明 |
+| --- | --- | --- | --- | --- |
+| 样板页数（`patternPages`） | 服务端 | 2 | 1–16 | 每台机器内置样板总成的页数，每页 36 个编码样板槽。**修改后需重新进入存档。** 调小后高位槽位会隐藏，但其中的样板仍保存在机器里。 |
+| 优先使用网络能量（`preferNetworkEnergy`） | 服务端 | 开启 | – | 机器连接 AE 网络时，优先消耗 AE 网络（及 Applied Flux）能量，再消耗机器本地 FE 缓冲。关闭后优先使用本地缓冲。 |
+| 优先使用 Applied Flux FE（`preferAppliedFluxNetworkFe`） | 服务端 | 关闭 | – | 安装 Applied Flux 时，优先消耗 Applied Flux 存储的 FE，再消耗 AE 网络能量。 |
+| 默认启用智能样板倍增（`smartPatternMultiplicationDefault`） | 服务端 | 关闭 | – | 新放置机器的默认值，机器自身已保存的设置始终优先。 |
+| 隐藏 JEI 机器变体（`hideJeiMachineVariants`） | 客户端 | 开启 | – | 在 JEI 中隐藏重复的 ME 工厂变体（以及 ME 输出接口升级卡）。配方页只保留基础 ME 机器作为催化机器，隐藏的变体仍可合成和使用。 |
+
+服务端选项按存档保存并同步到客户端，多人游戏中只有服务器管理员可以修改。
 
 ## 必需依赖
 
-| 模组 | 说明 |
-| --- | --- |
-| Minecraft | 1.21.1 |
-| NeoForge | 21.1.220 或更高 |
-| Applied Energistics 2 | AE 网络、频道、能源和样板供应能力 |
-| Mekanism | 原版机器、配方、GUI 和工厂体系 |
-| Applied Mekanistics | 化学品 AE Key 支持 |
+| 模组 | 最低版本 | 说明 |
+| --- | --- | --- |
+| Minecraft | 1.21.1 | |
+| NeoForge | 21.1.238 | |
+| Applied Energistics 2 | 19.2.17 | AE 网络、频道、能源和样板供应能力 |
+| Mekanism | 10.7.19 | 原版机器、配方、GUI 和工厂体系 |
+| Applied Mekanistics | 1.6.3 | 化学品 AE Key 支持 |
 
 ## 兼容模组
 
@@ -48,13 +51,15 @@ Mek Energistics 使用 NeoForge 原生模组配置页面。可在 Mods 列表中
 | JEI | 显示 ME 机器可执行的 Mekanism 配方，隐藏重复工厂变体 |
 | Jade | 显示机器是否连接 AE 网络 |
 | Mekanism Extras | 适配更高等级工厂与相关 ME 机器 |
-| Mekanism More Machine | 适配扩展机器与对应工厂版本 |
-| Mekanism Generators | 可与 Mekanism 能源体系一起使用 |
-| AE2 JEI Integration | 与 AE2/JEI 配方查看一起使用 |
-| Advanced AE | 可与 AE 网络扩展一起使用 |
-| Omni Cells | 可与 AE 存储扩展一起使用 |
+| Mekanism More Machine（1.4.0+） | 适配扩展机器、大型机器与对应工厂版本 |
+| Evolved Mekanism / Evolved Mekanism Extras | 合金炉、化学混合器、固化室、热化器及更高等级工厂 |
+| Mekanism Magic | 通过样板自动化接口为其机器提供 ME 升级卡支持 |
+| ExtendedAE | 使用石英切割刀在样板访问终端中重命名机器 |
+| DataEnergistics、OmniSequence、NeoECOAE、Thunderbolt Core | 计数/批量合成 CPU 可一次推送同一样板的多份原料 |
 | Applied Flux | 可选支持网络 FE 存储 |
-| Mekanism Unleashed | 可共同加载 |
+| Mekanism Generators、AE2 JEI Integration、Advanced AE、Omni Cells、Mekanism Unleashed | 可共同加载 |
+
+若已安装某个可选模组但其版本不受支持，对应联动会自动关闭，并在日志中提示（`Mek Energistics integration ... disabled`）。
 
 ## 使用说明
 
@@ -64,8 +69,27 @@ Mek Energistics 使用 NeoForge 原生模组配置页面。可在 Mods 列表中
 4. 在 AE 终端下单。
 5. 机器会接收原料、执行对应 Mekanism 配方，并根据配置返回产物。
 
+## ME 升级卡
+
+普通 Mekanism 机器也可以不替换方块，直接在 Mekanism 升级槽中安装升级卡接入 ME 网络：
+
+- **ME 样板供应升级**：添加机器内置样板总成。
+- **ME 被动合成升级**：需先安装样板供应升级；按间隔直接从 ME 存储提交已安装的样板（间隔 1–72000 tick，单次倍率 1–64）。
+- **ME 输出接口升级**：从 ME 存储为机器保持指定物品的库存。不能与上述两种升级同时安装，且接口中仍有库存时无法拆除。
+
+## 常见问题
+
+| 现象 | 排查方法 |
+| --- | --- |
+| 安装器没有反应 | 查看动作栏提示：可能有其他玩家正打开该机器界面、多方块所需空间被占用，或你没有建造权限。 |
+| 附属模组机器不接受 ME 升级卡 | 在日志中搜索 `Mek Energistics integration ... disabled`，说明当前附属模组版本不受支持。 |
+| 智能样板倍增被自动关闭 | 某个合成 CPU 推送了预先批量化的原料，日志会写明机器和样板。可在样板窗口中重新开启。 |
+| 日志出现 `Skipping invalid encoded pattern` | 该样板已无法解码（例如配方被数据包移除），请重新编码。 |
+
 ## 构建
 
 ```powershell
-.\gradlew.bat build --no-problems-report
+.\gradlew.bat build --no-problems-report                  # 编译、单元测试、打包
+.\gradlew.bat runGameTestServer                           # 游戏内 GameTest
+.\gradlew.bat runClient -Pmekenergistics.debugRuns=true   # 以 DEBUG 日志启动客户端
 ```

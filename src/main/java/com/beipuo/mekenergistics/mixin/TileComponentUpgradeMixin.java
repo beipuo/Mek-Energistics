@@ -13,6 +13,7 @@ import net.minecraft.nbt.Tag;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,6 +25,12 @@ public abstract class TileComponentUpgradeMixin implements MeUpgradeComponentSta
     @Shadow
     @Final
     private mekanism.common.tile.base.TileEntityMekanism tile;
+
+    @Shadow
+    public abstract int getUpgrades(Upgrade upgrade);
+
+    @Unique
+    private int mekenergistics$countBeforeRemove;
 
     @Override
     public CompoundTag mekenergistics$captureTierState(HolderLookup.Provider registries) {
@@ -42,11 +49,9 @@ public abstract class TileComponentUpgradeMixin implements MeUpgradeComponentSta
         }
     }
 
-    @Inject(method = "addUpgrades(Lmekanism/api/Upgrade;I)I", at = @At("RETURN"))
-    private void mekenergistics$upgradeInstalled(Upgrade upgrade, int maxAvailable,
-            CallbackInfoReturnable<Integer> cir) {
-        notifyMeUpgradeChange(upgrade);
-    }
+    // addUpgrades(Upgrade, int) only delegates to addUpgrades(Upgrade, int, int), so the RETURN
+    // hook on the three-argument overload below sees every install exactly once. Hooking both
+    // overloads notified twice per install, and also when the conflict guard rejected it.
 
     @Inject(method = "addUpgrades(Lmekanism/api/Upgrade;II)I", at = @At("HEAD"), cancellable = true)
     private void mekenergistics$rejectConflictingMeUpgrade(Upgrade upgrade, int installed, int maxAvailable,
@@ -67,7 +72,11 @@ public abstract class TileComponentUpgradeMixin implements MeUpgradeComponentSta
 
     @Inject(method = "removeUpgrade", at = @At("RETURN"))
     private void mekenergistics$upgradeRemoved(Upgrade upgrade, boolean removeAll, CallbackInfo ci) {
-        notifyMeUpgradeChange(upgrade);
+        // Only notify when something was actually removed; every notification invalidates
+        // capabilities and wakes the AE ticker.
+        if (getUpgrades(upgrade) != this.mekenergistics$countBeforeRemove) {
+            notifyMeUpgradeChange(upgrade);
+        }
     }
 
     @Inject(method = "removeUpgrade", at = @At("HEAD"), cancellable = true)
@@ -75,7 +84,9 @@ public abstract class TileComponentUpgradeMixin implements MeUpgradeComponentSta
         if (MeMekanismUpgrades.toType(upgrade) == com.beipuo.mekenergistics.upgrade.MeUpgradeType.OUTPUT_INTERFACE
                 && this.tile instanceof MeUpgradeStateOwner owner && !owner.isInterfaceInventoryEmpty()) {
             ci.cancel();
+            return;
         }
+        this.mekenergistics$countBeforeRemove = getUpgrades(upgrade);
     }
 
     private void notifyMeUpgradeChange(Upgrade upgrade) {

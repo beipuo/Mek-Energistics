@@ -171,7 +171,11 @@ public class MeAeNodeLifecycle<O extends MePatternIoOwner> {
     }
 
     public void saveNode(CompoundTag tag) {
-        if (this.nodeState == NodeState.DESTROYED && this.retainedNodeData != null) {
+        boolean nodeMissing = this.nodeState == NodeState.DESTROYED || this.mainNode.getNode() == null;
+        if (nodeMissing && this.retainedNodeData != null) {
+            // Before the first tick (or after destruction) AE2 has no live node to serialize. A
+            // chunk saved in that window must keep the loaded node data, including the owning
+            // player, instead of writing nothing.
             if (this.retainedNodeData.contains(TAG_NODE)) {
                 tag.put(TAG_NODE, this.retainedNodeData.getCompound(TAG_NODE).copy());
             }
@@ -191,6 +195,10 @@ public class MeAeNodeLifecycle<O extends MePatternIoOwner> {
     }
 
     private void retainNodeData() {
+        if (this.mainNode.getNode() == null && this.retainedNodeData != null) {
+            // Never created (destroyed before its first tick): keep what was loaded.
+            return;
+        }
         CompoundTag tag = new CompoundTag();
         this.mainNode.saveToNBT(tag);
         this.retainedNodeData = copyNodeData(tag);

@@ -3,6 +3,14 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "mekmm"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekmm:large_chemical_infuser"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekenergistics:me_large_chemical_infuser"
     }
   ],
   "type": "minecraft:crafting_shapeless",

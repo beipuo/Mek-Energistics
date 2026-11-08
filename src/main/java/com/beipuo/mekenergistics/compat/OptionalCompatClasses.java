@@ -107,15 +107,26 @@ public final class OptionalCompatClasses {
         }
     }
 
+    /** Resolved EMExtras tiers; only hits are cached, like {@link #hasClassResource}. */
+    private static final Map<String, Object> EMEKE_FACTORY_TIERS = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Nullable
     public static Object getEvolvedMekanismExtrasFactoryTier(String tierName) {
-        if (!hasEvolvedMekanismExtras()) {
+        if (!hasEvolvedMekanismExtras() || tierName == null) {
             return null;
         }
+        Object cached = EMEKE_FACTORY_TIERS.get(tierName);
+        if (cached != null) {
+            return cached;
+        }
         try {
-            return Class.forName("io.github.masyumero.emextras.common.tier.EMExtraFactoryTier")
+            Object tier = Class.forName("io.github.masyumero.emextras.common.tier.EMExtraFactoryTier")
                     .getField(tierName.toUpperCase(java.util.Locale.ROOT))
                     .get(null);
+            if (tier != null) {
+                EMEKE_FACTORY_TIERS.put(tierName, tier);
+            }
+            return tier;
         } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
             return null;
         }
@@ -177,10 +188,24 @@ public final class OptionalCompatClasses {
                 ? factoryProcesses("io.github.masyumero.emextras.common.tier.EMExtraFactoryTier", tierName) : 0;
     }
 
+    private static final Map<String, Integer> FACTORY_PROCESSES = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static int factoryProcesses(String tierClassName, String tierName) {
         if (tierName == null) {
             return 0;
         }
+        Integer cached = FACTORY_PROCESSES.get(tierClassName + '#' + tierName);
+        if (cached != null) {
+            return cached;
+        }
+        int processes = resolveFactoryProcesses(tierClassName, tierName);
+        if (processes > 0) {
+            FACTORY_PROCESSES.put(tierClassName + '#' + tierName, processes);
+        }
+        return processes;
+    }
+
+    private static int resolveFactoryProcesses(String tierClassName, String tierName) {
         try {
             Object tier = Class.forName(tierClassName)
                     .getField(tierName.toUpperCase(java.util.Locale.ROOT))
@@ -224,12 +249,27 @@ public final class OptionalCompatClasses {
         return hasEvolvedMekanismExtras() && hasMekmm() && hasClassResource(EMEKE_MORE_MACHINE_FACTORY);
     }
 
+    /**
+     * Class presence never changes once a class is visible, but a resource lookup walks the whole
+     * mod class path. Found classes are remembered; misses are re-probed because very early
+     * callers can run before the game class loader sees every mod.
+     */
+    private static final java.util.Set<String> PRESENT_CLASS_RESOURCES =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private static boolean hasClassResource(String path) {
+        if (PRESENT_CLASS_RESOURCES.contains(path)) {
+            return true;
+        }
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         if (loader == null) {
             loader = OptionalCompatClasses.class.getClassLoader();
         }
-        return loader.getResource(path) != null;
+        boolean present = loader.getResource(path) != null;
+        if (present) {
+            PRESENT_CLASS_RESOURCES.add(path);
+        }
+        return present;
     }
 
     @Nullable

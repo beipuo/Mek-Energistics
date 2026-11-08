@@ -52,6 +52,24 @@ class ProviderTableTest {
         }
     }
 
+    /**
+     * Every optional mod that contributes machines also contributes menus, and a menu without a
+     * bound screen silently opens nothing on the client. Core Mekanism screens are bound directly
+     * by {@code ClientSetup}, so only the optional mods need a client provider.
+     */
+    @Test
+    void everyOptionalModThatSuppliesMachinesHasAClientProvider() {
+        Map<CompatMod, String> providers = providerTable(
+                "com.beipuo.mekenergistics.client.compat.provider.CompatMachineClientProviders");
+
+        for (CompatMod mod : CompatMod.values()) {
+            if (mod == CompatMod.MEKANISM) {
+                continue;
+            }
+            assertTrue(providers.containsKey(mod), () -> mod + " has no registered client screen provider");
+        }
+    }
+
     private static void assertTableEntriesImplement(String registryClass, String contract) {
         Map<CompatMod, String> providers = providerTable(registryClass);
         assertFalse(providers.isEmpty(), () -> registryClass + " lists no providers");

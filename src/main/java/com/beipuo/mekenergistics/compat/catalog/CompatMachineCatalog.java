@@ -231,7 +231,27 @@ public final class CompatMachineCatalog {
         return requirements;
     }
 
+    /**
+     * Specs already proven available. A spec's availability depends only on which mods and classes
+     * are installed, so once true it stays true for the run; every right-click on an ME machine and
+     * every provider lookup used to recompute it with class-path probes and reflection. Misses are
+     * not cached for the same reason as in {@code OptionalCompatClasses#hasClassResource}.
+     */
+    private static final java.util.Set<CompatMachineSpec> AVAILABLE_SPECS =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private static boolean isAvailable(CompatMachineSpec spec) {
+        if (AVAILABLE_SPECS.contains(spec)) {
+            return true;
+        }
+        boolean available = computeAvailable(spec);
+        if (available) {
+            AVAILABLE_SPECS.add(spec);
+        }
+        return available;
+    }
+
+    private static boolean computeAvailable(CompatMachineSpec spec) {
         if (!spec.machine().hasMeVariant()) {
             return false;
         }

@@ -143,7 +143,15 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
         }
         this.recipeProcessor.fillChemicalFromConversionSlot();
         if (this.recipeProcessor.canProcessRecipe()) {
-            this.energyContainer.extract(this.energyContainer.getEnergyPerTick(), Action.EXECUTE, AutomationType.INTERNAL);
+            long energyPerTick = this.energyContainer.getEnergyPerTick();
+            if (this.energyContainer.extract(energyPerTick, Action.SIMULATE, AutomationType.INTERNAL) < energyPerTick) {
+                // Never make progress without paying for it (e.g. the simulated check counted
+                // network energy that was gone by the time the real extraction ran). Progress is
+                // paused, not reset, matching Mekanism's behaviour when a machine runs dry.
+                setActive(false);
+                return sendUpdatePacket;
+            }
+            this.energyContainer.extract(energyPerTick, Action.EXECUTE, AutomationType.INTERNAL);
             this.operatingTicks++;
             setActive(true);
             if (this.operatingTicks >= this.ticksRequired) {
@@ -154,6 +162,8 @@ public class MeMekanismMachineBlockEntity extends TileEntityConfigurableMachine
             this.operatingTicks = 0;
             setActive(false);
         }
+        // Outputs of this machine are returned by the AE ticker, which sleeps while idle.
+        getAeSupport().wakeOutputTicker();
         return sendUpdatePacket;
     }
 

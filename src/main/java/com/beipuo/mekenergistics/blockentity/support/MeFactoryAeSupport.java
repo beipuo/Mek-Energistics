@@ -52,9 +52,7 @@ public final class MeFactoryAeSupport extends AbstractMeAeSupport<MeFactoryAeMac
     /** Processes all I/O declared by the factory owner through the common adapter. */
     public boolean processPatternIo(boolean sendUpdatePacket) {
         if (isInterfaceMode()) {
-            if (hasInterfaceWork()) {
-                alertAeTicker();
-            }
+            wakeAeTickerIfIdle();
             return sendUpdatePacket;
         }
         AeOutputMode mode = effectiveOutputMode();
@@ -122,25 +120,14 @@ public final class MeFactoryAeSupport extends AbstractMeAeSupport<MeFactoryAeMac
     @Override
     protected boolean processAeOutputWork() {
         if (isInterfaceMode()) {
-            boolean hadWork = hasInterfaceWork();
-            processInterfaceMode();
-            boolean hasWork = hasInterfaceWork();
-            if (hasWork) {
-                alertAeTicker();
-            }
-            return hadWork && !hasWork;
+            return processInterfaceMode();
         }
-        boolean hadWork = hasAeOutputWork();
         AeOutputMode mode = effectiveOutputMode();
-        drainPatternOutputs(mode);
+        boolean changed = drainPatternOutputs(mode);
         if (!hasPatternOutputBacklog(mode)) {
-            processSmartPatternViaAdapter();
+            changed |= processSmartPatternViaAdapter();
         }
-        boolean hasWork = hasAeOutputWork();
-        if (hasWork) {
-            alertAeTicker();
-        }
-        return hadWork && !hasWork;
+        return changed;
     }
 
     private AeOutputMode effectiveOutputMode() {

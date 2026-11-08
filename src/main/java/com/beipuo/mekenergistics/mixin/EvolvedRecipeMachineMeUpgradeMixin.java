@@ -74,9 +74,22 @@ public abstract class EvolvedRecipeMachineMeUpgradeMixin implements MeUpgradeabl
         mekenergistics$runtime().onMeUpgradeStateChanged();
     }
 
+    /** Memoized upgrade profile; deliberately no initializer (see MeUpgradeProfileCache). */
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache;
+
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache() {
+        if (this.mekenergistics$profileCache == null) {
+            this.mekenergistics$profileCache = new com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache();
+        }
+        return this.mekenergistics$profileCache;
+    }
+
     @Override
     public MeUpgradeMachineProfile<?> getMeUpgradeProfile() {
-        return EvolvedRecipeUpgradeProfiles.forTile(mekenergistics$tile());
+        return mekenergistics$profileCache().get(mekenergistics$tile(),
+                () -> EvolvedRecipeUpgradeProfiles.forTile(mekenergistics$tile()), true);
     }
 
     @Override public boolean isMeUpgradeTarget() { return getMeUpgradeProfile() != null; }

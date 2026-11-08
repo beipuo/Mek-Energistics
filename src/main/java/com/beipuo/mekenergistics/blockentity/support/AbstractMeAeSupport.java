@@ -54,6 +54,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
     private static final String TAG_PATTERN_SCHEMA = "AePatternSchema";
     private static final String TAG_PATTERN_TERMINAL_NAME = "PatternTerminalName";
     private static final String TAG_TERMINAL_VISIBLE = "PatternTerminalVisible";
+    private static final String TAG_PATTERN_SLOT_PREFIX = "MePatternSlot";
 
     protected final O owner;
     protected final TileEntityMekanism ownerTile;
@@ -132,9 +133,28 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
      */
     private MeInputLayout cachedInputLayout;
     private List<? extends MeOutputPort> cachedOutputPorts;
+    /**
+     * Output mode the cached structure was built for. Some owners (generic and infusing
+     * machines) pick different input ports per output mode, and the mode can change through
+     * paths that never call {@link #invalidatePatternIoCache()} (memory card paste, configurator
+     * data, NBT load, client sync). Comparing one reference per lookup keeps the cache honest.
+     */
+    private com.beipuo.mekenergistics.blockentity.api.AeOutputMode cachedIoMode;
     private Boolean lastPatternBusy;
 
+    private void invalidateIoCacheIfModeChanged() {
+        if (this.owner instanceof MeAeMachine aeMachine) {
+            com.beipuo.mekenergistics.blockentity.api.AeOutputMode mode = aeMachine.getAeOutputMode();
+            if (mode != this.cachedIoMode) {
+                this.cachedInputLayout = null;
+                this.cachedOutputPorts = null;
+                this.cachedIoMode = mode;
+            }
+        }
+    }
+
     private MeInputLayout patternInputLayout() {
+        invalidateIoCacheIfModeChanged();
         if (this.cachedInputLayout == null) {
             this.cachedInputLayout = this.owner.getPatternInputLayout();
         }
@@ -142,6 +162,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
     }
 
     private List<? extends MeOutputPort> patternOutputPorts() {
+        invalidateIoCacheIfModeChanged();
         if (this.cachedOutputPorts == null) {
             this.cachedOutputPorts = List.copyOf(this.owner.getPatternOutputPorts());
         }
@@ -207,8 +228,10 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
                 inputs,
                 () -> {
                     MekEnergistics.LOGGER.warn(
-                            "Disabling smart pattern multiplication for {} after an incompatible crafting CPU batch",
-                            this.owner.getGridNodePosition());
+                            "Disabling smart pattern multiplication for {} ({}): the crafting CPU pushed pattern {} "
+                                    + "as a pre-batched or multi-key input set the smart queue cannot represent. "
+                                    + "Re-enable it in the machine's pattern window once that CPU no longer pre-batches.",
+                            this.owner.getGridNodePosition(), patternOwnerName(), patternDetails.getDefinition());
                     setSmartPatternMultiplicationEnabled(false);
                 },
                 () -> routePatternInputs(inputs));
@@ -316,11 +339,40 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
             this.patternSlots = patternSlots;
         }
 
+        /*
+         * Mekanism's item handlers call this for every getSlots/getStackInSlot/insert, so building
+         * a fresh "machine slots + all pattern slots" list each time made a pipe or bus scanning N
+         * slots do O(N^2) copying. The original holder returns stable per-side lists, so the
+         * combined list is cached per side and rebuilt only when that source list changes.
+         */
+        private final java.util.EnumMap<net.minecraft.core.Direction, CombinedSlots> bySide =
+                new java.util.EnumMap<>(net.minecraft.core.Direction.class);
+        private CombinedSlots unsided;
+
         @Override
         public List<mekanism.api.inventory.IInventorySlot> getInventorySlots(net.minecraft.core.Direction side) {
-            List<mekanism.api.inventory.IInventorySlot> slots = new ArrayList<>(this.original.getInventorySlots(side));
+            List<? extends mekanism.api.inventory.IInventorySlot> source = this.original.getInventorySlots(side);
+            CombinedSlots cached = side == null ? this.unsided : this.bySide.get(side);
+            if (cached != null && cached.matches(source)) {
+                return cached.combined();
+            }
+            List<mekanism.api.inventory.IInventorySlot> slots = new ArrayList<>(source.size() + this.patternSlots.size());
+            slots.addAll(source);
             slots.addAll(this.patternSlots);
-            return slots;
+            CombinedSlots rebuilt = new CombinedSlots(source, source.size(), Collections.unmodifiableList(slots));
+            if (side == null) {
+                this.unsided = rebuilt;
+            } else {
+                this.bySide.put(side, rebuilt);
+            }
+            return rebuilt.combined();
+        }
+
+        private record CombinedSlots(List<? extends mekanism.api.inventory.IInventorySlot> source, int sourceSize,
+                List<mekanism.api.inventory.IInventorySlot> combined) {
+            boolean matches(List<? extends mekanism.api.inventory.IInventorySlot> current) {
+                return current == this.source && current.size() == this.sourceSize;
+            }
         }
     }
 
@@ -842,6 +894,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
 
     protected abstract boolean hasAeOutputWork();
 
+    /** Runs one AE-tick worth of output/interface work; returns whether anything changed. */
     protected abstract boolean processAeOutputWork();
 
     private void requestCraftingUpdate() {
@@ -870,7 +923,41 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
         for (int i = 0; i < this.patternSlots.size(); i++) {
             tag.put("MePatternSlot" + i, this.patternSlots.get(i).serializeNBT(registries));
         }
+        // Slots beyond the current page count are hidden, not deleted: write them back verbatim
+        // so lowering the patternPages config never destroys encoded patterns.
+        for (String key : this.hiddenPatternSlotTags.getAllKeys()) {
+            if (!tag.contains(key)) {
+                tag.put(key, this.hiddenPatternSlotTags.get(key).copy());
+            }
+        }
         this.smartPatternMultiplication.savePending(tag, registries);
+    }
+
+    /** Pattern slot tags whose index is at or above the current slot count. */
+    private final CompoundTag hiddenPatternSlotTags = new CompoundTag();
+
+    private void retainHiddenPatternSlots(CompoundTag tag) {
+        for (String key : java.util.Set.copyOf(this.hiddenPatternSlotTags.getAllKeys())) {
+            this.hiddenPatternSlotTags.remove(key);
+        }
+        for (String key : tag.getAllKeys()) {
+            if (!key.startsWith(TAG_PATTERN_SLOT_PREFIX)) {
+                continue;
+            }
+            int index;
+            try {
+                index = Integer.parseInt(key.substring(TAG_PATTERN_SLOT_PREFIX.length()));
+            } catch (NumberFormatException ignored) {
+                continue;
+            }
+            if (index >= this.patternSlots.size() && tag.get(key) instanceof CompoundTag slotTag && !slotTag.isEmpty()) {
+                this.hiddenPatternSlotTags.put(key, slotTag.copy());
+            }
+        }
+        if (!this.hiddenPatternSlotTags.isEmpty()) {
+            MekEnergistics.LOGGER.debug("{} keeps {} encoded pattern slot(s) hidden by the current patternPages setting",
+                    this.ownerTile.getBlockPos(), this.hiddenPatternSlotTags.size());
+        }
     }
 
     protected final void loadCommon(CompoundTag tag, HolderLookup.Provider registries) {
@@ -892,6 +979,7 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
 
     public final void loadSlots(CompoundTag tag, HolderLookup.Provider registries) {
         boolean migrated = tag.getInt(TAG_PATTERN_SCHEMA) < AE_PATTERN_SCHEMA;
+        retainHiddenPatternSlots(tag);
         for (int i = 0; i < this.patternSlots.size(); i++) {
             if (tag.contains("MePatternSlot" + i)) {
                 this.patternSlots.get(i).deserializeNBT(registries, tag.getCompound("MePatternSlot" + i));
@@ -950,23 +1038,57 @@ public abstract class AbstractMeAeSupport<O extends MePatternIoOwner> {
     static final class CraftingUpdateState extends MeAeNodeLifecycle.CraftingUpdateState {
     }
 
+    /**
+     * Slowest AE tick interval while output/interface work exists but cannot progress (network
+     * full, item missing). Progress snaps back to every tick.
+     */
+    static final int MAX_IDLE_TICK_RATE = 20;
+
+    /**
+     * False once the AE ticker has gone to sleep; block-entity ticks use it to wake the ticker only
+     * when it may actually be asleep. Alerting every tick reset AE2's tick rate to the minimum and
+     * made any backoff impossible.
+     */
+    private boolean aeTickerAwake;
+
+    /** Wakes the AE ticker if work is pending and it may be asleep. Cheap enough for every tick. */
+    protected final void wakeAeTickerIfIdle() {
+        if (!this.aeTickerAwake && hasAeOutputWork()) {
+            this.aeTickerAwake = true;
+            alertAeTicker();
+        }
+    }
+
+    /**
+     * Picks the next AE tick rate. URGENT only after real progress, otherwise SLOWER, so a backlog
+     * that cannot move (full network, missing stock) backs off to {@link #MAX_IDLE_TICK_RATE}.
+     */
+    static TickRateModulation nextTickRate(boolean progressed, boolean hasWork) {
+        if (!hasWork) {
+            return TickRateModulation.SLEEP;
+        }
+        return progressed ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
+    }
+
     private final class AeTicker implements IGridTickable {
         @Override
         public TickingRequest getTickingRequest(IGridNode node) {
-            return new TickingRequest(1, 1, !hasAeOutputWork());
+            boolean hasWork = hasAeOutputWork();
+            aeTickerAwake = hasWork;
+            return new TickingRequest(1, MAX_IDLE_TICK_RATE, !hasWork);
         }
 
         @Override
         public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
             if (!nodeLifecycle.getMainNode().isActive()) {
+                aeTickerAwake = false;
                 return TickRateModulation.SLEEP;
             }
-            boolean hadWork = hasAeOutputWork();
-            boolean finished = processAeOutputWork();
-            if (!hasAeOutputWork()) {
-                return TickRateModulation.SLEEP;
-            }
-            return finished || hadWork ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
+            // processAeOutputWork reports whether anything moved this tick.
+            boolean progressed = processAeOutputWork();
+            TickRateModulation rate = nextTickRate(progressed, hasAeOutputWork());
+            aeTickerAwake = rate != TickRateModulation.SLEEP;
+            return rate;
         }
     }
 }

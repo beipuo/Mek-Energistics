@@ -41,7 +41,9 @@ public final class MekEnergisticsConfig {
         patternPages = builder
                 .comment("Number of 4x9 encoded pattern pages available in each ME machine.",
                         "Default: 2 pages, 72 pattern slots.",
-                        "Reducing this value hides higher slots, but their saved NBT remains on the machine.")
+                        "Reducing this value hides higher slots, but their saved NBT remains on the machine.",
+                        "Requires a world restart: the slot layout of loaded machines cannot change while they exist.")
+                .worldRestart()
                 .defineInRange("patternPages", DEFAULT_PATTERN_PAGES, MIN_PATTERN_PAGES, MAX_PATTERN_PAGES);
         preferAppliedFluxNetworkFe = builder
                 .comment("Prefer FE stored in Applied Flux cells when an ME machine is connected to an AE network.",

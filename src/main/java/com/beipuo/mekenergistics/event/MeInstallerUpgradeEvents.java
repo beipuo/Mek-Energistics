@@ -51,7 +51,9 @@ public final class MeInstallerUpgradeEvents {
         }
         if (!event.getLevel().isClientSide && stack.getItem() instanceof MeTierInstallerItem) {
             InteractionResult result = MeTierInstallerItem.tryInstall(stack, event.getLevel(), event.getPos(), event.getEntity());
-            if (result.consumesAction()) {
+            // A FAIL is final too: letting the event continue would run the same installer again
+            // through Item#useOn and show its error message twice.
+            if (result.consumesAction() || result == InteractionResult.FAIL) {
                 event.setCanceled(true);
                 event.setCancellationResult(result);
             }
@@ -64,7 +66,7 @@ public final class MeInstallerUpgradeEvents {
                 event.getPos(),
                 event.getEntity()
         );
-        if (result.consumesAction()) {
+        if (result.consumesAction() || result == ItemInteractionResult.FAIL) {
             event.setCanceled(true);
             event.setCancellationResult(result.result());
         }

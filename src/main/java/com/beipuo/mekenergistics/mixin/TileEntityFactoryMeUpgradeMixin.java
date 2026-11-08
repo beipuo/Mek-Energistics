@@ -76,9 +76,22 @@ public abstract class TileEntityFactoryMeUpgradeMixin implements MeUpgradeRecipe
         }
     }
 
+    /** Memoized upgrade profile; deliberately no initializer (see MeUpgradeProfileCache). */
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache;
+
+    @Unique
+    private com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache mekenergistics$profileCache() {
+        if (this.mekenergistics$profileCache == null) {
+            this.mekenergistics$profileCache = new com.beipuo.mekenergistics.upgrade.MeUpgradeProfileCache();
+        }
+        return this.mekenergistics$profileCache;
+    }
+
     @Unique
     private MeUpgradeMachineProfile<TileEntityFactory<?>> mekenergistics$factoryProfile() {
-        return MekanismFactoryUpgradeProfiles.forTile(mekenergistics$factory(), this);
+        return mekenergistics$profileCache().get(mekenergistics$factory(),
+                () -> MekanismFactoryUpgradeProfiles.forTile(mekenergistics$factory(), this), false);
     }
 
     @Override

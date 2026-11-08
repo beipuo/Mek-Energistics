@@ -184,6 +184,12 @@ final class CompatMachineDataJson {
                 condition.addProperty("modid", modId);
                 conditions.add(condition);
             }
+            // A loaded mod is not enough: several compat machines are only registered when
+            // specific classes or tiers exist (large machines, advanced factories, combined
+            // tiers). Without these checks every datapack reload logs a parse error for each
+            // recipe whose source or result item was never registered.
+            conditions.add(itemExists(spec.sourceBlockId()));
+            conditions.add(itemExists(spec.meBlockId()));
             root.add("neoforge:conditions", conditions);
         }
         root.addProperty("type", "minecraft:crafting_shapeless");
@@ -256,6 +262,13 @@ final class CompatMachineDataJson {
             }
         }
         return modIds;
+    }
+
+    private static JsonObject itemExists(ResourceLocation item) {
+        JsonObject condition = new JsonObject();
+        condition.addProperty("type", "neoforge:item_exists");
+        condition.addProperty("item", item.toString());
+        return condition;
     }
 
     private static JsonObject itemIngredient(ResourceLocation item) {

@@ -3,6 +3,9 @@ package com.beipuo.mekenergistics.mixin;
 import com.beipuo.mekenergistics.blockentity.api.MeAeMachine;
 import com.beipuo.mekenergistics.blockentity.api.MeUpgradeableMachine;
 import com.beipuo.mekenergistics.block.MeMekanismMachineBlock;
+import com.beipuo.mekenergistics.upgrade.MePatternAutomationRuntimeHolder;
+import com.beipuo.mekenergistics.upgrade.MePatternAutomationRuntimes;
+import com.beipuo.mekenergistics.upgrade.MeUpgradeRecipeMachineRuntime;
 import com.beipuo.mekenergistics.upgrade.MeUpgradeStateOwner;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IManagedGridNode;
@@ -22,7 +25,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(value = TileEntityMekanism.class, remap = false)
-public abstract class TileEntityMekanismMeUpgradeLifecycleMixin {
+public abstract class TileEntityMekanismMeUpgradeLifecycleMixin implements MePatternAutomationRuntimeHolder {
+    /** Runtime of a pattern-automation SPI host; null for every other tile. */
+    @Unique
+    private MeUpgradeRecipeMachineRuntime mekenergistics$patternAutomationRuntime;
+
+    @Override
+    public MeUpgradeRecipeMachineRuntime mekenergistics$getPatternAutomationRuntime() {
+        return this.mekenergistics$patternAutomationRuntime;
+    }
+
+    @Override
+    public void mekenergistics$setPatternAutomationRuntime(MeUpgradeRecipeMachineRuntime runtime) {
+        this.mekenergistics$patternAutomationRuntime = runtime;
+    }
+
     /**
      * A concrete class method takes precedence over AE2 and optional integration
      * interface defaults when this Mixin is applied to third-party Mekanism tiles.
@@ -66,6 +83,7 @@ public abstract class TileEntityMekanismMeUpgradeLifecycleMixin {
         if ((Object) this instanceof MeUpgradeableMachine machine) {
             machine.destroyMeNode();
         }
+        MePatternAutomationRuntimes.forget((TileEntityMekanism) (Object) this);
     }
 
     @Inject(method = "addContainerTrackers", at = @At("RETURN"))
