@@ -1,8 +1,28 @@
 # Changelog
 
-## 未发布
+## 3.0.9
+
+### English
+
+- Fixed carried ME machine items missing their block entity ID and crashing item serialization (#27).
+- Reject oversized single-craft inputs before smart-queue admission, including NeoECO native submissions, so rejected patterns cannot permanently lock the machine or resources (#28).
+- Added a pending-input refund button to the pattern window (#29). Only unprocessed queued inputs are returned; offline/full networks retain the exact remaining balance across reloads. Repeated requests do not duplicate refunds. Cancel the AE crafting CPU job separately.
+- Adapted Thunderbolt's relocated batch API, Data Energistics capacity capture, and NeoECO's native smart batch submission without applying multiplication twice.
+- Updated AE2 Lightning Tech to 2.1.3 (`9374836`), Thunderbolt Core to 2.0.3 (`9363797`), Neo ECO AE Extension to 21.2.15 (`9455087`), Data Energistics to 3.3.5 (`9095664`), and OmniSequence Transfinite to 2.0.13 (`9484758`).
+- Updated AE2 to 19.2.18 and JEI to 19.56.0.438 to meet integration requirements; added Applied Enhancements 1.1.2 for OmniSequence.
+- Validation: 360 unit tests and all 51 required GameTests passed. GameTest servers now use an isolated directory rather than sharing the development client directory.
 
 ### 中文
+
+#### 本次重点
+
+- 修复携带 ME 机器时，物品缺少方块实体 ID 导致序列化崩溃的问题（#27）。
+- 超容量的单次样板在智能队列接收前直接拒绝，覆盖 NeoECO 原生批量入队路径，避免资源锁死及机器永久 busy（#28）。
+- 样板窗口新增待处理原料退回按钮（#29）：只退还尚未投料的队列原料；离线、满网及存盘重载后保留精确余额，重复点击不会多退。AE 合成 CPU 任务需要另行取消。
+- 适配 Thunderbolt 新批量 API 包路径、Data Energistics 新容量捕获流程和 NeoECO 原生智能批量提交，避免二次倍增。
+- 更新 AE2 Lightning Tech 2.1.3（`9374836`）、Thunderbolt Core 2.0.3（`9363797`）、Neo ECO AE Extension 21.2.15（`9455087`）、Data Energistics 3.3.5（`9095664`）、OmniSequence Transfinite 2.0.13（`9484758`）。
+- 为满足联动要求，AE2 更新至 19.2.18、JEI 更新至 19.56.0.438，并加入 OmniSequence 所需的 Applied Enhancements 1.1.2。
+- 验证：360 项单元测试、51 项游戏测试全部通过；游戏测试服务器改用独立目录，不再与开发客户端共用目录。
 
 #### 变更
 
@@ -38,7 +58,7 @@
 
 - 重写中英文 README 的配置表、依赖最低版本和兼容模组列表，新增“ME 升级卡”和“常见问题”章节。
 - 可选联动因附属模组版本不受支持而被禁用时，会在日志中输出一条提示；Mekanism Magic 接口调用失败时记录一次警告。
-- 新增翻译一致性、AE tick 频率、能量查询上限、安装器流程等单元测试，单元测试共 356 个。3 个 GameTest 不再依赖本地配置，37 个 GameTest 全部通过。
+- 新增翻译一致性、AE tick 频率、能量查询上限、安装器流程、退款及新版倍增集成回归覆盖；360 项单元测试、51 项 GameTest 全部通过。3 个原有 GameTest 不再依赖本地配置。
 
 ## 3.0.8
 
