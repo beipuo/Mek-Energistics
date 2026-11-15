@@ -137,6 +137,55 @@ class MeNetworkEnergyHelperTest {
     }
 
     @Test
+    void availabilityCacheReusesWithinItsTtlButNotForever() {
+        long now = 10_000;
+
+        assertTrue(MeNetworkEnergyHelper.reuseAvailability(now, now - 1));
+        assertTrue(MeNetworkEnergyHelper.reuseAvailability(now, now - MeNetworkEnergyHelper.AVAILABILITY_CACHE_TICKS + 1));
+        assertFalse(MeNetworkEnergyHelper.reuseAvailability(now, now - MeNetworkEnergyHelper.AVAILABILITY_CACHE_TICKS),
+                "a stale capture must be dropped so a drained network is noticed");
+        assertFalse(MeNetworkEnergyHelper.reuseAvailability(0, 0),
+                "without a world tick source availability must never be cached");
+    }
+
+    @Test
+    void lowWaterMarkKeepsAFewTicksOfEnergy() {
+        assertEquals(1_000 - 4 * 10, MeNetworkEnergyHelper.lowWaterMark(1_000, 10));
+        assertEquals(0, MeNetworkEnergyHelper.lowWaterMark(1_000, 1_000_000), "a huge per-tick cost refills from empty");
+        assertEquals(0, MeNetworkEnergyHelper.lowWaterMark(0, 10));
+    }
+
+    @Test
+    void refillSkipsTheNetworkWhileTheBufferIsAboveTheLowWaterMark() {
+        AtomicBoolean extracted = new AtomicBoolean();
+        AtomicLong stored = new AtomicLong();
+
+        long injected = MeNetworkEnergyHelper.refillEnergyBuffer(80, 100, 60, amount -> {
+            extracted.set(true);
+            return amount;
+        }, stored::set);
+
+        assertEquals(0, injected);
+        assertFalse(extracted.get(), "a buffer with four ticks of energy left must not touch the AE network");
+        assertEquals(0, stored.get());
+    }
+
+    @Test
+    void refillStillTopsUpASmallBufferBelowTheLowWaterMark() {
+        AtomicLong requested = new AtomicLong();
+        AtomicLong stored = new AtomicLong();
+
+        long injected = MeNetworkEnergyHelper.refillEnergyBuffer(30, 100, 60, amount -> {
+            requested.set(amount);
+            return amount;
+        }, stored::set);
+
+        assertEquals(70, requested.get());
+        assertEquals(70, injected);
+        assertEquals(100, stored.get());
+    }
+
+    @Test
     void allMeMachinesRefillBeforeTheirMekanismServerTick() throws Exception {
         String lifecycleMixin = Files.readString(Path.of(
                 "src/main/java/com/beipuo/mekenergistics/mixin/TileEntityMekanismMeUpgradeLifecycleMixin.java"));

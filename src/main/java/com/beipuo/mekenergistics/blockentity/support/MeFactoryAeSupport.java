@@ -149,7 +149,11 @@ public final class MeFactoryAeSupport extends AbstractMeAeSupport<MeFactoryAeMac
 
     public static IEnergyContainer recipeEnergyView(MeFactoryAeMachine owner, MachineEnergyContainer<?> energyContainer) {
         return owner == null ? energyContainer
-                : MeNetworkEnergyHelper.recipeEnergyView(energyContainer, () -> owner.getAeSupport().getGrid(), owner.getAeSupport().actionSource);
+                : MeNetworkEnergyHelper.recipeEnergyView(energyContainer, () -> owner.getAeSupport().getGrid(),
+                        owner.getAeSupport().actionSource, () -> {
+                            var level = owner.getOwnerLevel();
+                            return level == null ? 0L : level.getGameTime();
+                        });
     }
 
     public static <RECIPE extends MekanismRecipe<?>> CachedRecipe<RECIPE> withAeRecipeEnergy(
