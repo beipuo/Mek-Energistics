@@ -149,8 +149,9 @@ class MeNetworkEnergyHelperTest {
     }
 
     @Test
-    void lowWaterMarkKeepsAFewTicksOfEnergy() {
-        assertEquals(1_000 - 4 * 10, MeNetworkEnergyHelper.lowWaterMark(1_000, 10));
+    void lowWaterMarkKeepsHalfTheBufferOrAFewTicksOfEnergy() {
+        assertEquals(500, MeNetworkEnergyHelper.lowWaterMark(1_000, 10), "a cheap machine sips to half before refilling");
+        assertEquals(40, MeNetworkEnergyHelper.lowWaterMark(100, 15), "the four-tick margin wins over the half buffer");
         assertEquals(0, MeNetworkEnergyHelper.lowWaterMark(1_000, 1_000_000), "a huge per-tick cost refills from empty");
         assertEquals(0, MeNetworkEnergyHelper.lowWaterMark(0, 10));
     }
