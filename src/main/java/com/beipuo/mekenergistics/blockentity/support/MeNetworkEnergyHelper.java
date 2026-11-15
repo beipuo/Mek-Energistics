@@ -308,9 +308,9 @@ public final class MeNetworkEnergyHelper {
             long requested = cap - Math.max(0, local);
             long network = extractNetworkFe(grid, this.actionSource, requested, Action.SIMULATE);
             long available = totalAvailableEnergy(local, network);
-            if (network >= requested) {
-                // Only a network that fully covered the request may be reused: a short network is
-                // re-checked every tick so recipes stop instead of running on stale energy.
+            if (network > 0) {
+                // Any network contribution may be reused. A network that answered with zero is
+                // re-checked every tick so a machine stops as soon as it is truly out of energy.
                 this.cachedAvailable = available;
                 this.cachedAtTick = now;
             } else {
