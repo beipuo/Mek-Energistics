@@ -268,16 +268,20 @@ public final class MeUpgradeRegressionGameTests {
                             .mapToLong(s -> s.getCount()).sum();
                     helper.assertTrue(produced == 1, "recipe did not finish without replacing the machine: " + produced + ", progress=" + ((TileEntityFactory<?>) tile(helper)).getProgress(0) + ", state=" + energyState(helper));
                     for (IEnergyContainer energy : tile(helper).getEnergyContainers(null)) {
-                        helper.assertTrue(energy.getEnergy() == energy.getMaxEnergy(), "idle local buffer is not full");
+                        long max = energy.getMaxEnergy();
+                        long perTick = energy instanceof mekanism.common.capabilities.energy.MachineEnergyContainer<?> machineEnergy
+                                ? machineEnergy.getEnergyPerTick() : 0;
+                        long reserve = perTick > Long.MAX_VALUE / 4 ? Long.MAX_VALUE : Math.max(0, perTick) * 4;
+                        long threshold = max - Math.min(max, Math.max(reserve, max / 2));
+                        helper.assertTrue(energy.getEnergy() >= threshold, "idle local buffer is below its refill threshold");
                     }
                     before[0] = cell(helper).getAECurrentPower();
                 }).thenExecuteAfter(200, () -> {
                     double spent = before[0] - cell(helper).getAECurrentPower();
                     helper.assertTrue(spent >= 0 && spent < 1_000, "idle factory continuously drained AE power: " + spent);
-                    // Repeated refill in the same tick must not debit a full buffer at all.
                     double stored = cell(helper).getAECurrentPower();
                     for (int i = 0; i < 100; i++) machine(helper).getRecipeAeSupport().refillLocalEnergyBuffers();
-                    helper.assertTrue(cell(helper).getAECurrentPower() == stored, "full buffer was charged twice");
+                    helper.assertTrue(cell(helper).getAECurrentPower() == stored, "buffer above refill threshold was charged twice");
                     for (var slot : tile(helper).getInventorySlots(null)) {
                         if (slot instanceof mekanism.common.inventory.slot.OutputInventorySlot) {
                             slot.setStack(new ItemStack(Items.IRON_INGOT, 64));

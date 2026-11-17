@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.1.0
+
+### English
+
+- Reduced repeated AE network storage scans during recipe energy checks, addressing the performance hotspot reported for the ME antiprotonic nucleosynthesizer (#31, refs #22).
+- Cache network-backed energy availability for up to 20 ticks. Zero network availability is not cached, and incomplete energy extraction invalidates the cache.
+- Consume local buffered energy before accessing the network and refill the buffer in batches according to a low-water threshold, reducing per-tick network extractions.
+- Keep recipe execution limited to the energy actually requested; batch buffer refills remain in the server-tick refill pass, preserving live upgrade removal behavior.
+- Preserve uncached behavior for callers of the existing recipe-energy API overload.
+- Added regression tests for cache expiry, refill thresholds, and skipped network access while the local buffer remains above the threshold.
+- Validation: build, all 364 unit tests, and all 51 required GameTests passed.
+
+### 中文
+
+- 减少配方能量检查时对 AE 网络存储的重复遍历，针对 ME 反质子核合成器报告的性能热点进行优化（#31，关联 #22）。
+- 网络能量可用量最多缓存 20 tick；网络可用量为零时不缓存，实际能量抽取不足时立即使缓存失效。
+- 优先消耗本地能量缓冲，并根据低水位阈值批量补充能量，减少逐 tick 抽取网络能量的开销。
+- 配方执行只抽取实际请求的能量，批量补充缓冲仍由服务端 tick 补能流程负责，保持升级卸载后即时切换供能的行为。
+- 保持现有配方能量 API 重载的不缓存行为，不改变已有调用方的行为。
+- 新增缓存到期、补能阈值及本地缓冲高于阈值时跳过网络访问的回归测试。
+- 验证：构建、364 项单元测试及全部 51 项必需游戏测试通过。
+
 ## 3.0.9
 
 ### English

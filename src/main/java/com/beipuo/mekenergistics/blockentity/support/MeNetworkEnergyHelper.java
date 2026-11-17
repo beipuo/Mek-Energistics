@@ -288,15 +288,13 @@ public final class MeNetworkEnergyHelper {
         public long getEnergy() {
             long local = localEnergy();
             long now = this.gameTimeSupplier.getAsLong();
-            if (this.cachedAvailable != UNSET_AVAILABILITY && reuseAvailability(now, this.cachedAtTick)) {
-                // A cached capture already answered this tick, so the (comparatively expensive)
-                // grid lookup the supplier performs does not have to run again.
-                return Math.max(local, this.cachedAvailable);
-            }
             IGrid grid = grid();
             if (grid == null) {
                 this.cachedAvailable = UNSET_AVAILABILITY;
                 return local;
+            }
+            if (this.cachedAvailable != UNSET_AVAILABILITY && reuseAvailability(now, this.cachedAtTick)) {
+                return Math.max(local, this.cachedAvailable);
             }
             long cap = availabilityCap(this.energyContainer);
             if (local >= cap) {
@@ -351,7 +349,6 @@ public final class MeNetworkEnergyHelper {
                 IGrid grid = grid();
                 extracted = extractLocal(this.energyContainer, amount, action, automationType);
                 if (grid != null) {
-                    refillLocalEnergy(this.energyContainer, grid, this.actionSource);
                     if (extracted < amount) {
                         long networkExtracted = extractNetworkFe(grid, this.actionSource, amount - extracted, Action.EXECUTE);
                         if (networkExtracted > 0) {
