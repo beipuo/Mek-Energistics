@@ -8,6 +8,7 @@ import appeng.api.networking.security.IActionSource;
 import com.beipuo.mekenergistics.config.MekEnergisticsConfig;
 import com.beipuo.mekenergistics.compat.OptionalCompatClasses;
 import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
 import java.util.function.LongUnaryOperator;
 import java.util.function.Supplier;
 import mekanism.api.Action;
@@ -22,6 +23,22 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 
 public final class MeNetworkEnergyHelper {
+    /**
+     * How long a captured "local + network" availability may be reused for recipe checks. Mekanism
+     * asks for the available energy every server tick, and a single simulated network drain can
+     * walk every AE storage, so a machine sitting on a full network must not pay that cost per
+     * tick. One second is longer than any single operation and short enough that a network drained
+     * by something else is noticed before a machine can fabricate energy out of stale numbers.
+     */
+    static final int AVAILABILITY_CACHE_TICKS = 20;
+
+    /**
+     * Refill the local FE buffer only once it can no longer cover this many ticks of operation
+     * energy. Refilling every tick turns a full buffer into a per-tick network extraction, and AE
+     * extractions are far more expensive than the Mekanism container bookkeeping they replace.
+     */
+    static final int REFILL_SAFETY_TICKS = 4;
+
     private MeNetworkEnergyHelper() {
     }
 
@@ -92,6 +109,11 @@ public final class MeNetworkEnergyHelper {
         return Math.max(Math.max(0, localEnergy.getMaxEnergy()), operations);
     }
 
+    /** Whether a captured availability is still fresh. Game time {@code 0} means the source has no tick, so never cache. */
+    static boolean reuseAvailability(long now, long cachedAtTick) {
+        return now > 0 && now - cachedAtTick < AVAILABILITY_CACHE_TICKS;
+    }
+
     static long availableWithNetwork(long local, LongUnaryOperator simulatedNetworkExtraction) {
         return availableWithNetwork(local, Long.MAX_VALUE, simulatedNetworkExtraction);
     }
@@ -143,13 +165,38 @@ public final class MeNetworkEnergyHelper {
         if (localEnergy == null || grid == null) {
             return 0;
         }
-        return refillEnergyBuffer(localEnergy.getEnergy(), localEnergy.getMaxEnergy(),
+        // Containers that know their per-tick usage only refill once the buffer runs dry; anything
+        // else keeps the old "top up whenever it is not full" behaviour.
+        long lowWaterMark = localEnergy instanceof MachineEnergyContainer<?> machine
+                ? lowWaterMark(machine.getMaxEnergy(), machine.getEnergyPerTick())
+                : localEnergy.getMaxEnergy();
+        return refillEnergyBuffer(localEnergy.getEnergy(), localEnergy.getMaxEnergy(), lowWaterMark,
                 requested -> extractNetworkFe(grid, source, requested, Action.EXECUTE), localEnergy::setEnergy);
+    }
+
+    /**
+     * Energy level at which a buffer must be refilled. The margin is the larger of
+     * {@link #REFILL_SAFETY_TICKS} ticks of operation energy and half the buffer, so a machine
+     * sips from its own buffer for a while before the network is walked again, while a buffer
+     * too small to hold the safety margin still refills before it runs dry.
+     */
+    static long lowWaterMark(long maxEnergy, long energyPerTick) {
+        if (maxEnergy <= 0) {
+            return 0;
+        }
+        long reserve = energyPerTick <= 0 ? 0
+                : energyPerTick > Long.MAX_VALUE / REFILL_SAFETY_TICKS ? Long.MAX_VALUE : energyPerTick * REFILL_SAFETY_TICKS;
+        return maxEnergy - Math.min(maxEnergy, Math.max(reserve, maxEnergy / 2));
     }
 
     static long refillEnergyBuffer(long currentEnergy, long maxEnergy, LongUnaryOperator networkExtraction,
             LongConsumer energySetter) {
-        if (currentEnergy >= maxEnergy || maxEnergy <= 0) {
+        return refillEnergyBuffer(currentEnergy, maxEnergy, maxEnergy, networkExtraction, energySetter);
+    }
+
+    static long refillEnergyBuffer(long currentEnergy, long maxEnergy, long lowWaterMark, LongUnaryOperator networkExtraction,
+            LongConsumer energySetter) {
+        if (maxEnergy <= 0 || currentEnergy >= maxEnergy || currentEnergy >= lowWaterMark) {
             return 0;
         }
         long normalizedCurrent = Math.max(0, currentEnergy);
@@ -163,7 +210,16 @@ public final class MeNetworkEnergyHelper {
     }
 
     public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier, IActionSource source) {
-        return new NetworkRecipeEnergyView(energyContainer, gridSupplier, source);
+        return recipeEnergyView(energyContainer, gridSupplier, source, () -> 0L);
+    }
+
+    /**
+     * @param gameTimeSupplier current world game time, or a constant zero when no tick source is available. A
+     *                         constant zero disables availability caching so the network is queried every call.
+     */
+    public static IEnergyContainer recipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier,
+            IActionSource source, LongSupplier gameTimeSupplier) {
+        return new NetworkRecipeEnergyView(energyContainer, gridSupplier, source, gameTimeSupplier);
     }
 
     public static class NetworkBackedEnergyContainer<TILE extends TileEntityMekanism> extends MachineEnergyContainer<TILE>
@@ -210,19 +266,66 @@ public final class MeNetworkEnergyHelper {
     }
 
     private static final class NetworkRecipeEnergyView implements IEnergyContainer {
+        /** Sentinel for "no cached availability"; cached numbers can never be negative. */
+        private static final long UNSET_AVAILABILITY = Long.MIN_VALUE;
+
         private final MachineEnergyContainer<?> energyContainer;
         private final Supplier<IGrid> gridSupplier;
         private final IActionSource actionSource;
+        private final LongSupplier gameTimeSupplier;
+        private long cachedAvailable = UNSET_AVAILABILITY;
+        private long cachedAtTick;
 
-        private NetworkRecipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier, IActionSource actionSource) {
+        private NetworkRecipeEnergyView(MachineEnergyContainer<?> energyContainer, Supplier<IGrid> gridSupplier, IActionSource actionSource,
+                LongSupplier gameTimeSupplier) {
             this.energyContainer = energyContainer;
             this.gridSupplier = gridSupplier;
             this.actionSource = actionSource;
+            this.gameTimeSupplier = gameTimeSupplier == null ? () -> 0L : gameTimeSupplier;
         }
 
         @Override
         public long getEnergy() {
-            return availableWithLocalBuffer(this.energyContainer, this.gridSupplier.get(), this.actionSource);
+            long local = localEnergy();
+            long now = this.gameTimeSupplier.getAsLong();
+            if (this.cachedAvailable != UNSET_AVAILABILITY && reuseAvailability(now, this.cachedAtTick)) {
+                // A cached capture already answered this tick, so the (comparatively expensive)
+                // grid lookup the supplier performs does not have to run again.
+                return Math.max(local, this.cachedAvailable);
+            }
+            IGrid grid = grid();
+            if (grid == null) {
+                this.cachedAvailable = UNSET_AVAILABILITY;
+                return local;
+            }
+            long cap = availabilityCap(this.energyContainer);
+            if (local >= cap) {
+                // The local buffer alone already covers the request, so nothing has to be captured.
+                // Caching local-only numbers here would let a later drain over-report availability.
+                this.cachedAvailable = UNSET_AVAILABILITY;
+                return local;
+            }
+            long requested = cap - Math.max(0, local);
+            long network = extractNetworkFe(grid, this.actionSource, requested, Action.SIMULATE);
+            long available = totalAvailableEnergy(local, network);
+            if (network > 0) {
+                // Any network contribution may be reused. A network that answered with zero is
+                // re-checked every tick so a machine stops as soon as it is truly out of energy.
+                this.cachedAvailable = available;
+                this.cachedAtTick = now;
+            } else {
+                this.cachedAvailable = UNSET_AVAILABILITY;
+            }
+            return available;
+        }
+
+        private long localEnergy() {
+            return this.energyContainer instanceof LocalEnergyBuffer buffer ? buffer.getLocalEnergy()
+                    : this.energyContainer.getEnergy();
+        }
+
+        private IGrid grid() {
+            return this.gridSupplier == null ? null : this.gridSupplier.get();
         }
 
         @Override
@@ -232,7 +335,41 @@ public final class MeNetworkEnergyHelper {
 
         @Override
         public long extract(long amount, Action action, AutomationType automationType) {
-            return extractWithLocalBuffer(this.energyContainer, this.gridSupplier.get(), this.actionSource, amount, action, automationType);
+            if (amount <= 0) {
+                return 0;
+            }
+            if (!action.execute()) {
+                // Simulated extractions still need the complete local + network picture.
+                return extractWithLocalBuffer(this.energyContainer, grid(), this.actionSource, amount, action, automationType);
+            }
+            long extracted;
+            if (localEnergy() >= amount) {
+                // The buffer already holds enough, so this tick never looks at the network. The
+                // refill pass keeps it stocked in batches instead of touching AE every tick.
+                extracted = extractLocal(this.energyContainer, amount, action, automationType);
+            } else {
+                IGrid grid = grid();
+                extracted = extractLocal(this.energyContainer, amount, action, automationType);
+                if (grid != null) {
+                    refillLocalEnergy(this.energyContainer, grid, this.actionSource);
+                    if (extracted < amount) {
+                        long networkExtracted = extractNetworkFe(grid, this.actionSource, amount - extracted, Action.EXECUTE);
+                        if (networkExtracted > 0) {
+                            this.energyContainer.onContentsChanged();
+                        }
+                        extracted += networkExtracted;
+                    }
+                }
+            }
+            if (this.cachedAvailable != UNSET_AVAILABILITY) {
+                if (extracted < amount) {
+                    // The network could not cover the request after all; re-check next tick.
+                    this.cachedAvailable = UNSET_AVAILABILITY;
+                } else {
+                    this.cachedAvailable = Math.max(0, this.cachedAvailable - extracted);
+                }
+            }
+            return extracted;
         }
 
         @Override

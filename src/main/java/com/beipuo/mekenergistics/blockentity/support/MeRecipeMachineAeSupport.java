@@ -138,7 +138,11 @@ public final class MeRecipeMachineAeSupport<TILE extends TileEntityMekanism & Me
         // Bind once even before installation. CachedRecipe survives upgrade changes;
         // deciding at construction time leaves it using the old power source until reload.
         return cachedRecipe.setEnergyRequirements(energyContainer::getEnergyPerTick,
-                MeNetworkEnergyHelper.recipeEnergyView(energyContainer, () -> recipeGrid(aeMachine), actionSource));
+                MeNetworkEnergyHelper.recipeEnergyView(energyContainer, () -> recipeGrid(aeMachine), actionSource,
+                        () -> {
+                            var level = aeMachine.getAeOwnerTile().getLevel();
+                            return level == null ? 0L : level.getGameTime();
+                        }));
     }
 
     private static appeng.api.networking.IGrid recipeGrid(MeAeMachine machine) {
